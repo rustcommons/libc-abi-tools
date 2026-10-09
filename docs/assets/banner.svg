@@ -1,22 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
   <title id="title">libc-abi-tools — rustcommons</title>
-  <desc id="desc">An orange gear beside a minimal connected diagram: GLIBC RELEASES, SYMBOLS + VERSIONS, ABI SNAPSHOT. Initial scope: x86_64 Linux, glibc 2.17 and later.</desc>
+  <desc id="desc">An orange gear beside a minimal connected diagram: LIBC RELEASES, SYMBOLS + VERSIONS, ABI SNAPSHOT. Initial scope: x86_64 Linux, glibc 2.17 and later.</desc>
   <rect width="1200" height="420" rx="20" fill="#111923"/>
   <path d="M32 80H1168M744 104V368" stroke="#2a3848" stroke-width="1"/>
   <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace">
     <text x="40" y="50" font-size="16" letter-spacing="4" fill="#f0a373">RUSTCOMMONS</text>
-    <text x="1090" y="50" font-size="16" fill="#8293a6">02 / ABI</text>
     <polygon points="188.0,235.0 187.7,241.7 200.4,251.0 198.5,258.8 195.8,266.4 192.3,273.7 176.5,272.8 172.6,278.1 168.1,283.1 163.1,287.6 165.6,303.2 158.7,307.3 151.4,310.8 143.8,313.5 133.3,301.7 126.7,302.7 120.0,303.0 113.3,302.7 104.0,315.4 96.2,313.5 88.6,310.8 81.3,307.3 82.2,291.5 76.9,287.6 71.9,283.1 67.4,278.1 51.8,280.6 47.7,273.7 44.2,266.4 41.5,258.8 53.3,248.3 52.3,241.7 52.0,235.0 52.3,228.3 39.6,219.0 41.5,211.2 44.2,203.6 47.7,196.3 63.5,197.2 67.4,191.9 71.9,186.9 76.9,182.4 74.4,166.8 81.3,162.7 88.6,159.2 96.2,156.5 106.7,168.3 113.3,167.3 120.0,167.0 126.7,167.3 136.0,154.6 143.8,156.5 151.4,159.2 158.7,162.7 157.8,178.5 163.1,182.4 168.1,186.9 172.6,191.9 188.2,189.4 192.3,196.3 195.8,203.6 198.5,211.2 186.7,221.7 187.7,228.3" fill="#d97845"/>
     <circle cx="120" cy="235" r="49" fill="#111923"/>
     <text x="120" y="252" font-size="49" text-anchor="middle" font-weight="700" fill="#f0a373">R</text>
     <text x="230" y="206" font-size="46" font-weight="700" letter-spacing="-2" fill="#edf2f7">libc-abi-tools</text>
-    <text x="233" y="250" font-size="19" fill="#a8b9ca">Know the ABI. Preserve the details.</text>
+    <text x="233" y="250" font-size="19" fill="#a8b9ca">Target libc versions beyond your host.</text>
     <text x="233" y="299" font-size="13" letter-spacing="2" fill="#f0a373">X86_64 LINUX · GLIBC 2.17+</text>
     <path d="M950 179V218M950 271V310" stroke="#d97845" stroke-width="2"/>
     <path d="m945 209 5 8 5-8m-10 92 5 8 5-8" fill="none" stroke="#d97845" stroke-width="2"/>
     <rect x="796" y="126" width="308" height="53" rx="7" fill="#192532" stroke="#405264"/>
     <circle cx="820" cy="152" r="4" fill="#d97845"/>
-    <text x="842" y="158" font-size="15" letter-spacing="1.3" fill="#dfe8f0">GLIBC RELEASES</text>
+    <text x="842" y="158" font-size="15" letter-spacing="1.3" fill="#dfe8f0">LIBC RELEASES</text>
     <rect x="796" y="218" width="308" height="53" rx="7" fill="#192532" stroke="#405264"/>
     <circle cx="820" cy="244" r="4" fill="#d97845"/>
     <text x="842" y="250" font-size="15" letter-spacing="1.3" fill="#dfe8f0">SYMBOLS + VERSIONS</text>

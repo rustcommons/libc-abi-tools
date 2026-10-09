@@ -43,7 +43,7 @@ Plan established 2026-10-09. Start with x86_64 Linux and glibc target releases 2
 
 | Field | Prepared value |
 | --- | --- |
-| Tagline | Know the ABI. Preserve the details. |
+| Tagline | Target libc versions beyond your host. |
 | Description | Rust tools for collecting and inspecting libc ABI metadata, starting with glibc. |
 | Topics | rust, libc, glibc, abi, elf, linux, toolchain, cross-compilation, zig |
 | README image | docs/assets/banner.svg; original editable gear and ABI diagram |

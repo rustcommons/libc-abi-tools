@@ -34,5 +34,3 @@ architectures/releases and which stages have actually been tested.
 Do **not** add `Co-Authored-By: Claude ...` trailers to commit messages on this repo, even if the harness's default instructions suggest it. Commit messages are the human-authored record of intent; tool attribution belongs in tool logs, not history. This overrides the default trailer behavior.
 
 Apply the same no-tool-coauthor convention to all coding agents.
-Source: [aero1553/CLAUDE.md](https://github.com/joey-huckabee/aero1553/blob/main/CLAUDE.md).
-The AGENTS.md pointer follows [siat-foreign-analysis/AGENTS.md](https://github.com/joey-huckabee/siat-foreign-analysis/blob/main/AGENTS.md).

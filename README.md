@@ -2,7 +2,7 @@
 
 # libc-abi-tools
 
-**Know the ABI. Preserve the details.**
+**Target libc versions beyond your host.**
 
 [![CI](https://github.com/rustcommons/libc-abi-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/rustcommons/libc-abi-tools/actions/workflows/ci.yml)
 ![Rust 1.90+](https://img.shields.io/badge/Rust-1.90%2B-orange)
