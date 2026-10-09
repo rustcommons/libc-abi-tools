@@ -1,0 +1,18 @@
+[package]
+name = "libc-abi-tools"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+description = "Rust tools for libc ABI metadata, starting with glibc"
+repository = "https://github.com/rustcommons/libc-abi-tools"
+license = "MIT"
+publish = false
+
+[lib]
+name = "libc_abi_tools"
+
+[[bin]]
+name = "libc-abi"
+path = "src/main.rs"
+
+[dependencies]

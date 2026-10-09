@@ -1,0 +1,6 @@
+target/
+/validation-output/
+/output/
+*.tmp
+.DS_Store
+Thumbs.db

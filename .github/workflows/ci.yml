@@ -1,0 +1,28 @@
+name: CI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  rust:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - run: cargo fmt --all -- --check
+      - run: cargo test --locked --offline
+      - run: cargo clippy --all-targets --locked --offline -- -D warnings
+      - name: Verify vendored data
+        if: runner.os == 'Linux'
+        working-directory: data/glibc
+        run: sha256sum --check SHA256SUMS
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.90.0
+      - run: cargo check --all-targets --locked --offline
