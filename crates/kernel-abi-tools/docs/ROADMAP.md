@@ -122,7 +122,7 @@ container. See [WORKFLOWS.md](../../../docs/WORKFLOWS.md).
 - [x] **ELF check** and **binary scan** (2026-10-10): `crates/linux-abi-scan`
   reports `NT_GNU_ABI_TAG`, `DT_RELR`, glibc versions, imported syscall
   wrappers (exact), and constant `syscall()`/raw-syscall/`madvise` call sites
-  (heuristic) against the floors. Tier 1; cargo-libc integration pending.
+  (heuristic) against the floors. Tier 1; called by `cargo libc inspect --distro`/`--kernel`.
 - [ ] **Source scan:** `MAP_*` and other flag constants, which the binary scan
   does not cover.
 - [ ] **Runtime trace:** optional `strace -f -Z` capture to list every failing

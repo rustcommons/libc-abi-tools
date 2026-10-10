@@ -64,7 +64,7 @@ distributed is an open decision (see [ROADMAP.md](ROADMAP.md)).
 ## 3. Inspect a built binary (tier 1)
 
 **Status: implemented in `linux-abi-scan`** (tested on synthetic ELF files and
-real binaries on Linux 6.18; not yet called by cargo-libc).
+real binaries on Linux 6.18; called by `cargo libc inspect --distro`/`--kernel`).
 
 ```sh
 linux-abi-scan target/release/app --distro sles-12-sp5 [--strict] [--verbose] [--tsv]
@@ -79,8 +79,10 @@ linux-abi-scan target/release/app --distro sles-12-sp5 [--strict] [--verbose] [-
 | `syscall(N, ...)` calls and raw `syscall` instructions with a constant number | Heuristic | Warning only (error with `--strict`) |
 | `madvise()` calls with constant advice | Heuristic | Warning only (error with `--strict`) |
 
-`cargo libc inspect --max-glibc` (implemented in cargo-libc) covers the first
-row today. A scan cannot see syscalls inside the C library, numbers computed
+In cargo-libc, `cargo libc inspect FILE --distro ID` (or `--kernel X.Y`, or
+`--scan` with `--max-glibc`) runs this scan after its own direct glibc check,
+with the same `--strict` and `--verbose` meanings, and adds a `scan` object to
+its `--json` report. A scan cannot see syscalls inside the C library, numbers computed
 at run time, `dlopen`ed libraries, new flags on old syscalls, or whether a
 fallback works; see the [crate README](../crates/linux-abi-scan/README.md).
 
@@ -182,7 +184,7 @@ cargo-libc cannot pin a commit of this repository. Offline builds use
 | `--distro`, `--glibc`, `--kernel`, `--target triple.X` on every command | `Selection::resolve`; print `Selection::describe` so "kernel not simulated" is visible | `--glibc` and versioned `--target` implemented; `--distro`/`--kernel` planned |
 | `cargo libc build` | Provider for the glibc floor | Implemented (provider supplied by the user) |
 | `cargo libc check` (F03) | Same selection and target configuration, no link | Next coordinator task |
-| `cargo libc inspect` | `linux_abi_scan::scan_file` with `ScanTarget::from_selection`; `--strict` maps to `Report::exit_code(true)` | Library implemented; cargo-libc integration planned (its glibc check exists today) |
+| `cargo libc inspect` | `linux_abi_scan::scan` on the bytes it already read, with `ScanTarget::from_selection`; `--strict` maps to `Report::exit_code(true)` | Implemented (cargo-libc 0a500d4db5339f4819990090e1533783e920a9d7); floors resolved with `Selection::resolve` |
 | `cargo libc build` (after linking) | Optionally run the same scan on every built executable | Planned |
 | `cargo libc test` / `run` with `--runner local\|container` | Sets Cargo's target runner to a cargo-libc helper binary. That helper calls `Runner::choose`, then `local::run` or `container::run` | Planned; the library side is implemented |
 | `cargo libc doctor` | Reports runner availability: seccomp support, container engine, crun/libseccomp version | Planned |
