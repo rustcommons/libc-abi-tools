@@ -27,6 +27,13 @@ owns Cargo integration. `full-and-check.sh` remains a local convenience wrapper
 for preparation plus application tests, with Cargo integration invoked separately.
 The audit emits separate `abi-manifest.json` and `application-manifest.json`.
 
+Hosted qualification passed on 2026-10-10 at producer commit
+`8939827c12bf0354b81c8c2f2707d0a2b7985b1b`, consuming pinned cargo-libc commit
+`edfca5b9f9fb811069f302e8d2d5ef2f99f7fd33`: all [three preparation and six application jobs](https://github.com/rustcommons/libc-abi-tools/actions/runs/38069527581)
+passed. [Main CI](https://github.com/rustcommons/libc-abi-tools/actions/runs/38069527607)
+also passed Rust host/MSRV checks, all 28 snapshots, reference regeneration,
+and all eight original integrity/extraction fixture tests.
+
 ## CI transfer artifacts
 
 The preparation job uploads a `.tar.gz` bundle and SHA-256 sidecar. Tar preserves

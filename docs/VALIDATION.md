@@ -291,3 +291,37 @@ passed all six Clang 21/24 and 2.17/2.18/2.22 jobs. The producer's
 and [companion CI](https://github.com/rustcommons/cargo-libc/actions/runs/38066613985)
 also passed, including Windows/Linux Rust 1.99, Rust 1.90 minimum checks,
 all 28 snapshots, regenerated tables, and conventional companion sysroot smoke tests.
+
+## Shared preparation and restored application qualification
+
+Producer commit `8939827c12bf0354b81c8c2f2707d0a2b7985b1b` passed all nine
+[split-provider jobs](https://github.com/rustcommons/libc-abi-tools/actions/runs/38069527581):
+three once-per-release preparation jobs and six Rust 1.99/Clang 21 or 24
+application jobs. Preparation preserved all previous native/export/storage and
+exhaustive accepted/rejected/default tests. Applications downloaded the same
+prepared bundle for each version, verified inventory/commit/target/pin hashes,
+preserved aliases/permissions, regenerated local descriptors and GCC startup
+selection, and passed Rust/C/Cargo linking and matching real-runtime execution.
+Both 2.17 input routes remain covered.
+
+Local restored-input checks also passed all four profiles with Clang 18.1.3.
+An initial minimal bundle failed the pseudoterminal case because NSS runtime
+modules were omitted. Matching NSS/libnsl inputs are now transferred, and
+actual runtime initialization traces and module hashes are audited; known
+executables/plugins are allowed explicitly, while host module leakage fails.
+This extends observed runtime dependency coverage without claiming a complete
+NSS/libnsl public ABI matrix or arbitrary application dependency resolver.
+
+[Main CI](https://github.com/rustcommons/libc-abi-tools/actions/runs/38069527607)
+passed Rust formatting/tests/clippy, the minimum-version check, all snapshots,
+reference regeneration, and eight original Python archive fixtures. Fixtures
+cover byte/permission/relative-alias preservation, archive and member hash
+changes, wrong release/pin, traversal/unlisted members, outside-root/cyclic
+symlinks, duplicates, and privileged modes. Rejected inputs fail before creating
+the extraction directory. The unchanged consumer pin is
+`edfca5b9f9fb811069f302e8d2d5ef2f99f7fd33`.
+
+These transfer artifacts are trusted workflow inputs, not authenticated public
+SDK releases. Version-suffixed target selection is documented as planned,
+with the current explicit provider/glibc interface retained. See
+[CI and release artifacts](CI-AND-RELEASE-ARTIFACTS.md).

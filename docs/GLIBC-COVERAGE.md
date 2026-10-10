@@ -9,6 +9,8 @@ or qualify its runtime.
 Provider CI now has three preparation jobs (one per supported release) and six
 Rust 1.99/Clang 21 or 24 application jobs consuming the same prepared inputs.
 Both application variants compile Rust. See [CI and release artifacts](CI-AND-RELEASE-ARTIFACTS.md).
+All nine [split-workflow jobs](https://github.com/rustcommons/libc-abi-tools/actions/runs/38069527581)
+passed at `8939827`, including cross-runner input restoration and dynamic-module auditing.
 
 All eight libraries below already have snapshot parsing, historical matrix
 entries, native ELF comparison, generated stubs, export audits, and exhaustive

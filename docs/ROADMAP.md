@@ -236,7 +236,7 @@ See [CI and release artifacts](CI-AND-RELEASE-ARTIFACTS.md).
 - [x] Split preparation/ABI auditing from Rust/C application integration.
 - [x] Transfer checksummed input inventories with permissions/relative links and rematerialize descriptors on each runner.
 - [x] Preserve matching NSS runtime modules and audit initialized dynamic modules after relocation.
-- [ ] Observe the split three-preparation/six-application hosted workflow passing.
+- [x] Observe all three preparation and six Rust/Clang application jobs passing at `8939827` ([run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38069527581)).
 - [ ] Add wrapper parsing for targets such as `x86_64-unknown-linux-gnu.2.17`, forwarding the normal Rust triple and selecting the exact provider.
 - [ ] Implement authenticated user SDK packaging, provider discovery/download, cache identity, and install contracts before publishing releases.
 
