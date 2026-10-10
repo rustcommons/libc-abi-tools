@@ -1,4 +1,4 @@
-name: glibc 2.17 provider integration
+name: glibc provider integration
 on:
   push:
   pull_request:
@@ -7,7 +7,7 @@ on:
       companion_ref:
         description: cargo-libc integration branch or tested commit
         required: false
-        default: 7980d63873282cb9fef68bcaf08f8123546387ac
+        default: 695ac536a791650d0d351c74562e008c47a82392
 permissions:
   contents: read
 jobs:
@@ -18,6 +18,9 @@ jobs:
       fail-fast: false
       matrix:
         clang: [21, 24]
+        glibc: ['2.17', '2.22']
+    env:
+      ABI_GLIBC_RELEASE: ${{ matrix.glibc }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,7 +30,7 @@ jobs:
           repository: rustcommons/cargo-libc
           path: cargo-libc
           # Pin the companion provider contract tested with this workflow.
-          ref: ${{ inputs.companion_ref || '7980d63873282cb9fef68bcaf08f8123546387ac' }}
+          ref: ${{ inputs.companion_ref || '695ac536a791650d0d351c74562e008c47a82392' }}
       - uses: dtolnay/rust-toolchain@1.99.0
         with:
           components: rustfmt, clippy
@@ -37,29 +40,33 @@ jobs:
         run: |
           bash libc-abi-tools/.github/install-clang.sh "$CLANG_MAJOR"
           sudo apt-get install -y podman make python3
-      - name: Test companion and build both pinned real 2.17 input trees
+      - name: Test companion and build pinned target inputs
         run: |
           cd cargo-libc
           cargo fmt --all -- --check
           cargo test --all-targets --locked --offline
           cargo clippy --all-targets --locked --offline -- -D warnings
           cd ../libc-abi-tools
-          bash examples/glibc-two-paths/run.sh "$RUNNER_TEMP/glibc-2.17"
+          if [ "$ABI_GLIBC_RELEASE" = 2.17 ]; then
+            bash examples/glibc-two-paths/run.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+          else
+            bash examples/glibc-2.22/run.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+          fi
       - name: Check metadata, complete stubs, and Cargo integration
         env:
           CLANG_MAJOR: ${{ matrix.clang }}
         working-directory: libc-abi-tools
         run: |
-          bash examples/glibc-two-paths/elf-and-check.sh "$RUNNER_TEMP/glibc-2.17"
-          bash examples/glibc-two-paths/full-and-check.sh "$RUNNER_TEMP/glibc-2.17"
-          bash examples/glibc-two-paths/provider-and-check.sh "$RUNNER_TEMP/glibc-2.17" "$GITHUB_WORKSPACE/cargo-libc" "/usr/bin/clang-$CLANG_MAJOR"
+          bash examples/glibc-two-paths/elf-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+          bash examples/glibc-two-paths/full-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+          bash examples/glibc-two-paths/provider-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE" "$GITHUB_WORKSPACE/cargo-libc" "/usr/bin/clang-$CLANG_MAJOR"
       - name: Retain diagnostics even after failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: glibc-2.17-clang-${{ matrix.clang }}-diagnostics
+          name: glibc-${{ matrix.glibc }}-clang-${{ matrix.clang }}-diagnostics
           path: |
-            ${{ runner.temp }}/glibc-2.17/logs
-            ${{ runner.temp }}/glibc-2.17/elf-metadata
-            ${{ runner.temp }}/glibc-2.17/provider-*-v1-*.txt
+            ${{ runner.temp }}/glibc-${{ matrix.glibc }}/logs
+            ${{ runner.temp }}/glibc-${{ matrix.glibc }}/elf-metadata
+            ${{ runner.temp }}/glibc-${{ matrix.glibc }}/provider-*-v1-*.txt
             ${{ runner.temp }}/modern-toolchain.txt

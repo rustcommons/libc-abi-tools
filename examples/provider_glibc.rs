@@ -1,0 +1,57 @@
+//! Export an explicit supported release using the same local v1 wire format.
+use libc_abi_tools::{
+    elf,
+    glibc::Snapshot,
+    provider::{Provider, FORMAT, SONAMES},
+    stub,
+};
+use std::{env, fs, path::PathBuf};
+fn run() -> Result<(), String> {
+    let args: Vec<_> = env::args_os().skip(1).collect();
+    if args.len() != 7 {
+        return Err("usage: provider_glibc DATA RELEASE SYSROOT STUBS GCC_STARTUP COMPILER_RUNTIME NEW_DESCRIPTOR".into());
+    }
+    let release = args[1].to_str().ok_or("release must be UTF-8")?;
+    let roots: Vec<_> = args[2..6]
+        .iter()
+        .map(|p| fs::canonicalize(p).map_err(|e| e.to_string()))
+        .collect::<Result<_, _>>()?;
+    let mut text = format!("{FORMAT}\ntarget\tx86_64-unknown-linux-gnu\nglibc\t{release}\n");
+    for (key, path) in ["sysroot", "stubs", "gcc-startup", "compiler-runtime"]
+        .iter()
+        .zip(&roots)
+    {
+        text.push_str(&format!(
+            "{key}\t{}\n",
+            path.to_str().ok_or("provider paths must be UTF-8")?
+        ));
+    }
+    let provider = Provider::parse(&text)?;
+    provider.validate_files()?;
+    let snapshot = Snapshot::load(&PathBuf::from(&args[0]), provider.release)?;
+    for (library, soname) in ["c", "m", "ld", "resolv", "pthread", "dl", "rt", "util"]
+        .iter()
+        .zip(SONAMES)
+    {
+        let metadata = elf::Metadata::load(&provider.stubs.join(soname))?;
+        stub::render_glibc(&snapshot, library, &metadata)?;
+    }
+    use std::io::Write;
+    fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&args[6])
+        .and_then(|mut f| f.write_all(text.as_bytes()))
+        .map_err(|e| e.to_string())?;
+    println!(
+        "Exported experimental glibc {release} provider: {}",
+        PathBuf::from(&args[6]).display()
+    );
+    Ok(())
+}
+fn main() {
+    if let Err(e) = run() {
+        eprintln!("provider_glibc: {e}");
+        std::process::exit(1);
+    }
+}

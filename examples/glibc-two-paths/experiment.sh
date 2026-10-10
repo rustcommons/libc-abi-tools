@@ -1,0 +1,7 @@
+# Shared release selection. Existing scripts default to both 2.17 input routes.
+release=${ABI_GLIBC_RELEASE:-2.17}
+case "$release" in
+    2.17) routes=(prebuilt source) ;;
+    2.22) routes=(source) ;;
+    *) echo 'Qualified experiment releases: 2.17, 2.22' >&2; exit 1 ;;
+esac

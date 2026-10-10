@@ -96,3 +96,7 @@ changes, then copy only the selected files with their original bytes and paths.
 Update that pin and `SHA256SUMS` together; preserve `COPYING.abilists` and Zig's
 MIT notice. Run the all-snapshot regression tests and review the exported ABI
 diffs. Do not relabel an unqualified snapshot as a supported runtime release.
+
+## Second provider: GNU glibc 2.22
+
+The unchanged six-field v1 descriptor now selects exactly 2.17 or 2.22, and cargo-libc rejects mismatched requests before building. The 2.22 profile uses pinned source-built real inputs and 2922 public definitions across eight generated DSOs. Existing 2.17 descriptors and both input routes remain valid. Shared validation scripts select the release explicitly, including fmemopen version-boundary and Cargo newer-symbol rejection tests. See [glibc 2.22](GLIBC-2.22.md); actual SLES qualification remains separate.

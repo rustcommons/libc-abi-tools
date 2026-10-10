@@ -1,8 +1,9 @@
-# Experimental glibc 2.17 provider contract
+# Experimental glibc provider contract
 
 Version 1 connects generated link-only DSOs to Cargo through a trusted local
 descriptor. It supports x86_64 Linux dynamically linked non-PIE Rust executables
-and exactly glibc 2.17. It is not an authenticated or relocatable release SDK.
+and exactly glibc 2.17 or 2.22. It is not an authenticated or relocatable release SDK.
+The six-field v1 format is unchanged; existing 2.17 descriptors remain valid.
 
 The descriptor is UTF-8, at most 16 KiB, with LF endings and a final newline.
 The first line is `libc-abi-provider-v1`; six tab-separated key/value lines follow.
@@ -25,7 +26,7 @@ relative symlinks inside those directories are allowed.
 
 | Directory | Required files and purpose |
 | --- | --- |
-| sysroot | Exact glibc 2.17 `usr/include/features.h`; `usr/lib64/{crt1.o,crti.o,crtn.o,libc_nonshared.a,libpthread_nonshared.a}`; real `lib64/ld-linux-x86-64.so.2` |
+| sysroot | Exact selected-release `usr/include/features.h`; `usr/lib64/{crt1.o,crti.o,crtn.o,libc_nonshared.a,libpthread_nonshared.a}`; real `lib64/ld-linux-x86-64.so.2` |
 | stubs | Eight generated DSOs with exact SONAME filenames and `lib{name}.so` symlinks resolving to them; loader uses `libld.so` |
 | gcc-startup | Explicit GCC `crtbegin.o`/`crtend.o`, providing compiler startup support |
 | compiler-runtime | Real compatible `libgcc_s.so.1` and `libgcc_s.so`; experiment uses CentOS GCC 4.8.5's unwinder |
@@ -52,7 +53,7 @@ cargo libc build --provider /work/provider.txt --glibc 2.17 \
   --manifest-path examples/hello/Cargo.toml --target-dir /work/app --locked --offline
 ```
 
-`--provider` conflicts with `--sysroot`/`--gcc-runtime`. Other releases fail without
+`--provider` conflicts with `--sysroot`/`--gcc-runtime`. Unsupported or mismatched releases fail without
 fallback. Original sysroot mode remains available. The consumer validates paths,
 required files, and exact headers; explicitly selects CRT/nonshared files; searches
 stubs and the compatible unwinder first; and checks direct executable GLIBC requirements.
@@ -64,9 +65,13 @@ changing input files in place still requires a fresh target directory or clean
 rebuild. Arbitrary native dependency overrides remain outside the prototype scope.
 
 `examples/glibc-two-paths/provider-and-check.sh WORK CARGO_LIBC_REPO CLANG` tests
-both input routes, host build units, a target thread, wrong-version rejection,
+the selected release's input routes, host build units, a target thread, wrong-version rejection,
 ELF requirements, all shared link-map inputs, and runtime dependency paths. Its
 SHA-256 logs are evidence, not authenticated SDK manifests.
+
+For 2.22, set `ABI_GLIBC_RELEASE=2.22` and use `--example provider_glibc -- DATA
+2.22 SYSROOT STUBS GCC_STARTUP COMPILER_RUNTIME NEW_DESCRIPTOR`. Only the pinned
+source-built target route is used. See the [2.22 experiment](GLIBC-2.22.md).
 
 Future release packaging requires relative bundle paths, complete inventories,
 integrity validation, provenance/licenses, stable compiler-runtime policy, and

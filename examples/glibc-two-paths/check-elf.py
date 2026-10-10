@@ -6,6 +6,7 @@ import json
 import pathlib
 import re
 import sys
+from experiment import RELEASE, ROUTES, CONFIGURATION
 
 work = pathlib.Path(sys.argv[1]).resolve()
 repo = pathlib.Path(sys.argv[2]).resolve()
@@ -62,15 +63,15 @@ def reference(path):
     return collections.Counter(entries)
 
 
-pinned = rows(out / "pinned-2.17.tsv")
+pinned = rows(out / ("pinned-" + RELEASE + ".tsv"))
 manifest = {
     "schema": 1,
     "target": "x86_64-unknown-linux-gnu",
-    "release_label": "2.17",
+    "release_label": RELEASE,
     "release_label_is_asserted_from_input_provenance": True,
     "upstream_pin_sha256": digest(repo / "data/glibc/UPSTREAM.toml"),
     "package_manifest_sha256": digest(work / "logs/packages.txt"),
-    "source_archive_sha256": digest(work / "glibc-2.17.tar.xz"),
+    "source_archive_sha256": digest(work / ("glibc-" + RELEASE + ".tar.xz")),
     "source_adjustment_sha256": digest(work / "logs/source-adjustment.patch"),
     "input_sources": {
         "prebuilt": {
@@ -79,8 +80,8 @@ manifest = {
             "packages": "../logs/packages.txt",
         },
         "source": {
-            "archive": "https://ftp.gnu.org/gnu/glibc/glibc-2.17.tar.xz",
-            "configuration": "--prefix=/usr --disable-werror --enable-kernel=2.6.32",
+            "archive": "https://ftp.gnu.org/gnu/glibc/glibc-" + RELEASE + ".tar.xz",
+            "configuration": CONFIGURATION,
             "compiler": "../logs/builder-gcc.txt",
             "adjustment": "../logs/source-adjustment.patch",
         },
@@ -88,7 +89,8 @@ manifest = {
     "files": [],
 }
 differences = []
-for route in ("prebuilt", "source"):
+manifest["input_sources"] = {route: manifest["input_sources"][route] for route in ROUTES}
+for route in ROUTES:
     for library, soname in libraries.items():
         metadata = rows(out / (route + "-" + library + ".tsv"))
         native = collections.Counter(

@@ -1,4 +1,5 @@
 target/
+__pycache__/
 /validation-output/
 /output/
 *.tmp

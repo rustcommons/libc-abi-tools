@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 example_dir=$(cd "$(dirname "$0")" && pwd)
+source "$example_dir/experiment.sh"
 repo=$(cd "$example_dir/../.." && pwd)
 cd "${1:?Usage: full-and-check.sh EXISTING_EXPERIMENT_DIRECTORY}"
 work=$PWD
@@ -24,11 +25,11 @@ chmod +x full-rust-linker.sh
 rustc --version > logs/full-rustc.txt
 libraries=(c m ld resolv pthread dl rt util)
 files=(libc.so.6 libm.so.6 ld-linux-x86-64.so.2 libresolv.so.2 libpthread.so.0 libdl.so.2 librt.so.1 libutil.so.1)
-for route in prebuilt source; do
+for route in "${routes[@]}"; do
     root="$work/$route"
     generated="$work/full-libraries-$route"
     cargo run --manifest-path "$repo/Cargo.toml" --locked --offline --example full_glibc_stubs -- \
-        "$repo/data/glibc" "$root/lib64" "$generated" | tee "logs/full-$route-generation.txt"
+        "$repo/data/glibc" "$root/lib64" "$generated" "$release" | tee "logs/full-$route-generation.txt"
     for index in "${!libraries[@]}"; do
         library=${libraries[$index]}
         soname=${files[$index]}
@@ -51,7 +52,7 @@ for route in prebuilt source; do
     "$root/lib64/ld-linux-x86-64.so.2" --library-path "$work/compiler-runtime:$root/lib64:$root/usr/lib64" \
         "./rust-full-$route" > "logs/full-$route-rust-run.txt"
     grep -qx 'Rust allocation, thread/TLS, and unwinding work!' "logs/full-$route-rust-run.txt"
-    for program in expanded data-views too-new; do
+    for program in expanded data-views too-new fmemopen-2.22; do
         gcc -O0 -fno-builtin -fno-pie -fno-stack-protector -nostdinc \
             -isystem "$root/usr/include" -isystem "$(gcc -print-file-name=include)" \
             -c "$example_dir/$program.c" -o "$program-full-$route.o"
@@ -77,5 +78,23 @@ for route in prebuilt source; do
         echo 'Unexpected success linking memfd_create.' >&2; exit 1
     fi
     grep -q 'undefined reference to .*memfd_create' "logs/full-$route-negative.txt"
+    if [ "$release" = 2.22 ]; then
+        ld -o "fmemopen-full-$route" --dynamic-linker /lib64/ld-linux-x86-64.so.2 \
+            "${inputs[@]}" "fmemopen-2.22-full-$route.o" "${libs[@]}"
+        "$root/lib64/ld-linux-x86-64.so.2" --library-path "$root/lib64:$root/usr/lib64" \
+            "./fmemopen-full-$route" > "logs/full-$route-fmemopen-run.txt"
+        grep -qx 'Both fmemopen versions work!' "logs/full-$route-fmemopen-run.txt"
+        readelf --wide --dyn-syms --version-info "fmemopen-full-$route" \
+            > "logs/full-$route-fmemopen-executable.txt"
+        grep -q 'fmemopen@GLIBC_2.22' "logs/full-$route-fmemopen-executable.txt"
+        grep -q 'fmemopen@GLIBC_2.2.5' "logs/full-$route-fmemopen-executable.txt"
+    else
+        if ld -o "fmemopen-full-$route" --dynamic-linker /lib64/ld-linux-x86-64.so.2 \
+            "${inputs[@]}" "fmemopen-2.22-full-$route.o" "${libs[@]}" \
+            > "logs/full-$route-fmemopen-negative.txt" 2>&1; then
+            echo '2.17 unexpectedly accepted fmemopen@GLIBC_2.22' >&2; exit 1
+        fi
+        grep -q 'undefined reference to .*fmemopen@GLIBC_2.22' "logs/full-$route-fmemopen-negative.txt"
+    fi
 done
 python3 "$example_dir/check-full.py" "$work" "$repo"

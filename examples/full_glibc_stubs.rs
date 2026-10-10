@@ -8,12 +8,18 @@ use std::{env, fs, path::PathBuf};
 
 fn run() -> Result<(), String> {
     let args: Vec<_> = env::args_os().skip(1).collect();
-    if args.len() != 3 {
+    if !(3..=4).contains(&args.len()) {
         return Err(
-            "usage: full_glibc_stubs DATA_DIRECTORY REFERENCE_LIB64 NEW_OUTPUT_DIRECTORY".into(),
+            "usage: full_glibc_stubs DATA_DIRECTORY REFERENCE_LIB64 NEW_OUTPUT_DIRECTORY [RELEASE]"
+                .into(),
         );
     }
-    let snapshot = Snapshot::load(&PathBuf::from(&args[0]), "2.17".parse()?)?;
+    let release = args
+        .get(3)
+        .map(|s| s.to_str().ok_or("release must be UTF-8"))
+        .transpose()?
+        .unwrap_or("2.17");
+    let snapshot = Snapshot::load(&PathBuf::from(&args[0]), release.parse()?)?;
     let root = PathBuf::from(&args[1]);
     let mut results = Vec::new();
     let mut errors = Vec::new();

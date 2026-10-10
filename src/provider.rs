@@ -1,5 +1,6 @@
 //! Versioned local provider descriptor. This is a trusted build configuration,
 //! not a signed or redistributable SDK.
+use crate::version::Version;
 use std::{
     collections::BTreeMap,
     fs,
@@ -21,6 +22,7 @@ pub const SONAMES: [&str; 8] = [
 
 #[derive(Clone, Debug)]
 pub struct Provider {
+    pub release: Version,
     pub sysroot: PathBuf,
     pub stubs: PathBuf,
     pub gcc_startup: PathBuf,
@@ -66,10 +68,11 @@ impl Provider {
         }
         if fields.len() != 6
             || fields.get("target") != Some(&"x86_64-unknown-linux-gnu")
-            || fields.get("glibc") != Some(&"2.17")
+            || !matches!(fields.get("glibc"), Some(&"2.17" | &"2.22"))
         {
             return Err(
-                "provider v1 requires exactly six fields, x86_64 Linux and glibc 2.17".into(),
+                "provider v1 requires exactly six fields, x86_64 Linux and glibc 2.17 or 2.22"
+                    .into(),
             );
         }
         let path = |key| {
@@ -86,12 +89,23 @@ impl Provider {
             Ok(path)
         };
         Ok(Self {
+            release: fields["glibc"].parse()?,
             sysroot: path("sysroot")?,
             stubs: path("stubs")?,
             gcc_startup: path("gcc-startup")?,
             compiler_runtime: path("compiler-runtime")?,
             descriptor: text.into(),
         })
+    }
+
+    pub fn validate_selection(&self, requested: Version) -> Result<(), String> {
+        if requested != self.release {
+            return Err(format!(
+                "provider targets glibc {}, but --glibc requested {requested}",
+                self.release
+            ));
+        }
+        Ok(())
     }
 
     pub fn validate_files(&self) -> Result<(), String> {
@@ -187,7 +201,7 @@ mod tests {
         let text = valid();
         assert!(Provider::parse(&text).is_ok());
         for bad in [
-            text.replace("2.17", "2.22"),
+            text.replace("2.17", "2.23"),
             text.replace(FORMAT, "libc-abi-provider-v2"),
             format!("{text}glibc\t2.17\n"),
             text.replace("stubs\t", "unknown\t"),
@@ -199,5 +213,28 @@ mod tests {
             assert!(Provider::parse(&bad).is_err());
         }
         assert!(Provider::parse(&text).unwrap().validate_files().is_err());
+    }
+
+    #[test]
+    fn selects_each_supported_release_without_fallback() {
+        for release in ["2.17", "2.22"] {
+            let provider = Provider::parse(&valid().replace("2.17", release)).unwrap();
+            assert_eq!(provider.release, release.parse().unwrap());
+            assert!(provider
+                .validate_selection(release.parse().unwrap())
+                .is_ok());
+            for other in ["2.18", "2.23", "2.22.1"] {
+                assert!(provider.validate_selection(other.parse().unwrap()).is_err());
+            }
+        }
+        assert!(Provider::parse(&valid())
+            .unwrap()
+            .validate_selection("2.22".parse().unwrap())
+            .is_err());
+        assert!(Provider::parse(&valid().replace("2.17", "2.22"))
+            .unwrap()
+            .validate_selection("2.17".parse().unwrap())
+            .is_err());
+        assert!(Provider::parse(&valid().replace("2.17", "2.22.0")).is_err());
     }
 }

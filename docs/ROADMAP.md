@@ -159,8 +159,8 @@ under Clang 21 and 23. The selected CI matrix is now Clang 21/24 at the user's r
 glibc 2.17 provider/runtime qualification remains a separate gate.
 
 - [x] Configure per-snapshot CI and 2.17 integration with Rust 1.99/Clang 21/24.
-- [x] Land the companion provider integration and pin its locally and hosted-tested commit
-  `7980d63873282cb9fef68bcaf08f8123546387ac` in CI.
+- [x] Land the companion provider integration and pin the extended consumer revision
+  `695ac536a791650d0d351c74562e008c47a82392` in CI.
 - [x] Observe hosted Rust 1.99, Clang 21/24, all 28 snapshots, and both real 2.17 input routes passing.
 - [ ] Add pinned headers/CRT/nonshared/compiler runtime, full-ABI generation,
   Cargo positive/negative tests, and real runtime jobs for each remaining version.
@@ -175,7 +175,7 @@ glibc 2.17 provider/runtime qualification remains a separate gate.
 | 2.19 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.20 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.21 | Yes | Pin inputs; generate provider; add runtime job |
-| 2.22 | Yes | Pin inputs; generate provider; add runtime job; qualify SLES 12 SP5 |
+| 2.22 | Yes | Source inputs, all eight libraries, Cargo, and local runtime passed; observe hosted matrix and qualify SLES 12 SP5 |
 | 2.23 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.24 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.25 | Yes | Pin inputs; generate provider; add runtime job |
@@ -202,3 +202,17 @@ glibc 2.17 provider/runtime qualification remains a separate gate.
 The last two rows track vendored labels without asserting upstream availability.
 Runtime jobs must fail on incompatible inputs, newer symbols, host shared-library
 leakage, or execution of generated stubs.
+
+## glibc 2.22 checkpoint
+
+- [x] Pin and source-build GNU 2.22 headers, CRT, nonshared files, and runtime.
+- [x] Verify all 2922 pinned public numeric definitions across eight libraries.
+- [x] Extend the v1 descriptor and Cargo selection without changing 2.17 behavior.
+- [x] Pass local Cargo host build/proc-macro, thread, real runtime, and path checks.
+- [x] Run both fmemopen versions under 2.22; reject the 2.22 interface under 2.17.
+- [x] Configure Rust 1.99 / Clang 21 and 24 CI for both releases.
+- [ ] Observe all four hosted provider jobs with the extended consumer.
+- [ ] Qualify actual SLES 12 SP5 inputs, native dependencies, and target kernels.
+
+The [2.22 provider](GLIBC-2.22.md) uses a generic source-built GNU runtime.
+Distribution qualification and authenticated SDK packaging remain separate gates.

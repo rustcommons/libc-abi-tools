@@ -7,6 +7,7 @@ import pathlib
 import re
 import subprocess
 import sys
+from experiment import RELEASE, ROUTES
 
 work = pathlib.Path(sys.argv[1]).resolve()
 repo = pathlib.Path(sys.argv[2]).resolve()
@@ -57,15 +58,15 @@ def overlaps(a, b):
     return a[0] == b[0] and a[1] < b[2] and b[1] < a[2]
 
 
-pinned = rows(work / "elf-metadata/pinned-2.17.tsv")
+pinned = rows(work / ("elf-metadata/pinned-" + RELEASE + ".tsv"))
 manifest = {"schema": 1, "scope": "complete pinned public numeric GLIBC ABI, experimental environment",
-            "release": "2.17", "libraries": [], "executables": {},
+            "release": RELEASE, "libraries": [], "executables": {},
             "compiler_runtime_sha256": digest(work / "compiler-runtime/libgcc_s.so.1"),
             "compiler_runtime_source_sha256": digest(work / "prebuilt/usr/lib64/libgcc_s.so.1"),
             "upstream_pin_sha256": digest(repo / "data/glibc/UPSTREAM.toml"),
             "real_input_manifest_sha256": digest(work / "elf-metadata/manifest.json")}
 total = 0
-for route in ("prebuilt", "source"):
+for route in ROUTES:
     generated = work / ("full-libraries-" + route)
     for library, soname in libraries.items():
         selected = rows(generated / (library + ".elf.tsv"))
@@ -111,7 +112,7 @@ for route in ("prebuilt", "source"):
                                       "selected_elf_sha256": digest(generated / (library + ".elf.tsv"))})
     executable = (work / "logs" / ("full-" + route + "-rust-executable.txt")).read_text()
     required = [tuple(map(int, value.split("."))) for value in re.findall(r"Name: GLIBC_([\d.]+)", executable)]
-    require(required and max(required) <= (2, 17), "Rust requires newer glibc")
+    require(required and max(required) <= tuple(map(int, RELEASE.split('.'))), "Rust requires newer glibc")
     require("(RPATH)" not in executable and "(RUNPATH)" not in executable, "Runtime search path embedded")
     loaded = (work / "logs" / ("full-" + route + "-rust-runtime-libraries.txt")).read_text()
     require(str(work / route / "lib64/libc.so.6") in loaded and
@@ -147,9 +148,19 @@ for route in ("prebuilt", "source"):
             if path.is_file():
                 inputs[line[5:]] = digest(path)
     manifest["executables"][route]["persistent_link_inputs_sha256"] = inputs
+    if RELEASE == "2.22":
+        versions = (work / "logs" / ("full-" + route + "-fmemopen-executable.txt")).read_text()
+        require("fmemopen@GLIBC_2.22" in versions and "fmemopen@GLIBC_2.2.5" in versions,
+                "Both fmemopen interfaces must be imported")
+        require((work / "logs" / ("full-" + route + "-fmemopen-run.txt")).read_text().strip() ==
+                "Both fmemopen versions work!", "fmemopen runtime failed")
+        manifest["executables"][route]["fmemopen_sha256"] = digest(work / ("fmemopen-full-" + route))
+    else:
+        require("fmemopen@GLIBC_2.22" in (work / "logs" / ("full-" + route + "-fmemopen-negative.txt")).read_text(),
+                "2.17 must reject the 2.22 interface")
     print(route + ": full ABI exports, data views, Rust target requirements and real runtime inputs verified")
 manifest["rust_source_sha256"] = digest(repo / "examples/glibc-two-paths/rust-hello.rs")
 manifest["rust_compiler"] = (work / "logs/full-rustc.txt").read_text().strip()
 manifest["definitions_checked"] = total
 (work / "logs/full-manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
-print(str(total) + " generated definitions verified across 16 DSOs")
+print(str(total) + " generated definitions verified across " + str(8 * len(ROUTES)) + " DSOs")
