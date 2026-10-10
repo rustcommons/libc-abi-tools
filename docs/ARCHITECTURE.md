@@ -1,21 +1,33 @@
 # Architecture
 
-The initial pipeline is deliberately small:
+The current experimental pipeline keeps ABI evidence, link artifacts, and real
+runtime inputs separate:
 
 ```mermaid
 flowchart LR
     A[Tagged glibc source] -->|collect| B[Versioned ABI lists]
-    B --> C[Historical or modern parser]
-    C --> D[Exact release snapshot]
-    D --> E[Sorted TSV / symbol query]
-    D -. future .-> F[Compact ABI database]
-    F -. future .-> G[Link-only libraries]
+    B --> C[Exact release snapshot]
+    D[Real reference DSOs] --> E[Native ELF evidence]
+    C --> F[Validated ABI and ELF join]
+    E --> F
+    F --> G[Assembly and version scripts]
+    G --> H[Link-only libraries]
+    I[Real CRT nonshared and compiler inputs] --> J[C or Rust link]
+    H --> J
+    J --> K[Executable]
+    K --> L[Real target runtime]
+    C -. future .-> M[Compact ABI database]
 ```
 
 `version.rs` parses numeric symbol versions independently of release policy.
 `glibc.rs` owns glibc file layouts, parser rules, release snapshots, and source
 collection. `main.rs` handles CLI arguments and presentation. No external Rust
 dependencies or unsafe code are used.
+
+`elf.rs` separately collects SONAME and defined dynamic-symbol evidence from
+bounded ELF64 x86_64 inputs, including GNU default versions, binding, visibility,
+IFUNC/TLS kinds, and 64-bit sizes. It records same-range groups without inferring
+semantic aliases or source releases. See [ELF metadata](ELF-METADATA.md).
 
 ## Inputs and invariants
 
@@ -57,6 +69,25 @@ Those gaps require authoritative ELF/source evidence before generating DSOs.
 Link-only DSOs also cannot replace real CRT/nonshared code, libc implementations,
 headers, or compiler runtimes. The snapshot data is not currently consumed by
 `cargo-libc`; it continues to require a real target sysroot.
+
+The standalone Cargo example `minimal_glibc_stub` exercises assembly/version
+script generation for two glibc 2.17 functions. It requires reference ELF evidence
+and derives bindings through `elf.rs`; default-version policy is explicitly
+limited to those exports and checked against real ELF
+libraries in the two-path C experiment. It does not extend the metadata library
+or CLI into a general generator. Real startup/nonshared inputs remain separate;
+see [the example](../examples/glibc-two-paths/README.md).
+
+`stub.rs` is a separate experimental source emitter for selected versioned ELF
+definitions, including IFUNC, objects, and TLS. It preserves exact observed
+shared ranges, preserves overlapping data views, and rejects incompatible/code
+overlaps. `render_glibc` adds the exact snapshot/SONAME/membership/kind/size join.
+The full pinned 2.17 public ABI experiment passes C/Rust checks with both real
+input trees. The [version-1 provider contract](PROVIDER-CONTRACT.md) now joins
+these local artifacts to `cargo-libc`; authenticated release SDK packaging remains
+future work. Cargo preserves host build units, selects explicit target inputs,
+and checks direct ELF requirements; independent experiments audit link/runtime paths.
+See [stub generation](STUB-GENERATION.md) and [full libraries](FULL-LIBRARIES.md).
 
 ## Updating upstream
 

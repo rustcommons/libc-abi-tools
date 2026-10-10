@@ -2,6 +2,11 @@
 
 # libc-abi-tools
 
+The experimental glibc 2.17 [provider contract](docs/PROVIDER-CONTRACT.md) connects
+all eight generated stub libraries to the companion `cargo-libc` coordinator.
+CI targets Rust 1.99.0 and Clang 21/23; the roadmap tracks each vendored version's
+remaining real input and runtime setup.
+
 **Target libc versions beyond your host.**
 
 [![CI](https://github.com/rustcommons/libc-abi-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/rustcommons/libc-abi-tools/actions/workflows/ci.yml)
@@ -18,7 +23,7 @@ tooling and source data on which this project builds. See [NOTICE.md](NOTICE.md)
 for complete attribution, the source pin, and separate code/data licenses.
 
 The companion [cargo-libc](https://github.com/rustcommons/cargo-libc) coordinates
-Cargo builds with an existing sysroot. These repositories are not integrated yet.
+Cargo builds with an existing sysroot or the experimental 2.17 provider.
 
 ## What works today
 
@@ -30,6 +35,9 @@ Cargo builds with an existing sysroot. These repositories are not integrated yet
   entries when present. Absolute version-node markers and `GCC_*` entries are skipped.
 - Collect the selected ABI files from a clean glibc source checkout at an exact
   `glibc-MAJOR.MINOR` tag, with source commit and license files.
+- Collect defined dynamic-symbol evidence directly from ELF64 x86_64 shared
+  libraries: SONAME, versions/defaults, binding, visibility, IFUNC/TLS kinds,
+  64-bit sizes, and observed shared ranges. See [ELF metadata](docs/ELF-METADATA.md).
 
 The repository includes 224 unmodified ABI lists from the pinned upstream's
 **2.17 through 2.44 snapshot directories**. These are upstream labels, not a claim
@@ -62,6 +70,7 @@ the tool never substitutes a newer release.
 cargo install --path . --locked --offline
 libc-abi glibc snapshot --data data/glibc --release 2.17 > glibc-2.17.tsv
 libc-abi glibc collect --source /path/to/glibc-checkout --output /path/to/new-data
+libc-abi glibc elf --input /path/to/target/libc.so.6 > libc-elf.tsv
 ```
 
 Installing the executable does not install the data directory; pass `--data`
@@ -83,7 +92,7 @@ glibc 2.17 is a **target release floor**, not a symbol-version filter.
 ## What comes next
 
 Compact cross-release consolidation, Zig `abilists` binary interoperability,
-stub shared libraries, and integration with `cargo-libc` are future work.
+a packaged release SDK and additional provider versions are future work.
 ABI lists alone do not identify every default-version alias, binding/visibility
 detail, or TLS property needed for a complete generator. Headers, startup code,
 nonshared objects, compiler runtimes, and oldest-target runtime tests are separate
@@ -91,3 +100,11 @@ requirements. No glibc implementation is included.
 
 See [ROADMAP.md](docs/ROADMAP.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md),
 and [VALIDATION.md](docs/VALIDATION.md).
+
+For a hands-on comparison of obtaining real glibc inputs versus building them
+from source, and a verified two-function generated libc experiment, see the
+[two-path C example](examples/glibc-two-paths/README.md).
+The [expanded emitter experiment](docs/STUB-GENERATION.md) additionally tests
+both memcpy versions, object copy-relocation, IFUNC, TLS, and observed alias storage.
+The [full-library follow-up](docs/FULL-LIBRARIES.md) generates all pinned public
+glibc 2.17 exports in the eight selected libraries and passes C/Rust runtime checks.

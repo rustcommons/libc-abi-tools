@@ -1,0 +1,5 @@
+GLIBC_2.2.5 {
+  global: foo; weak_function; dispatch; shared_data; weak_data; tls_data;
+  local: *;
+};
+GLIBC_2.14 { } GLIBC_2.2.5;

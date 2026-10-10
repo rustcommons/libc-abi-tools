@@ -1,0 +1,2 @@
+GNU assembler (GNU Binutils for Ubuntu) 2.42
+GNU ld (GNU Binutils for Ubuntu) 2.42

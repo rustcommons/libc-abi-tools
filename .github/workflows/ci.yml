@@ -10,11 +10,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.99.0
         with:
           components: rustfmt, clippy
       - run: cargo fmt --all -- --check
-      - run: cargo test --locked --offline
+      - run: cargo test --all-targets --locked --offline
       - run: cargo clippy --all-targets --locked --offline -- -D warnings
       - name: Verify vendored data
         if: runner.os == 'Linux'
@@ -26,3 +26,26 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.90.0
       - run: cargo check --all-targets --locked --offline
+  snapshots:
+    name: glibc ${{ matrix.glibc }} ABI snapshot
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        glibc: ['2.17', '2.18', '2.19', '2.20', '2.21', '2.22', '2.23', '2.24', '2.25', '2.26', '2.27', '2.28', '2.29', '2.30', '2.31', '2.32', '2.33', '2.34', '2.35', '2.36', '2.37', '2.38', '2.39', '2.40', '2.41', '2.42', '2.43', '2.44']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.99.0
+      - name: Verify checksums and deterministic release export
+        env:
+          GLIBC_RELEASE: ${{ matrix.glibc }}
+        run: |
+          (cd data/glibc && sha256sum --check SHA256SUMS)
+          cargo run --locked --offline -- glibc snapshot --data data/glibc --release "$GLIBC_RELEASE" > first.tsv
+          cargo run --locked --offline -- glibc snapshot --data data/glibc --release "$GLIBC_RELEASE" > second.tsv
+          test -s first.tsv
+          cmp first.tsv second.tsv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: glibc-${{ matrix.glibc }}-snapshot
+          path: first.tsv
