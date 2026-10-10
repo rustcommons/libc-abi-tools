@@ -19,12 +19,12 @@ column covers the 28 vendored snapshot labels, 2.17 through 2.44.
 | Matrix library | Provider SONAME | Union interfaces | Present in 2.17 | Present in 2.22 | Dedicated real-runtime coverage |
 | --- | --- | ---: | ---: | ---: | --- |
 | `c` | `libc.so.6` | 2847 | 2125 | 2127 | Selected C/Rust allocation, stdio, both memcpy versions, historical data views, and fmemopen version/default tests |
-| `m` | `libm.so.6` | 1375 | 395 | 398 | Dedicated math behavior tests pending |
+| `m` | `libm.so.6` | 1375 | 395 | 398 | Finite sin/cos/sqrt/pow results with explicit tolerances |
 | `pthread` | `libpthread.so.0` | 274 | 233 | 235 | Rust thread creation/join, thread-local storage and destructor checks |
-| `dl` | `libdl.so.2` | 12 | 9 | 9 | Dedicated dlopen/dlsym/dlvsym/dlclose tests pending |
-| `rt` | `librt.so.1` | 52 | 47 | 47 | Dedicated realtime API behavior tests pending |
-| `util` | `libutil.so.1` | 7 | 6 | 6 | Dedicated utility API behavior tests pending |
-| `resolv` | `libresolv.so.2` | 91 | 91 | 91 | Dedicated resolver behavior tests pending |
+| `dl` | `libdl.so.2` | 12 | 9 | 9 | Controlled real DSO: dlopen, dlsym, dlvsym success/missing-version failure, dlclose |
+| `rt` | `librt.so.1` | 52 | 47 | 47 | Monotonic clock/resolution, notification-free timer creation/deletion |
+| `util` | `libutil.so.1` | 7 | 6 | 6 | openpty, slave terminal attributes/identity, descriptor cleanup |
+| `resolv` | `libresolv.so.2` | 91 | 91 | Fixed DNS question parsing/name expansion and truncated-packet rejection; no external DNS |
 | `ld` | `ld-linux-x86-64.so.2` | 13 | 9 | 9 | Matching real loader executes programs; dependency listings and runtime paths are audited |
 | **Total** | **Eight libraries** | **4671** | **2915** | **2922** | **Selected behavior; not every interface** |
 
@@ -73,13 +73,30 @@ The earlier
 [provider run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38061222447)
 passed all four jobs, before exhaustive per-interface relocation tests were added.
 
+## Dedicated library behavior suite
+
+`examples/glibc-two-paths/behavior-and-check.sh` builds one executable per
+library against the target headers and generated stubs, then runs it with the
+matching real loader and DSOs. A small original real implementation supplies
+the dynamic-loading fixture; generated stubs are never loaded for execution.
+Each process has a 20-second timeout. The independent audit verifies expected
+imports (including the target-header `dn_expand` to `__dn_expand` mapping),
+version ceilings, required DSO dependencies, stub link-map entries, absence of
+embedded search paths, and runtime resolution inside the selected real tree.
+
+All 15 cases passed locally across the three profiles with GCC 13.3 and Clang 18.
+The fixture was checked for the expected versioned export and no dependencies;
+the final audit also records plugin and real runtime library hashes. Hosted jobs
+compile these tests with their selected Clang 21/24. Logs, executable/plugin
+artifacts, compiler revision, executable hashes, and runtime paths are retained.
+Hosted qualification of this new behavior suite is pending. These are focused
+smoke tests, not exhaustive semantic tests for all interfaces.
+
 ## Remaining coverage work
 
-- Add focused real-runtime suites for libm, libdl, librt, libutil, and libresolv.
-  Use correct declarations and deterministic fixtures: selected math cases,
-  loading a controlled DSO, supported realtime operations, pseudoterminal
-  operations, and resolver packet parsing without external DNS dependence.
-  Each case needs explicit expected behavior and resource cleanup.
+- Expand the focused real-runtime suites with additional boundary and failure
+  cases. Math special values, timer operations, pseudoterminal data transfer,
+  and additional resolver packet types are not comprehensively tested yet.
 - Qualify native C dependencies and broader whole-program dependency resolution
   separately from isolated-library membership. A symbol absent from one DSO
   may legitimately resolve through another library in a complete application.

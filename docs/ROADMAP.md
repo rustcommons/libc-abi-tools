@@ -253,5 +253,6 @@ input, ABI, relocation, Cargo, real runtime, and hosted CI gates.
 - [x] Observe the expanded exhaustive suite passing in all four hosted provider jobs at `c3faf20` ([run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38064818474)).
 - [ ] Add behavioral/header/feature-change ledgers with primary source references and semantic tests.
 - [ ] Apply the same artifact/runtime/distribution checks to every subsequently qualified provider.
-- [ ] Add dedicated real-runtime behavior suites for libm, libdl, librt, libutil, and libresolv.
+- [x] Add focused real-runtime behavior suites for libm, libdl, librt, libutil, and libresolv; all 15 local profile/library cases pass.
+- [ ] Qualify the new behavior suites in hosted Clang 21/24 provider jobs and expand semantic boundary coverage.
 - [ ] Inventory additional glibc libraries/modules and establish explicit scope before expanding the matrix.

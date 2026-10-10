@@ -55,6 +55,7 @@ jobs:
       - name: Check metadata, complete stubs, and Cargo integration
         env:
           CLANG_MAJOR: ${{ matrix.clang }}
+          ABI_BEHAVIOR_CC: /usr/bin/clang-${{ matrix.clang }}
         working-directory: libc-abi-tools
         run: |
           bash examples/glibc-two-paths/elf-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
@@ -69,5 +70,6 @@ jobs:
             ${{ runner.temp }}/glibc-${{ matrix.glibc }}/logs
             ${{ runner.temp }}/glibc-${{ matrix.glibc }}/elf-metadata
             ${{ runner.temp }}/glibc-${{ matrix.glibc }}/link-matrix
+            ${{ runner.temp }}/glibc-${{ matrix.glibc }}/behavior
             ${{ runner.temp }}/glibc-${{ matrix.glibc }}/provider-*-v1-*.txt
             ${{ runner.temp }}/modern-toolchain.txt
