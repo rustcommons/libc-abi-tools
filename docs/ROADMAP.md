@@ -283,3 +283,10 @@ input, ABI, relocation, Cargo, real runtime, and hosted CI gates.
 - [x] Verify ordinary Rust artifact paths, host units, real-loader execution, provider/version conflicts and too-new-symbol rejection ([run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38076305526)).
 
 Provider acquisition and authenticated release SDKs remain open.
+
+## Cargo workflow checkpoint (F02)
+
+- [x] Pin consumer 6b07260 and qualify workspace/exclusion, package/bin/example selection, features/no-default-features, custom/release profiles, locked/offline and fresh cached output for 2.17/2.18/2.22 with Rust 1.99 and Clang 21/24, including both 2.17 routes.
+- [x] Execute all three workflow fixtures with matching real loaders and reject an existing executable not reported by the current invocation.
+
+Producer c442310: [all nine jobs passed](https://github.com/rustcommons/libc-abi-tools/actions/runs/38077381465). See the companion [Cargo workflow reference](https://github.com/rustcommons/cargo-libc/blob/main/docs/CARGO-WORKFLOWS.md). Workspace-wide inspection, arbitrary flag merging and new link modes remain separate work.
