@@ -1,0 +1,32 @@
+# madvise advice values and the first mainline release defining them (x86_64).
+# Source: https://github.com/torvalds/linux include/{uapi/,}asm-generic/mman-common.h
+# Tags scanned: v3.3 .. v7.2 (81 releases). Generated 2026-10-10.
+# Rows present in v3.3 are reported as v3.3 (the scan floor), not their true origin.
+# Columns: value<TAB>name<TAB>first_release
+0	MADV_NORMAL	3.3
+1	MADV_RANDOM	3.3
+2	MADV_SEQUENTIAL	3.3
+3	MADV_WILLNEED	3.3
+4	MADV_DONTNEED	3.3
+8	MADV_FREE	4.5
+9	MADV_REMOVE	3.3
+10	MADV_DONTFORK	3.3
+11	MADV_DOFORK	3.3
+12	MADV_MERGEABLE	3.3
+13	MADV_UNMERGEABLE	3.3
+14	MADV_HUGEPAGE	3.3
+15	MADV_NOHUGEPAGE	3.3
+16	MADV_DONTDUMP	3.4
+17	MADV_DODUMP	3.4
+18	MADV_WIPEONFORK	4.14
+19	MADV_KEEPONFORK	4.14
+20	MADV_COLD	5.4
+21	MADV_PAGEOUT	5.4
+22	MADV_POPULATE_READ	5.14
+23	MADV_POPULATE_WRITE	5.14
+24	MADV_DONTNEED_LOCKED	5.18
+25	MADV_COLLAPSE	6.1
+100	MADV_HWPOISON	3.3
+101	MADV_SOFT_OFFLINE	3.3
+102	MADV_GUARD_INSTALL	6.13
+103	MADV_GUARD_REMOVE	6.13
