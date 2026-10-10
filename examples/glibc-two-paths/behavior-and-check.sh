@@ -30,8 +30,9 @@ for route in "${routes[@]}"; do
             > "$work/logs/behavior-$route-$library-elf.txt"
         "$root/lib64/ld-linux-x86-64.so.2" --library-path "$root/lib64:$root/usr/lib64" \
             --list "$destination/$library" > "$work/logs/behavior-$route-$library-libraries.txt"
-        timeout 20 "$root/lib64/ld-linux-x86-64.so.2" --library-path "$root/lib64:$root/usr/lib64" \
-            "$destination/$library" "$destination/plugin.so" > "$work/logs/behavior-$route-$library-run.txt"
+        timeout 20 env LD_DEBUG=libs "$root/lib64/ld-linux-x86-64.so.2" --library-path "$root/lib64:$root/usr/lib64" \
+            "$destination/$library" "$destination/plugin.so" > "$work/logs/behavior-$route-$library-run.txt" \
+            2> "$work/logs/behavior-$route-$library-runtime-trace.txt"
         grep -qx "$library behavior passed" "$work/logs/behavior-$route-$library-run.txt"
     done
 done

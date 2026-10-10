@@ -6,6 +6,10 @@ glibc **2.17, 2.18 or 2.22**, each with local and hosted provider qualification.
 Having a snapshot for a version does not establish a provider
 or qualify its runtime.
 
+Provider CI now has three preparation jobs (one per supported release) and six
+Rust 1.99/Clang 21 or 24 application jobs consuming the same prepared inputs.
+Both application variants compile Rust. See [CI and release artifacts](CI-AND-RELEASE-ARTIFACTS.md).
+
 All eight libraries below already have snapshot parsing, historical matrix
 entries, native ELF comparison, generated stubs, export audits, and exhaustive
 isolated-library link tests for the established provider inputs. We do not need
@@ -101,6 +105,11 @@ The [hosted behavior suite](https://github.com/rustcommons/libc-abi-tools/action
 passed all four 2.17/2.22 Clang 21/24 jobs at `a055e8f`. These are focused
 smoke tests, not exhaustive semantic tests for all interfaces.
 
+The split workflow additionally transfers matching NSS/libnsl runtime inputs and
+audits actual initialization traces and module hashes. This catches dynamic
+loads, including NSS group lookup during openpty, that a startup `--list` alone
+does not describe. These modules are not added to the eight-library ABI matrix.
+
 ## Remaining coverage work
 
 - Expand the focused real-runtime suites with additional boundary and failure
@@ -114,10 +123,11 @@ smoke tests, not exhaustive semantic tests for all interfaces.
 - Qualify actual intended distributions and kernels, including SLES 12 SP5;
   modern-host execution of source-built runtimes does not establish that result.
 - Inventory other glibc-produced DSOs, modules, and archives before expanding
-  scope. NSS modules, additional glibc libraries such as libanl, distribution
-  compatibility libraries, and external dependencies are not included merely
-  because an application can find them at runtime. The eight-library matrix
-  cannot determine their acceptance or rejection.
+  scope. NSS/libnsl inputs are transferred for the tested runtime dependency
+  paths, but have no exhaustive public-interface acceptance matrix. Additional
+  glibc libraries such as libanl, distribution compatibility libraries, and
+  external dependencies are not qualified merely because an application can
+  find them. The eight-library matrix cannot determine their acceptance or rejection.
 - Extend architectural and pre-2.17 historical evidence with explicit adapters
   and completeness evidence. Other architectures, static linking, private
   `GLIBC_PRIVATE` interfaces, and unversioned interfaces are not covered by this

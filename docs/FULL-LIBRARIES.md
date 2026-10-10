@@ -92,10 +92,12 @@ controls also pass. A strong memfd_create reference still fails to link.
 selected reference evidence, including defaults, kind, binding, visibility,
 sizes, alignment, exact shared ranges, and overlapping data offsets. It checks
 Rust version requirements and every shared link/runtime input for host leakage.
-`logs/full-manifest.json` records reference/generated hashes, compiler runtime
-source hashes, executable/source hashes, persistent linker input hashes, and
-the Rust compiler version. Compiler arguments, link maps, and runtime lists are
-retained alongside it.
+Preparation now records reference/generated and compiler runtime hashes in
+`logs/abi-manifest.json`. Application checks record executable/source hashes,
+persistent linker inputs, and the Rust compiler in `logs/application-manifest.json`.
+The checker's combined mode retains the earlier `full-manifest.json` form.
+Compiler arguments, link maps, and runtime lists are retained alongside them.
+See [the CI split and transfer format](CI-AND-RELEASE-ARTIFACTS.md).
 
 This qualifies the tested programs on these reference files and the newer WSL
 kernel. SLES/old-distribution execution, broader standard-library/native dependency

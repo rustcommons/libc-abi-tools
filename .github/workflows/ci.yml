@@ -35,6 +35,8 @@ jobs:
       - run: cargo build --locked --offline
       - name: Verify regenerated matrix and Markdown reference
         run: python3 scripts/build-glibc-reference.py --binary target/debug/libc-abi --check
+      - name: Verify CI bundle integrity and extraction fixtures
+        run: python3 examples/glibc-two-paths/test-ci-bundle.py
       - uses: actions/upload-artifact@v4
         with:
           name: glibc-history-reference

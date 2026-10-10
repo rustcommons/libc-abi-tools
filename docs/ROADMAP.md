@@ -228,6 +228,18 @@ Distribution qualification and authenticated SDK packaging remain separate gates
 
 ## Additional provider implementation plan
 
+The provider workflow now prepares each release once and transfers checked
+inputs to Rust 1.99/Clang 21 and 24 application jobs. ABI probes are separate
+from compiler-specific application checks; both 2.17 routes are preserved.
+See [CI and release artifacts](CI-AND-RELEASE-ARTIFACTS.md).
+
+- [x] Split preparation/ABI auditing from Rust/C application integration.
+- [x] Transfer checksummed input inventories with permissions/relative links and rematerialize descriptors on each runner.
+- [x] Preserve matching NSS runtime modules and audit initialized dynamic modules after relocation.
+- [ ] Observe the split three-preparation/six-application hosted workflow passing.
+- [ ] Add wrapper parsing for targets such as `x86_64-unknown-linux-gnu.2.17`, forwarding the normal Rust triple and selecting the exact provider.
+- [ ] Implement authenticated user SDK packaging, provider discovery/download, cache identity, and install contracts before publishing releases.
+
 The [GNU 2.18 provider](GLIBC-2.18.md) now passes all eight-library native/stub
 audits, exhaustive accepted/rejected/default linking, Cargo host/target checks,
 real-library behavior, and pthread GLIBC_2.18 boundaries. All six hosted

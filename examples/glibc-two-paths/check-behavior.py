@@ -45,14 +45,27 @@ for route in ROUTES:
         for path in paths:
             require(pathlib.Path(path).resolve().is_relative_to(real), "Runtime escaped real root: " + path)
         require(any(pathlib.Path(p).name == soname for p in paths), "Test library not loaded: " + library)
+        trace = pathlib.Path(str(prefix) + "-runtime-trace.txt").read_text()
+        modules = sorted(set(re.findall(r"calling (?:init|fini):\s+(/\S+)", trace)))
+        require(modules, "Missing actual runtime initialization trace")
+        fixture_root = work / "behavior" / route
+        executable = fixture_root / library
+        for path in modules:
+            resolved = pathlib.Path(path).resolve()
+            require(resolved.is_relative_to(real) or resolved in (plugin.resolve(), executable.resolve()),
+                    "Dynamically loaded module escaped real tree: " + path)
+        if library == "dl":
+            require(str(plugin) in modules, "Controlled plugin not seen in runtime trace")
         linkmap = pathlib.Path(str(prefix) + ".map").read_text()
         stub = work / ("full-libraries-" + route)
         require(str(stub / ("lib" + library + ".so")) in linkmap and str(stub / "libc.so") in linkmap,
                 "Behavior program did not link against selected stubs")
-        executable = work / "behavior" / route / library
         report["cases"].append({"route": route, "library": library,
                                 "executable_sha256": hashlib.sha256(executable.read_bytes()).hexdigest(),
                                 "plugin_sha256": hashlib.sha256(plugin.read_bytes()).hexdigest(),
+                                "dynamic_module_paths": modules,
+                                "dynamic_module_sha256": {p: hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+                                                          for p in modules},
                                 "runtime_paths": paths, "imports": sorted(imported),
                                 "runtime_sha256": {p: hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
                                                    for p in paths}})

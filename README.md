@@ -4,6 +4,8 @@
 
 [Current glibc coverage](docs/GLIBC-COVERAGE.md) lists each library, test stage,
 qualified input profile, and remaining runtime/architecture work.
+See [CI and release artifacts](docs/CI-AND-RELEASE-ARTIFACTS.md) for Rust/Clang roles,
+the shared preparation stage, and planned version-suffixed target selection.
 
 [Browse versioned glibc interfaces](docs/reference/GLIBC-SYMBOLS.md),
 [release differences](docs/reference/GLIBC-DIFFS.md), and the

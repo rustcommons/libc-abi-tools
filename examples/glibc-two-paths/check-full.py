@@ -11,6 +11,9 @@ from experiment import RELEASE, ROUTES
 
 work = pathlib.Path(sys.argv[1]).resolve()
 repo = pathlib.Path(sys.argv[2]).resolve()
+mode = sys.argv[3] if len(sys.argv) == 4 else "all"
+if mode not in ("all", "--abi-only", "--application-only") or len(sys.argv) not in (3, 4):
+    raise SystemExit("Usage: check-full.py WORK REPO [--abi-only|--application-only]")
 libraries = dict(zip(
     ("c", "m", "ld", "resolv", "pthread", "dl", "rt", "util"),
     ("libc.so.6", "libm.so.6", "ld-linux-x86-64.so.2", "libresolv.so.2",
@@ -59,7 +62,7 @@ def overlaps(a, b):
 
 
 pinned = rows(work / ("elf-metadata/pinned-" + RELEASE + ".tsv"))
-manifest = {"schema": 1, "scope": "complete pinned public numeric GLIBC ABI, experimental environment",
+manifest = {"schema": 1, "scope": "selected application/runtime evidence" if mode == "--application-only" else "complete pinned public numeric GLIBC ABI, experimental environment",
             "release": RELEASE, "libraries": [], "executables": {},
             "compiler_runtime_sha256": digest(work / "compiler-runtime/libgcc_s.so.1"),
             "compiler_runtime_source_sha256": digest(work / "prebuilt/usr/lib64/libgcc_s.so.1"),
@@ -68,48 +71,51 @@ manifest = {"schema": 1, "scope": "complete pinned public numeric GLIBC ABI, exp
 total = 0
 for route in ROUTES:
     generated = work / ("full-libraries-" + route)
-    for library, soname in libraries.items():
-        selected = rows(generated / (library + ".elf.tsv"))
-        text, actual, alignments = exports(work / "logs" / ("full-" + route + "-" + library + "-exports.txt"))
-        expected = {(s["symbol"], s["version"]): s for s in pinned if s["library"] == library}
-        require(set(actual) == set(expected) == {(s["symbol"], s["version"]) for s in selected},
-                "Full ABI membership mismatch: " + route + "/" + library)
-        require("(NEEDED)" not in text and "(SONAME)" in text and "[" + soname + "]" in text,
-                "Wrong full DSO identity/dependencies")
-        forward, inverse = {}, {}
-        data = []
-        for symbol in selected:
-            key = (symbol["symbol"], symbol["version"])
-            properties = actual[key]
-            require(properties[:4] == (symbol["default"] == "yes", symbol["type"], symbol["binding"], symbol["visibility"]),
-                    "Full export property mismatch: " + str(key))
-            size = 2 if symbol["type"] in ("FUNC", "IFUNC") else int(symbol["size"])
-            require(properties[4] == size, "Full export size mismatch: " + str(key))
-            require(alignments[properties[5]] >= max(1, int(symbol["section_alignment"])), "Lost section alignment")
-            abi = expected[key]
-            kind = {"FUNC": "F", "IFUNC": "F", "OBJECT": "D", "TLS": "T"}[properties[1]]
-            require(abi["kind"] == kind and (kind == "F" or int(abi["size"]) == size), "Pinned kind/size mismatch")
-            original = (symbol["section"], int(symbol["value"], 16), symbol["type"], int(symbol["size"]))
-            emitted = (properties[5], properties[6], properties[1], properties[4])
-            if original[3]:
-                require(forward.setdefault(original, emitted) == emitted, "Lost exact shared range")
-                require(inverse.setdefault(emitted, original) == original, "Invented exact shared range")
-            if kind in ("D", "T"):
-                data.append((symbol, properties))
-        for (a, x), (b, y) in itertools.combinations(data, 2):
-            original_a = ((a["section"], a["type"]), int(a["value"], 16), int(a["value"], 16) + int(a["size"]))
-            original_b = ((b["section"], b["type"]), int(b["value"], 16), int(b["value"], 16) + int(b["size"]))
-            emitted_a = ((x[5], x[1]), x[6], x[6] + x[4])
-            emitted_b = ((y[5], y[1]), y[6], y[6] + y[4])
-            shared = overlaps(original_a, original_b)
-            require(shared == overlaps(emitted_a, emitted_b), "Lost/invented data-view overlap")
-            if shared:
-                require(original_b[1] - original_a[1] == emitted_b[1] - emitted_a[1], "Wrong data-view offset")
-        total += len(selected)
-        manifest["libraries"].append({"route": route, "library": library, "soname": soname,
-                                      "definitions": len(selected), "reference_sha256": digest(work / route / "lib64" / soname),
-                                      "generated_sha256": digest(generated / soname),
-                                      "selected_elf_sha256": digest(generated / (library + ".elf.tsv"))})
+    if mode != "--application-only":
+        for library, soname in libraries.items():
+            selected = rows(generated / (library + ".elf.tsv"))
+            text, actual, alignments = exports(work / "logs" / ("full-" + route + "-" + library + "-exports.txt"))
+            expected = {(s["symbol"], s["version"]): s for s in pinned if s["library"] == library}
+            require(set(actual) == set(expected) == {(s["symbol"], s["version"]) for s in selected},
+                    "Full ABI membership mismatch: " + route + "/" + library)
+            require("(NEEDED)" not in text and "(SONAME)" in text and "[" + soname + "]" in text,
+                    "Wrong full DSO identity/dependencies")
+            forward, inverse = {}, {}
+            data = []
+            for symbol in selected:
+                key = (symbol["symbol"], symbol["version"])
+                properties = actual[key]
+                require(properties[:4] == (symbol["default"] == "yes", symbol["type"], symbol["binding"], symbol["visibility"]),
+                        "Full export property mismatch: " + str(key))
+                size = 2 if symbol["type"] in ("FUNC", "IFUNC") else int(symbol["size"])
+                require(properties[4] == size, "Full export size mismatch: " + str(key))
+                require(alignments[properties[5]] >= max(1, int(symbol["section_alignment"])), "Lost section alignment")
+                abi = expected[key]
+                kind = {"FUNC": "F", "IFUNC": "F", "OBJECT": "D", "TLS": "T"}[properties[1]]
+                require(abi["kind"] == kind and (kind == "F" or int(abi["size"]) == size), "Pinned kind/size mismatch")
+                original = (symbol["section"], int(symbol["value"], 16), symbol["type"], int(symbol["size"]))
+                emitted = (properties[5], properties[6], properties[1], properties[4])
+                if original[3]:
+                    require(forward.setdefault(original, emitted) == emitted, "Lost exact shared range")
+                    require(inverse.setdefault(emitted, original) == original, "Invented exact shared range")
+                if kind in ("D", "T"):
+                    data.append((symbol, properties))
+            for (a, x), (b, y) in itertools.combinations(data, 2):
+                original_a = ((a["section"], a["type"]), int(a["value"], 16), int(a["value"], 16) + int(a["size"]))
+                original_b = ((b["section"], b["type"]), int(b["value"], 16), int(b["value"], 16) + int(b["size"]))
+                emitted_a = ((x[5], x[1]), x[6], x[6] + x[4])
+                emitted_b = ((y[5], y[1]), y[6], y[6] + y[4])
+                shared = overlaps(original_a, original_b)
+                require(shared == overlaps(emitted_a, emitted_b), "Lost/invented data-view overlap")
+                if shared:
+                    require(original_b[1] - original_a[1] == emitted_b[1] - emitted_a[1], "Wrong data-view offset")
+            total += len(selected)
+            manifest["libraries"].append({"route": route, "library": library, "soname": soname,
+                                          "definitions": len(selected), "reference_sha256": digest(work / route / "lib64" / soname),
+                                          "generated_sha256": digest(generated / soname),
+                                          "selected_elf_sha256": digest(generated / (library + ".elf.tsv"))})
+    if mode == "--abi-only":
+        continue
     executable = (work / "logs" / ("full-" + route + "-rust-executable.txt")).read_text()
     required = [tuple(map(int, value.split("."))) for value in re.findall(r"Name: GLIBC_([\d.]+)", executable)]
     require(required and max(required) <= tuple(map(int, RELEASE.split('.'))), "Rust requires newer glibc")
@@ -183,9 +189,16 @@ for route in ROUTES:
     else:
         require("fmemopen@GLIBC_2.22" in (work / "logs" / ("full-" + route + "-fmemopen-negative.txt")).read_text(),
                 RELEASE + " must reject the 2.22 interface")
-    print(route + ": full ABI exports, data views, Rust target requirements and real runtime inputs verified")
-manifest["rust_source_sha256"] = digest(repo / "examples/glibc-two-paths/rust-hello.rs")
-manifest["rust_compiler"] = (work / "logs/full-rustc.txt").read_text().strip()
+    print(route + ": data views, Rust target requirements and real runtime inputs verified")
+if mode != "--abi-only":
+    manifest["rust_source_sha256"] = digest(repo / "examples/glibc-two-paths/rust-hello.rs")
+    manifest["rust_compiler"] = (work / "logs/full-rustc.txt").read_text().strip()
+manifest["stage"] = mode
 manifest["definitions_checked"] = total
-(work / "logs/full-manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
-print(str(total) + " generated definitions verified across " + str(8 * len(ROUTES)) + " DSOs")
+filename = {"all": "full-manifest.json", "--abi-only": "abi-manifest.json",
+            "--application-only": "application-manifest.json"}[mode]
+(work / "logs" / filename).write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+if mode != "--application-only":
+    print(str(total) + " generated definitions verified across " + str(8 * len(ROUTES)) + " DSOs")
+else:
+    print("Application/runtime checks passed for " + str(len(ROUTES)) + " routes; ABI audit belongs to preparation")

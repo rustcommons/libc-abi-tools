@@ -195,3 +195,8 @@ public numeric GLIBC 2.17 definitions in the eight selected libraries and builds
 a Rust allocation/thread/TLS-destruction/unwind program with both old runtimes.
 Run `full-and-check.sh` for that experiment. It adds an explicitly sourced old
 compiler runtime rather than silently selecting the host unwinder.
+
+`full-and-check.sh` is now a convenience wrapper for `prepare-and-check.sh` and
+`application-and-check.sh`. Hosted CI runs preparation once per release, then
+transfers checked inputs to Rust 1.99/Clang 21 and 24 application jobs; Cargo
+integration remains in `provider-and-check.sh`. See [CI and release artifacts](../../docs/CI-AND-RELEASE-ARTIFACTS.md).

@@ -11,9 +11,58 @@ on:
 permissions:
   contents: read
 jobs:
-  provider:
+  prepare:
+    name: Prepare and audit glibc ${{ matrix.glibc }}
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        glibc: ['2.17', '2.18', '2.22']
+    env:
+      ABI_GLIBC_RELEASE: ${{ matrix.glibc }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.99.0
+      - name: Install preparation tools
+        run: sudo apt-get update && sudo apt-get install -y podman make python3 gcc binutils
+      - name: Build pinned target inputs once per release
+        run: |
+          if [ "$ABI_GLIBC_RELEASE" = 2.17 ]; then
+            bash examples/glibc-two-paths/run.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+          else
+            bash "examples/glibc-$ABI_GLIBC_RELEASE/run.sh" "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+          fi
+      - name: Audit native metadata, generated exports, and every matrix interface
+        run: |
+          bash examples/glibc-two-paths/elf-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+          bash examples/glibc-two-paths/prepare-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+      - name: Package qualified CI inputs
+        run: |
+          python3 examples/glibc-two-paths/ci-bundle.py pack "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE" "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE.tar.gz"
+      - name: Upload prepared provider inputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: glibc-${{ matrix.glibc }}-prepared-inputs
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/glibc-${{ matrix.glibc }}.tar.gz
+            ${{ runner.temp }}/glibc-${{ matrix.glibc }}.tar.gz.sha256
+      - name: Retain preparation diagnostics even after failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: glibc-${{ matrix.glibc }}-preparation-diagnostics
+          path: |
+            ${{ runner.temp }}/glibc-${{ matrix.glibc }}/logs
+            ${{ runner.temp }}/glibc-${{ matrix.glibc }}/elf-metadata
+            ${{ runner.temp }}/glibc-${{ matrix.glibc }}/link-matrix
+  application:
+    name: Rust 1.99 and Clang ${{ matrix.clang }} / glibc ${{ matrix.glibc }}
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -21,6 +70,7 @@ jobs:
         glibc: ['2.17', '2.18', '2.22']
     env:
       ABI_GLIBC_RELEASE: ${{ matrix.glibc }}
+      ABI_BEHAVIOR_CC: /usr/bin/clang-${{ matrix.clang }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,47 +79,35 @@ jobs:
         with:
           repository: rustcommons/cargo-libc
           path: cargo-libc
-          # Pin the companion provider contract tested with this workflow.
           ref: ${{ inputs.companion_ref || 'edfca5b9f9fb811069f302e8d2d5ef2f99f7fd33' }}
       - uses: dtolnay/rust-toolchain@1.99.0
-        with:
-          components: rustfmt, clippy
-      - name: Install explicit modern Clang and Linux build tools
+      - name: Install application tools
         env:
           CLANG_MAJOR: ${{ matrix.clang }}
         run: |
           bash libc-abi-tools/.github/install-clang.sh "$CLANG_MAJOR"
-          sudo apt-get install -y podman make python3
-      - name: Test companion and build pinned target inputs
-        run: |
-          cd cargo-libc
-          cargo fmt --all -- --check
-          cargo test --all-targets --locked --offline
-          cargo clippy --all-targets --locked --offline -- -D warnings
-          cd ../libc-abi-tools
-          if [ "$ABI_GLIBC_RELEASE" = 2.17 ]; then
-            bash examples/glibc-two-paths/run.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
-          else
-            bash "examples/glibc-$ABI_GLIBC_RELEASE/run.sh" "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
-          fi
-      - name: Check metadata, complete stubs, and Cargo integration
-        env:
-          CLANG_MAJOR: ${{ matrix.clang }}
-          ABI_BEHAVIOR_CC: /usr/bin/clang-${{ matrix.clang }}
+          sudo apt-get install -y python3 gcc binutils
+      - uses: actions/download-artifact@v4
+        with:
+          name: glibc-${{ matrix.glibc }}-prepared-inputs
+          path: ${{ runner.temp }}/prepared-inputs
+      - name: Verify and restore provider inputs into this runner
         working-directory: libc-abi-tools
         run: |
-          bash examples/glibc-two-paths/elf-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
-          bash examples/glibc-two-paths/full-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
-          bash examples/glibc-two-paths/provider-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE" "$GITHUB_WORKSPACE/cargo-libc" "/usr/bin/clang-$CLANG_MAJOR"
-      - name: Retain diagnostics even after failure
+          python3 examples/glibc-two-paths/ci-bundle.py unpack "$RUNNER_TEMP/prepared-inputs/glibc-$ABI_GLIBC_RELEASE.tar.gz" "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+      - name: Build Rust and C applications, then run only real runtimes
+        working-directory: libc-abi-tools
+        run: |
+          bash examples/glibc-two-paths/application-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+          bash examples/glibc-two-paths/provider-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE" "$GITHUB_WORKSPACE/cargo-libc" "$ABI_BEHAVIOR_CC"
+      - name: Retain application diagnostics even after failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: glibc-${{ matrix.glibc }}-clang-${{ matrix.clang }}-diagnostics
+          name: glibc-${{ matrix.glibc }}-clang-${{ matrix.clang }}-application-diagnostics
           path: |
             ${{ runner.temp }}/glibc-${{ matrix.glibc }}/logs
-            ${{ runner.temp }}/glibc-${{ matrix.glibc }}/elf-metadata
-            ${{ runner.temp }}/glibc-${{ matrix.glibc }}/link-matrix
             ${{ runner.temp }}/glibc-${{ matrix.glibc }}/behavior
             ${{ runner.temp }}/glibc-${{ matrix.glibc }}/provider-*-v1-*.txt
+            ${{ runner.temp }}/glibc-${{ matrix.glibc }}/bundle-manifest.json
             ${{ runner.temp }}/modern-toolchain.txt
