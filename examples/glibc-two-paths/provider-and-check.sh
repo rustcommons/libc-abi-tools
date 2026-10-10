@@ -34,6 +34,50 @@ for route in "${routes[@]}"; do
         --library-path "$work/compiler-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
         --list "$artifact" > "$work/logs/provider-$route-runtime-libraries.txt"
     python3 "$example_dir/check-provider.py" "$work" "$route"
+    # Normal Cargo selections must survive the coordinator unchanged.
+    workflow_dir="$work/cargo-workflow-$route"
+    manifest="$companion/examples/hello/Cargo.toml"
+    workflow_artifact="$workflow_dir/x86_64-unknown-linux-gnu/qualification/glibc-hello"
+    for pass in first cached; do
+        "$CARGO_TARGET_DIR/debug/cargo-libc" build --provider "$descriptor" \
+            --target "x86_64-unknown-linux-gnu.$release" --cc "$clang" --ld /usr/bin/ld.bfd \
+            --artifact "$workflow_artifact" -- --manifest-path "$manifest" \
+            --target-dir "$workflow_dir" --workspace --exclude hello-macro \
+            --bins --examples --features glibc-hello/qualification --no-default-features \
+            --profile qualification --locked --offline \
+            > "$work/logs/provider-$route-workflow-$pass.txt" 2>&1
+    done
+    for executable in glibc-hello qualification-member examples/qualification; do
+        "$work/$route/lib64/ld-linux-x86-64.so.2" \
+            --library-path "$work/compiler-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
+            "$workflow_dir/x86_64-unknown-linux-gnu/qualification/$executable" \
+            > "$work/logs/provider-$route-workflow-$(basename "$executable")-runtime.txt"
+    done
+    grep -F 'target executable ran; thread result = 42' "$work/logs/provider-$route-workflow-glibc-hello-runtime.txt"
+    grep -F 'workspace member ran' "$work/logs/provider-$route-workflow-qualification-member-runtime.txt"
+    grep -F 'qualification example ran' "$work/logs/provider-$route-workflow-qualification-runtime.txt"
+    "$CARGO_TARGET_DIR/debug/cargo-libc" build --provider "$descriptor" \
+        --target "x86_64-unknown-linux-gnu.$release" --cc "$clang" --ld /usr/bin/ld.bfd \
+        --artifact "$workflow_dir/x86_64-unknown-linux-gnu/release/examples/qualification" -- \
+        --manifest-path "$manifest" --target-dir "$workflow_dir" \
+        -p glibc-hello --example qualification --features qualification --release --locked --offline \
+        > "$work/logs/provider-$route-workflow-example.txt" 2>&1
+    "$work/$route/lib64/ld-linux-x86-64.so.2" \
+        --library-path "$work/compiler-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
+        "$workflow_dir/x86_64-unknown-linux-gnu/release/examples/qualification" \
+        > "$work/logs/provider-$route-workflow-release-runtime.txt"
+    grep -F 'qualification example ran' "$work/logs/provider-$route-workflow-release-runtime.txt"
+    # A stale executable from the workspace build cannot satisfy a package-only invocation.
+    if "$CARGO_TARGET_DIR/debug/cargo-libc" build --provider "$descriptor" \
+        --target "x86_64-unknown-linux-gnu.$release" --cc "$clang" --ld /usr/bin/ld.bfd \
+        --artifact "$workflow_artifact" -- --manifest-path "$manifest" \
+        --target-dir "$workflow_dir" -p qualification-member --bin qualification-member \
+        --profile qualification --locked --offline \
+        > "$work/logs/provider-$route-workflow-stale-negative.txt" 2>&1; then
+        echo 'Unexpected acceptance of executable absent from selected Cargo build' >&2; exit 1
+    fi
+    grep -F 'was not reported as an executable by this Cargo invocation' \
+        "$work/logs/provider-$route-workflow-stale-negative.txt"
     # A different requested release must be rejected, never silently downgraded.
     other=2.22
     if [ "$release" = 2.22 ]; then other=2.17; fi
