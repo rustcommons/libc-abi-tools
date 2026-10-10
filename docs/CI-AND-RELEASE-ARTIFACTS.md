@@ -71,16 +71,15 @@ run. A checksum is an integrity check, not publisher authentication. They are
 not published user release SDKs, and this job does not install or replace host
 glibc. Broader arbitrary dependency-closure qualification remains separate.
 
-## Planned versioned target syntax
+## Qualified versioned target syntax
 
-The intended user experience can expose:
+The coordinator supports:
 
 ```text
-cargo libc build --target x86_64-unknown-linux-gnu.2.17 -- --release
+cargo libc build --target x86_64-unknown-linux-gnu.2.17 --provider FILE --artifact EXECUTABLE -- --release
 ```
 
-This is **planned syntax**, not a command implemented today. The coordinator
-would parse two independent selections:
+The coordinator parses two independent selections:
 
 | User selection | Forwarded / resolved selection |
 | --- | --- |
@@ -97,8 +96,8 @@ its entire dependency closure, CPU, kernel, or distribution.
 
 Today the equivalent selection is explicit `--glibc 2.17 --provider FILE`, with
 the application's Cargo options after `--`; see [the current contract](PROVIDER-CONTRACT.md).
-Automatic target-suffix parsing, provider discovery/download, authenticated
-cache installation, and user release SDKs are still future work.
+Target-suffix parsing is implemented. Provider discovery/download, authenticated
+cache installation, and user release SDKs remain future work.
 
 ## How cargo-zigbuild and Zig handle this
 
@@ -139,3 +138,14 @@ rematerialization, but does not complete those release requirements.
 
 See [current coverage](GLIBC-COVERAGE.md), [provider rollout](GLIBC-PROVIDER-PLAN.md),
 and [the roadmap](ROADMAP.md).
+
+## Versioned-target qualification
+
+Producer `cbf31dd` pinned consumer `ed4c997` and passed all three
+preparation and six Rust 1.99/Clang 21 or 24 application jobs for 2.17/2.18/2.22
+([run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38076305526)).
+Both real 2.17 input routes passed. The suffix selected matching providers;
+Cargo reported ordinary-triple artifact paths; host scripts/proc macros, target
+threads, direct ELF/path audits and real-loader execution passed. Mismatched
+providers, conflicting explicit versions and memfd_create were rejected with
+the expected diagnostics. This does not qualify new platforms or user SDK delivery.

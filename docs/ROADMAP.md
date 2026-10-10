@@ -237,7 +237,7 @@ See [CI and release artifacts](CI-AND-RELEASE-ARTIFACTS.md).
 - [x] Transfer checksummed input inventories with permissions/relative links and rematerialize descriptors on each runner.
 - [x] Preserve matching NSS runtime modules and audit initialized dynamic modules after relocation.
 - [x] Observe all three preparation and six Rust/Clang application jobs passing at `8939827` ([run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38069527581)).
-- [ ] Add wrapper parsing for targets such as `x86_64-unknown-linux-gnu.2.17`, forwarding the normal Rust triple and selecting the exact provider.
+- [x] Add wrapper parsing for targets such as `x86_64-unknown-linux-gnu.2.17`, forwarding the normal Rust triple and selecting the exact provider.
 - [ ] Implement authenticated user SDK packaging, provider discovery/download, cache identity, and install contracts before publishing releases.
 
 The [GNU 2.18 provider](GLIBC-2.18.md) now passes all eight-library native/stub
@@ -276,3 +276,10 @@ input, ABI, relocation, Cargo, real runtime, and hosted CI gates.
 - [x] Qualify the new behavior suites in all four hosted Clang 21/24 provider jobs at `a055e8f` ([run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38065649690)).
 - [ ] Expand semantic boundary coverage beyond the focused library behavior suites.
 - [ ] Inventory additional glibc libraries/modules and establish explicit scope before expanding the matrix.
+
+## Versioned-target checkpoint
+
+- [x] Pin consumer ed4c997 and qualify suffix selection for 2.17/2.18/2.22 with Rust 1.99 and Clang 21/24, including both 2.17 routes.
+- [x] Verify ordinary Rust artifact paths, host units, real-loader execution, provider/version conflicts and too-new-symbol rejection ([run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38076305526)).
+
+Provider acquisition and authenticated release SDKs remain open.
