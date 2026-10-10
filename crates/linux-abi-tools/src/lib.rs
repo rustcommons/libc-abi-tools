@@ -5,12 +5,14 @@
 //! | [`targets`] | `linux-targets` | Distribution presets and `--distro`/`--glibc`/`--kernel`/`--target` selection |
 //! | [`libc`] | `libc-abi-tools` | glibc ABI metadata, stub generation, and providers |
 //! | [`kernel`] | `kernel-abi-tools` | Kernel syscall data and seccomp simulation (local filter or container) |
+//! | [`scan`] | `linux-abi-scan` | Static inspection of built executables against the floors (tier 1) |
 //!
 //! Each crate can also be used on its own; this crate only re-exports them
 //! so that their versions move together.
 
 pub use kernel_abi_tools as kernel;
 pub use libc_abi_tools as libc;
+pub use linux_abi_scan as scan;
 pub use linux_targets as targets;
 
 #[cfg(test)]

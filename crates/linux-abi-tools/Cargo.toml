@@ -18,4 +18,5 @@ path = "src/lib.rs"
 [dependencies]
 kernel-abi-tools = { path = "../kernel-abi-tools", version = "0.1.0" }
 libc-abi-tools = { path = "../..", version = "0.1.0" }
+linux-abi-scan = { path = "../linux-abi-scan", version = "0.1.0" }
 linux-targets = { path = "../linux-targets", version = "0.1.0" }

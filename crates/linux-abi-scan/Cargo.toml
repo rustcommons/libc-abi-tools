@@ -1,0 +1,24 @@
+[package]
+name = "linux-abi-scan"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+description = "Static inspection of built Linux executables against a target's glibc and kernel floors (tier 1 of linux-abi-tools' testing tiers)"
+repository = "https://github.com/rustcommons/linux-abi-tools"
+license = "MIT"
+readme = "README.md"
+keywords = ["elf", "glibc", "syscall", "linux", "compatibility"]
+categories = ["development-tools::build-utils", "os::linux-apis"]
+include = ["src/**", "Cargo.toml", "README.md", "LICENSE"]
+
+[lib]
+name = "linux_abi_scan"
+path = "src/lib.rs"
+
+[[bin]]
+name = "linux-abi-scan"
+path = "src/bin/linux-abi-scan.rs"
+
+[dependencies]
+kernel-abi-tools = { path = "../kernel-abi-tools", version = "0.1.0" }
+linux-targets = { path = "../linux-targets", version = "0.1.0" }

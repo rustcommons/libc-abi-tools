@@ -33,6 +33,7 @@ glibc-abilists = { git = "https://github.com/rustcommons/glibc-abilists", versio
 [workspace]
 members = [
     "crates/kernel-abi-tools",
+    "crates/linux-abi-scan",
     "crates/linux-abi-tools",
     "crates/linux-targets",
 ]

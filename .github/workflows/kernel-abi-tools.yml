@@ -17,7 +17,7 @@ on:
 permissions:
   contents: read
 env:
-  CRATES: -p kernel-abi-tools -p linux-targets -p linux-abi-tools
+  CRATES: -p kernel-abi-tools -p linux-targets -p linux-abi-scan -p linux-abi-tools
 jobs:
   rust:
     strategy:
@@ -79,4 +79,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.90.0
       - run: cargo fetch --locked
-      - run: cargo check -p kernel-abi-tools -p linux-targets -p linux-abi-tools --all-targets --locked --offline
+      - run: cargo check -p kernel-abi-tools -p linux-targets -p linux-abi-scan -p linux-abi-tools --all-targets --locked --offline
