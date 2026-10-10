@@ -18,5 +18,8 @@ subcommand is [cargo-libc](https://github.com/rustcommons/cargo-libc).
 See [WORKFLOWS.md](https://github.com/rustcommons/linux-abi-tools/blob/main/docs/WORKFLOWS.md)
 for how the pieces fit together.
 
-Licensed under the MIT License. The crates' data carry their own provenance
-notices; see each crate.
+This crate and the three it re-exports are MIT licensed. Through
+`libc-abi-tools`' default features it also pulls in
+[glibc-abilists](https://crates.io/crates/glibc-abilists), the GNU C Library's
+own ABI lists under LGPL-2.1-or-later, with provenance from glibc's signed
+release tags.

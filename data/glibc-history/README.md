@@ -4,10 +4,11 @@ The user reference is [GLIBC-SYMBOLS.md](../../docs/reference/GLIBC-SYMBOLS.md).
 Scope, semantics, evidence gaps, and the conformance plan are described in
 [GLIBC-HISTORY.md](../../docs/GLIBC-HISTORY.md).
 
-`symbols.tsv` and `changes.tsv` derive from the 28 pinned upstream ABI snapshots.
-Their separate [COPYING.abilists](../glibc/COPYING.abilists) license and
-[upstream attribution](../../NOTICE.md) remain applicable; the project MIT license
-does not relicense the ABI datasets or derived reference tables.
+`symbols.tsv` and `changes.tsv` derive from glibc's ABI lists for releases 2.17
+through 2.44, taken from glibc's release tags through
+[glibc-abilists](https://github.com/rustcommons/glibc-abilists). They carry the
+data's license, LGPL-2.1-or-later (see [NOTICE.md](../../NOTICE.md)); the
+project MIT license does not relicense the ABI data or derived reference tables.
 
 `elf-evidence.tsv` preserves public numeric GLIBC observations from independently
 readelf-checked real input trees, labelled by release, target, input profile,

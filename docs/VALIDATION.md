@@ -57,8 +57,10 @@ Validated 2026-10-09 with Rust 1.99.0 on Windows and Rust 1.98.1 in Ubuntu WSL.
 | CLI | Real 2.22 symbol query succeeds; ambiguous/unknown options fail |
 
 Collector tests use a temporary local Git fixture. Collection from a full official
-glibc checkout has not been independently exercised. The vendored data comes
-from the pinned Zig tree, not a new glibc build.
+glibc checkout has not been independently exercised by this collector. The ABI
+data comes from glibc's release tags through glibc-abilists, whose collector
+verified every file against glibc's own repository (2026-10-10); it is not a new
+glibc build.
 
 Rust 1.90 is the declared minimum; an MSRV check is configured in CI but was not
 run locally. Hosted CI has not run before the first push. At bootstrap there were

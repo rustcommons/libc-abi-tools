@@ -173,20 +173,31 @@ process and the build scripts never run under the filter.
 
 ### Release order
 
-1. Publish `linux-targets`, then `kernel-abi-tools`, then `libc-abi-tools`,
-   then `linux-abi-tools`. Each depends only on crates published before it.
+1. Publish `glibc-abilists` (its own repository), then `linux-targets`,
+   `kernel-abi-tools`, `libc-abi-tools`, and `linux-abi-tools`. Each depends
+   only on crates published before it.
    `cargo package --workspace` verifies the set together before anything is
    uploaded.
 2. Point cargo-libc at the published versions, implement the rows above, and
    qualify them in cargo-libc's CI.
 
-## 7. Open decisions
+## 7. glibc ABI data
 
-- **glibc data for crates.io users.** The published `libc-abi-tools` crate
-  leaves out `data/glibc` (GPL-2.0 ABI lists, see [NOTICE.md](../NOTICE.md)) and
-  reads data from a checkout at run time. Generating a provider from a crates.io
-  install therefore needs that data from elsewhere. The options are a separate
-  GPL-2.0 data crate, released providers, or a documented checkout. This is
-  tied to the release-sourcing decision in [ROADMAP.md](ROADMAP.md).
+The ABI lists come from glibc's own signed release tags through the
+[glibc-abilists](https://github.com/rustcommons/glibc-abilists) crate
+(LGPL-2.1-or-later), which records each tag's signature check and each file's
+blob id and SHA-256.
+
+| Need | How |
+| --- | --- |
+| Default | `libc-abi-tools` compiles the lists in (`bundled-glibc-data` feature) |
+| Leave the LGPL data out of a build | `default-features = false`; pass `--data DIR` (or `Snapshot::load`) |
+| Files on disk for scripts or audits | `libc-abi glibc export-data --output DIR` writes the lists, `SOURCE.tsv`, and `COPYING.LIB` |
+| cargo-libc | Same choice, passed through as its own feature (planned) |
+
+## 8. Open decisions
+
+- **Release sourcing** for startup objects, `libc_nonshared.a`, headers, and
+  the compiler runtime, which ABI lists cannot supply (see [ROADMAP.md](ROADMAP.md)).
 - **Distribution backports** remain unsourced for most presets; until sourced, a
   preset simulates its mainline base kernel.

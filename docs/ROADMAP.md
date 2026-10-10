@@ -31,10 +31,12 @@ Decided the same day:
   under the equivalent profile, chosen with `--runner local|container`.
 
 [WORKFLOWS.md](WORKFLOWS.md) documents every workflow and how each maps onto
-cargo-libc. Still open: how crates.io users obtain the glibc ABI lists that
-the published `libc-abi-tools` leaves out (tied to the release-sourcing
-decision below), and whether the libc side should consume `linux-targets`
-presets (e.g. to map a distro to its qualified provider).
+cargo-libc. The glibc ABI lists now come from glibc's own signed release tags
+through the new [glibc-abilists](https://github.com/rustcommons/glibc-abilists)
+crate (LGPL-2.1-or-later), compiled in by default with an opt-out; the
+Zig-sourced copy was verified byte-identical and removed. Still open: whether
+the libc side should consume `linux-targets` presets (e.g. to map a distro to
+its qualified provider).
 
 ## Team handoff (2026-10-10)
 
@@ -126,6 +128,8 @@ environments must be agreed before claiming support.
 
 - [x] Commit CLAUDE.md/AGENTS.md and imported Git conventions first.
 - [x] Pin Zig libc-abi-tools and preserve source/data attribution and licenses.
+  (2026-10-10: the ABI data now comes from glibc's signed tags through
+  glibc-abilists; the Zig-sourced copy was verified identical and removed.)
 - [x] Import only the eight selected x86_64 library lists for snapshots 2.17 onward.
 - [x] Parse both historical grouped and modern flat ABI lists.
 - [x] Preserve library, symbol version, function/object kind, and size.

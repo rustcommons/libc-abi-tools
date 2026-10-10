@@ -48,15 +48,17 @@ inputs, exhaustive linking, and pthread default-attribute boundary tests.
 [![CI](https://github.com/rustcommons/linux-abi-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/rustcommons/linux-abi-tools/actions/workflows/ci.yml)
 ![Rust 1.90+](https://img.shields.io/badge/Rust-1.90%2B-orange)
 [![Code: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
-[![Data: upstream license](https://img.shields.io/badge/data-upstream_license-blue)](data/glibc/COPYING.abilists)
+[![glibc data: LGPL-2.1-or-later](https://img.shields.io/badge/glibc_data-LGPL--2.1--or--later-blue)](https://github.com/rustcommons/glibc-abilists)
 ![Status: metadata prototype](https://img.shields.io/badge/status-metadata_prototype-yellow)
 
 Rust tools for collecting and inspecting libc ABI metadata, starting with
-**x86_64 Linux glibc 2.17+**. This is a port of the glibc portion of
-[Zig's libc ABI tools](https://codeberg.org/ziglang/libc-abi-tools).
-Credit to the **Zig contributors** and **GNU C Library contributors** for the
-tooling and source data on which this project builds. See [NOTICE.md](NOTICE.md)
-for complete attribution, the source pin, and separate code/data licenses.
+**x86_64 Linux glibc 2.17+**. The ABI lists come from the **GNU C Library**
+itself, collected from glibc's signed release tags by
+[glibc-abilists](https://github.com/rustcommons/glibc-abilists). The project was
+inspired by, and parts of its code adapted from,
+[Zig's libc ABI tools](https://codeberg.org/ziglang/libc-abi-tools); credit to
+the **Zig contributors** for the idea and design. See [NOTICE.md](NOTICE.md) for
+complete attribution and the separate code and data licenses.
 
 The companion [cargo-libc](https://github.com/rustcommons/cargo-libc) coordinates
 Cargo builds with an existing sysroot or the experimental 2.17/2.18/2.22 providers.
@@ -75,19 +77,22 @@ Cargo builds with an existing sysroot or the experimental 2.17/2.18/2.22 provide
   libraries: SONAME, versions/defaults, binding, visibility, IFUNC/TLS kinds,
   64-bit sizes, and observed shared ranges. See [ELF metadata](docs/ELF-METADATA.md).
 
-The repository includes 224 unmodified ABI lists from the pinned upstream's
-**2.17 through 2.44 snapshot directories**. These are upstream labels, not a claim
-about released glibc versions or tested runtime compatibility. Every snapshot is
-covered by parser tests; [checksums and provenance](data/glibc/UPSTREAM.toml) are
-committed with the data. Build and tests require no Zig or third-party Rust crates.
+The ABI lists for glibc **2.17 through 2.44** are compiled in from the
+[glibc-abilists](https://github.com/rustcommons/glibc-abilists) crate (default
+`bundled-glibc-data` feature; LGPL-2.1-or-later). Each comes unmodified from
+glibc's release tag, with the tag's signature check and the file's blob id and
+SHA-256 recorded there. A release label is not a claim of tested runtime
+compatibility. Every release is covered by parser tests. To leave the LGPL
+data out, build with `default-features = false` and pass `--data DIR`.
+Build and tests require no Zig; the only dependency is glibc-abilists.
 
 ## Build and try it
 
 Requires Rust/Cargo 1.90+; collection also requires Git. Run from this repository:
 
 ```sh
-cargo test --locked --offline
-cargo run --locked --offline -- glibc snapshot --data data/glibc --release 2.22 --symbol memcpy
+cargo test --locked
+cargo run --locked -- glibc snapshot --release 2.22 --symbol memcpy
 ```
 
 Output:
@@ -103,14 +108,17 @@ No matching symbol produces a header-only result. Unknown/missing releases fail;
 the tool never substitutes a newer release.
 
 ```sh
-cargo install --path . --locked --offline
-libc-abi glibc snapshot --data data/glibc --release 2.17 > glibc-2.17.tsv
+cargo install --path . --locked
+libc-abi glibc snapshot --release 2.17 > glibc-2.17.tsv
+libc-abi glibc export-data --output /path/to/glibc-data       # files + SOURCE.tsv + COPYING.LIB
+libc-abi glibc snapshot --data /path/to/glibc-data --release 2.17
 libc-abi glibc collect --source /path/to/glibc-checkout --output /path/to/new-data
 libc-abi glibc elf --input /path/to/target/libc.so.6 > libc-elf.tsv
 ```
 
-Installing the executable does not install the data directory; pass `--data`
-explicitly. Collection refuses an existing output release and validates the
+The installed executable carries the ABI lists; `--data` reads a directory with
+the same layout instead (required when built without `bundled-glibc-data`).
+Collection refuses an existing output release and validates the
 inputs before writing. An I/O failure during writing can leave a partial new
 directory; inspect it before retrying. Source tags identify a checkout, not its
 authenticity: use a trusted source repository.

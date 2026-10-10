@@ -1,6 +1,8 @@
 # Releasing
 
-The workspace publishes four crates to **crates.io only**. No standalone
+The workspace publishes four crates to **crates.io only**, after
+[glibc-abilists](https://github.com/rustcommons/glibc-abilists), which holds the
+glibc ABI lists and is released from its own repository first. No standalone
 binary bundles or GitHub release assets are published. Nothing is published
 without the maintainer's go-ahead.
 
@@ -8,13 +10,18 @@ without the maintainer's go-ahead.
 | --- | --- | --- |
 | `linux-targets` | none | Library; distribution presets compiled in |
 | `kernel-abi-tools` | `linux-targets` | Library and the `kernel-seccomp`/`syscall-probe` binaries; syscall and `madvise` data compiled in |
-| `libc-abi-tools` | none | Library and the `libc-abi` binary. The glibc ABI lists under `data/` are **not** included (see below) |
+| `libc-abi-tools` | `glibc-abilists` (default `bundled-glibc-data` feature) | Library and the `libc-abi` binary; no data of its own |
 | `linux-abi-tools` | the three above | Re-exports only |
 
 Each manifest has an `include` list, so only sources, compiled-in data,
 README, and license/notice files are packaged. `libc-abi-tools` leaves out
-`data/` (GPL-2.0 ABI lists that the library reads from a checkout at run
-time), `docs/`, `examples/`, and `tests/`. Its crate stays MIT-only.
+`data/`, `docs/`, `examples/`, and `tests/`; its own crate is MIT. A default
+build of it includes glibc-abilists' LGPL-2.1-or-later data; build with
+`default-features = false` to leave that out.
+
+Before publishing `libc-abi-tools`, `glibc-abilists` must be on crates.io: the
+manifest's `git` source is for development, and `cargo publish` uses its
+`version` requirement.
 
 ## Cutting a release
 
@@ -32,6 +39,7 @@ time), `docs/`, `examples/`, and `tests/`. Its crate stays MIT-only.
 4. With CI green on the commit, publish in dependency order:
 
    ```sh
+   # first, in the glibc-abilists repository: cargo publish
    cargo publish -p linux-targets
    cargo publish -p kernel-abi-tools
    cargo publish -p libc-abi-tools

@@ -91,11 +91,14 @@ See [stub generation](STUB-GENERATION.md) and [full libraries](FULL-LIBRARIES.md
 
 ## Updating upstream
 
-Start from the commit in `data/glibc/UPSTREAM.toml`. Review upstream code and data
-changes, then copy only the selected files with their original bytes and paths.
-Update that pin and `SHA256SUMS` together; preserve `COPYING.abilists` and Zig's
-MIT notice. Run the all-snapshot regression tests and review the exported ABI
-diffs. Do not relabel an unqualified snapshot as a supported runtime release.
+ABI lists are updated in [glibc-abilists](https://github.com/rustcommons/glibc-abilists):
+extend its `upstream.toml` range, add the new release manager's key if needed,
+and rerun its collector, which verifies the tag signature, mirror agreement,
+and license, and records each file's provenance. Then update the dependency
+here, run the all-release regression tests, regenerate the reference with
+`scripts/build-glibc-reference.py`, and review the ABI diffs. Do not relabel an
+unqualified release as a supported runtime target. Code adapted from Zig keeps
+its MIT notice.
 
 ## Second provider: GNU glibc 2.22
 

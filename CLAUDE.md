@@ -9,7 +9,7 @@ workspace of rustcommons' ABI tools for targeting older Linux systems from Rust:
 
 | Crate | Location | Scope |
 | --- | --- | --- |
-| `libc-abi-tools` | repository root | Rust port of the glibc parts of [Zig's libc ABI tools](https://codeberg.org/ziglang/libc-abi-tools); the first backend is glibc, other libc implementations are future work |
+| `libc-abi-tools` | repository root | glibc ABI metadata, stub generation, and providers, inspired by (and partly adapted from) [Zig's libc ABI tools](https://codeberg.org/ziglang/libc-abi-tools); ABI data from glibc via [glibc-abilists](https://github.com/rustcommons/glibc-abilists); other libc implementations are future work |
 | `kernel-abi-tools` | `crates/kernel-abi-tools` | Linux kernel syscall and `madvise` data and seccomp profiles that simulate older kernels |
 | `linux-targets` | `crates/linux-targets` | Distribution presets (glibc and kernel floors, image) and target selection rules |
 | `linux-abi-tools` | `crates/linux-abi-tools` | Re-exports the three crates above; no code of its own |
@@ -23,8 +23,12 @@ every workflow and its cargo-libc mapping; keep it in step with changes.
 
 - Support glibc target releases starting at 2.17. Retain earlier GLIBC symbol
   versions: later releases still export and require them.
+- glibc ABI data comes only from glibc's own release tags, through the
+  `glibc-abilists` crate (default `bundled-glibc-data` feature, opt-out with
+  `default-features = false` and `--data DIR`). Never vendor ABI lists here or
+  take them from Zig or another redistributor.
 - Pin upstream references to a commit, document derivations, and preserve the
-  Zig contributors' copyright and MIT license with reused source/data.
+  Zig contributors' copyright and MIT license with code adapted from Zig.
 - Keep ABI collection/serialization separate from linker stub generation and
   real startup objects, headers, and runtime implementations.
 - Preserve symbol versions, library identity, symbol kind, and object/TLS sizes.
@@ -61,11 +65,13 @@ every workflow and its cargo-libc mapping; keep it in step with changes.
 
 ## Shared rules
 
-- Every crate stays std-only; `kernel-abi-tools` may depend on `linux-targets`,
-  and `linux-abi-tools` depends on the other three.
+- Every crate stays std-only apart from rustcommons crates: `kernel-abi-tools`
+  may depend on `linux-targets`, `libc-abi-tools` on `glibc-abilists`, and
+  `linux-abi-tools` on the other three.
 - Releases go to crates.io only (see [docs/RELEASING.md](docs/RELEASING.md)).
-  Keep each manifest's `include` list minimal; the GPL-2.0 glibc ABI lists in
-  `data/` are not part of any published crate.
+  Keep each manifest's `include` list minimal. The glibc ABI lists
+  (LGPL-2.1-or-later) are published only in `glibc-abilists`, which must be
+  released before `libc-abi-tools`.
 - Ask about unresolved product decisions; do not invent compatibility claims.
 
 ## Validation

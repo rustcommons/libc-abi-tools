@@ -65,8 +65,8 @@ tag; source/NEWS references and behavioral tests must record those separately.
 | Provider/link/runtime qualification | Locally and hosted-qualified 2.17/2.18/2.22 experimental providers | Metadata coverage does not qualify every snapshot or distribution as a build/runtime target |
 | Early history | Official archive/diff candidates referring back to 1.00; 71 upstream tag candidates before 2.17 | Unverified release classification and target applicability; normalized symbol sets not collected |
 
-[PROVENANCE.json](../data/glibc-history/PROVENANCE.json) records the pinned Zig ABI
-dataset, upstream release-source archives, build configuration, source adjustments,
+[PROVENANCE.json](../data/glibc-history/PROVENANCE.json) records the ABI data
+source (glibc's release tags via glibc-abilists), upstream release-source archives, build configuration, source adjustments,
 package manifests, and per-library ELF/metadata SHA-256 evidence. Actual data
 observations come from the independent readelf-qualified local input trees;
 hosted jobs independently rebuild and check their corresponding inputs.
@@ -136,13 +136,13 @@ result. "Same ABI tag" must not be interpreted as "unchanged implementation".
 ## Commands and reproduction
 
 ```bash
-cargo run --locked --offline -- glibc matrix --data data/glibc --symbol fmemopen
-cargo run --locked --offline -- glibc diff --data data/glibc --from 2.17 --to 2.22
-cargo run --locked --offline -- glibc changes --data data/glibc
-cargo run --locked --offline -- glibc expect --data data/glibc \
+cargo run --locked --offline -- glibc matrix --symbol fmemopen
+cargo run --locked --offline -- glibc diff --from 2.17 --to 2.22
+cargo run --locked --offline -- glibc changes
+cargo run --locked --offline -- glibc expect \
   --release 2.17 --library c --symbol fmemopen --version 2.22
 # reject
-cargo run --locked --offline -- glibc expect --data data/glibc \
+cargo run --locked --offline -- glibc expect \
   --release 2.16 --library c --symbol fmemopen --version 2.2.5
 # unknown (not fabricated historical absence)
 cargo build --locked --offline
