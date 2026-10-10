@@ -42,5 +42,10 @@ libraries are included.
 labels are reproduced from upstream and do not establish release status or runtime
 qualification. Exported TSV is derived from these separately licensed data.
 
+The cross-release matrices in `data/glibc-history` and the generated Markdown
+tables in `docs/reference` retain this ABI-data provenance and license. Native ELF
+observations are labelled with their real input profiles and hashes; historical
+tag/archive catalogs are evidence inventories, not validated runtime support.
+
 The companion `cargo-libc` begins with the MIT-licensed `cargo-glibc` prototype,
 whose original copyright notice is preserved in that repository.

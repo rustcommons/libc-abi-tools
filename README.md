@@ -2,6 +2,11 @@
 
 # libc-abi-tools
 
+[Browse versioned glibc interfaces](docs/reference/GLIBC-SYMBOLS.md),
+[release differences](docs/reference/GLIBC-DIFFS.md), and the
+[history/conformance plan](docs/GLIBC-HISTORY.md). These references distinguish
+new defaults from retained compatibility interfaces and link to input provenance.
+
 The experimental glibc 2.17/2.22 [provider contract](docs/PROVIDER-CONTRACT.md) connects
 all eight generated stub libraries to the companion `cargo-libc` coordinator.
 CI targets Rust 1.99.0 and Clang 21/24; the roadmap tracks each vendored version's

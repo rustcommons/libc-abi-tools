@@ -148,6 +148,14 @@ for route in ROUTES:
             if path.is_file():
                 inputs[line[5:]] = digest(path)
     manifest["executables"][route]["persistent_link_inputs_sha256"] = inputs
+    expected_default = [r["version"] for r in rows(work / "elf-metadata" / (route + "-c.tsv"))
+                        if r["symbol"] == "fmemopen" and r["default"] == "yes"]
+    require(len(expected_default) == 1, "Missing/ambiguous measured fmemopen default")
+    bound = (work / "logs" / ("full-" + route + "-fmemopen-default-executable.txt")).read_text()
+    imported = set(re.findall(r"\bUND\s+fmemopen@(GLIBC_[\d.]+)", bound))
+    require(imported == set(expected_default), "Unversioned fmemopen did not bind to the measured default")
+    manifest["executables"][route]["fmemopen_default"] = expected_default[0]
+    manifest["executables"][route]["fmemopen_default_sha256"] = digest(work / ("fmemopen-default-" + route))
     if RELEASE == "2.22":
         versions = (work / "logs" / ("full-" + route + "-fmemopen-executable.txt")).read_text()
         require("fmemopen@GLIBC_2.22" in versions and "fmemopen@GLIBC_2.2.5" in versions,

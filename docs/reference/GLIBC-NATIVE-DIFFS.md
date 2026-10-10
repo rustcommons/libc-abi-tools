@@ -1,0 +1,124 @@
+# Measured native interface differences
+
+GNU source builds: 2.17 versus 2.22, x86_64, eight libraries. Intervening native properties are unknown.
+Default changes, native FUNC/IFUNC type, binding, visibility, object/TLS size, and declared section alignment are measured.
+Alignment is a conservative section-placement observation, not proof of required language-level alignment.
+Function byte size, address, and section/group numbers are recorded in the evidence but are not ABI or behavioral change claims.
+Retained compatibility interfaces are distinct from new defaults. Behavior and semantic aliasing require separate tests.
+
+[Source profiles and hashes](../../data/glibc-history/PROVENANCE.json) · [Original observations](../../data/glibc-history/elf-evidence.tsv)
+
+| Library | Interface | Property | 2.17 source build | 2.22 source build |
+| --- | --- | --- | --- | --- |
+| c | __cxa_thread_atexit_impl@GLIBC_2.18 | membership | absent | present |
+| c | __nanosleep@GLIBC_2.2.6 | binding | WEAK | GLOBAL |
+| c | __openat64_2@GLIBC_2.7 | binding | WEAK | GLOBAL |
+| c | __rawmemchr@GLIBC_2.2.5 | type | IFUNC | FUNC |
+| c | __waitpid@GLIBC_2.2.5 | binding | WEAK | GLOBAL |
+| c | addseverity@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | basename@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | clock_getcpuclockid@GLIBC_2.17 | binding | GLOBAL | WEAK |
+| c | clock_getres@GLIBC_2.17 | binding | GLOBAL | WEAK |
+| c | clock_gettime@GLIBC_2.17 | binding | GLOBAL | WEAK |
+| c | clock_nanosleep@GLIBC_2.17 | binding | GLOBAL | WEAK |
+| c | clock_settime@GLIBC_2.17 | binding | GLOBAL | WEAK |
+| c | creat@GLIBC_2.2.5 | binding | WEAK | GLOBAL |
+| c | ecvt_r@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | endttyent@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | fcvt_r@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | fflush_unlocked@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | fgets_unlocked@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | fileno@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | fmemopen@GLIBC_2.2.5 | default | yes | no |
+| c | fmemopen@GLIBC_2.22 | membership | absent | present |
+| c | fputs_unlocked@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | fread_unlocked@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | freeifaddrs@GLIBC_2.3 | binding | GLOBAL | WEAK |
+| c | fstatvfs@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | ftello@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | getifaddrs@GLIBC_2.3 | binding | GLOBAL | WEAK |
+| c | getlogin_r@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | getpriority@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | getttyent@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | getttynam@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | hcreate_r@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | hdestroy_r@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | hsearch_r@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | if_freenameindex@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | if_indextoname@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | if_nameindex@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | if_nametoindex@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | in6addr_any@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | in6addr_loopback@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | inet_addr@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | inet_makeaddr@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | inet_pton@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | malloc_info@GLIBC_2.10 | binding | GLOBAL | WEAK |
+| c | memmem@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | memrchr@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | mktemp@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | open_memstream@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | posix_fadvise64@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | posix_fallocate64@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | qecvt_r@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | qfcvt_r@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | qsort_r@GLIBC_2.8 | binding | GLOBAL | WEAK |
+| c | rawmemchr@GLIBC_2.2.5 | type | IFUNC | FUNC |
+| c | rawmemchr@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | rewinddir@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | rindex@GLIBC_2.2.5 | type | IFUNC | FUNC |
+| c | scandirat@GLIBC_2.15 | binding | GLOBAL | WEAK |
+| c | setpriority@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | setttyent@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | sigvec@GLIBC_2.2.5 | default | yes | no |
+| c | sigvec@GLIBC_2.2.5 | binding | WEAK | GLOBAL |
+| c | statvfs@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | strlen@GLIBC_2.2.5 | type | IFUNC | FUNC |
+| c | strnlen@GLIBC_2.2.5 | type | IFUNC | FUNC |
+| c | strrchr@GLIBC_2.2.5 | type | IFUNC | FUNC |
+| c | strtol@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | strtoul@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | towlower@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | towupper@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | wcschr@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | wcscmp@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | wcstol@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | wcstoul@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | wmemchr@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| c | wmemset@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| m | _LIB_VERSION@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| m | __issignaling@GLIBC_2.18 | membership | absent | present |
+| m | __issignalingf@GLIBC_2.18 | membership | absent | present |
+| m | __issignalingl@GLIBC_2.18 | membership | absent | present |
+| m | fegetenv@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| m | fegetround@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| m | feholdexcept@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| m | feraiseexcept@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| m | fesetenv@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| m | fesetround@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| pthread | __fork@GLIBC_2.2.5 | default | yes | no |
+| pthread | __fork@GLIBC_2.2.5 | type | FUNC | IFUNC |
+| pthread | __nanosleep@GLIBC_2.2.6 | binding | WEAK | GLOBAL |
+| pthread | __vfork@GLIBC_2.2.5 | default | yes | no |
+| pthread | __vfork@GLIBC_2.2.5 | type | FUNC | IFUNC |
+| pthread | fork@GLIBC_2.2.5 | default | yes | no |
+| pthread | fork@GLIBC_2.2.5 | type | FUNC | IFUNC |
+| pthread | longjmp@GLIBC_2.2.5 | default | yes | no |
+| pthread | longjmp@GLIBC_2.2.5 | type | FUNC | IFUNC |
+| pthread | pthread_barrier_init@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| pthread | pthread_barrier_wait@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| pthread | pthread_getattr_default_np@GLIBC_2.18 | membership | absent | present |
+| pthread | pthread_once@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| pthread | pthread_rwlock_rdlock@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| pthread | pthread_rwlock_unlock@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| pthread | pthread_rwlock_wrlock@GLIBC_2.2.5 | binding | GLOBAL | WEAK |
+| pthread | pthread_setattr_default_np@GLIBC_2.18 | membership | absent | present |
+| pthread | siglongjmp@GLIBC_2.2.5 | default | yes | no |
+| pthread | siglongjmp@GLIBC_2.2.5 | type | FUNC | IFUNC |
+| pthread | siglongjmp@GLIBC_2.2.5 | binding | WEAK | GLOBAL |
+| pthread | system@GLIBC_2.2.5 | default | yes | no |
+| pthread | system@GLIBC_2.2.5 | type | FUNC | IFUNC |
+| pthread | vfork@GLIBC_2.2.5 | default | yes | no |
+| pthread | vfork@GLIBC_2.2.5 | type | FUNC | IFUNC |
+| pthread | vfork@GLIBC_2.2.5 | binding | WEAK | GLOBAL |
+| rt | mq_setattr@GLIBC_2.3.4 | binding | WEAK | GLOBAL |

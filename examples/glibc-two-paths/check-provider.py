@@ -8,10 +8,11 @@ from experiment import RELEASE
 
 work = pathlib.Path(sys.argv[1]).resolve()
 route = sys.argv[2]
-roots = [work / route, work / "compiler-runtime"]
-link_roots = [work / ("full-libraries-" + route), work / "compiler-runtime"]
+roots = [(work / route).resolve(), (work / "compiler-runtime").resolve()]
+link_roots = [(work / ("full-libraries-" + route)).resolve(), (work / "compiler-runtime").resolve()]
 link_map = (work / "logs" / ("provider-" + route + "-link.map")).read_text()
-assert str(work / route / "usr/lib64/crt1.o") in link_map, "Missing target CRT"
+assert any(line.startswith("LOAD ") and pathlib.Path(line[5:]).resolve() ==
+           (work / route / "usr/lib64/crt1.o").resolve() for line in link_map.splitlines()), "Missing target CRT"
 inputs = {}
 for line in link_map.splitlines():
     if line.startswith("LOAD "):

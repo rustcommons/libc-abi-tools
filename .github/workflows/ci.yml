@@ -26,6 +26,21 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.90.0
       - run: cargo check --all-targets --locked --offline
+  history:
+    name: ABI matrix and user reference
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.99.0
+      - run: cargo build --locked --offline
+      - name: Verify regenerated matrix and Markdown reference
+        run: python3 scripts/build-glibc-reference.py --binary target/debug/libc-abi --check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: glibc-history-reference
+          path: |
+            data/glibc-history
+            docs/reference
   snapshots:
     name: glibc ${{ matrix.glibc }} ABI snapshot
     runs-on: ubuntu-24.04

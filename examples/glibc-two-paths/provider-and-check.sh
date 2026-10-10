@@ -9,6 +9,7 @@ clang=$(realpath "${3:?Supply explicit Clang executable}")
 unset LD_PRELOAD LD_AUDIT LD_LIBRARY_PATH RUSTFLAGS CARGO_ENCODED_RUSTFLAGS
 export CARGO_TARGET_DIR="$work/provider-tools"
 mkdir -p "$work/logs"
+python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" c memfd_create GLIBC_2.27 reject
 gcc_startup=$(dirname "$(gcc -print-file-name=crtbegin.o)")
 cargo build --manifest-path "$companion/Cargo.toml" --bins --locked --offline
 for route in "${routes[@]}"; do

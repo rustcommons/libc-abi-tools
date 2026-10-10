@@ -83,6 +83,12 @@ environments must be agreed before claiming support.
 
 ## 2. Cross-release consolidation
 
+The [history and standard test design](GLIBC-HISTORY.md) now organizes this work.
+The [interface tables](reference/GLIBC-SYMBOLS.md) identify every covered tuple as
+`symbol@GLIBC_version`, link to source/profile evidence, and distinguish a new
+default from compatibility retention or removal. The historical research scope
+extends to glibc's beginnings without extending the supported provider floor.
+
 - [ ] Port upstream's historical migration corrections and inclusion model.
 - [ ] Specify a versioned data contract for cargo-libc.
 - [ ] Implement bounded Zig abilists binary reading/writing and compare semantic
@@ -216,3 +222,23 @@ leakage, or execution of generated stubs.
 
 The [2.22 provider](GLIBC-2.22.md) uses a generic source-built GNU runtime.
 Distribution qualification and authenticated SDK packaging remain separate gates.
+
+## Historical matrix and standardized conformance
+
+- [x] Generate the complete covered-snapshot union: 4671 interfaces across 28 labels.
+- [x] Document all adjacent membership/kind/size differences and measured native changes.
+- [x] Preserve 8752 native observations with input provenance and default/compatibility flags.
+- [x] Publish generated Markdown interface tables and machine-readable matrices.
+- [x] Inventory early official archives/patches referring to 1.00 and 71 upstream tag candidates.
+- [x] Model unknown evidence separately from known absence; avoid guessing introduction/defaults.
+- [x] Use the matrix for common version-boundary tests and add an ordinary default-binding probe.
+- [x] Add CI regeneration checks for all generated reference outputs.
+- [ ] Observe hosted reference/conformance checks with the new matrix harness.
+- [ ] Classify historical tags, patches, releases, target applicability, and evidence completeness.
+- [ ] Pin/archive hashes and recover missing early source material; record unrecoverable gaps.
+- [ ] Normalize pre-2.17 x86_64 evidence and early target/unversioned history with dedicated adapters.
+- [ ] Extend scope to other glibc libraries and architectures with explicit completeness evidence.
+- [ ] Collect native defaults/properties for every supported and historically covered profile.
+- [ ] Generate exhaustive isolated-DSO function/object/TLS link probes from the matrix.
+- [ ] Add behavioral/header/feature-change ledgers with primary source references and semantic tests.
+- [ ] Apply the same artifact/runtime/distribution checks to every subsequently qualified provider.

@@ -10,6 +10,7 @@ work=$PWD
 export CARGO_TARGET_DIR="$work/rust-target"
 cargo build --manifest-path "$repo/Cargo.toml" --locked --offline
 mkdir -p elf-metadata
+"$CARGO_TARGET_DIR/debug/libc-abi" glibc matrix --data "$repo/data/glibc" > elf-metadata/matrix.tsv
 readelf --version > elf-metadata/readelf-version.txt
 libraries=(c m ld resolv pthread dl rt util)
 files=(libc.so.6 libm.so.6 ld-linux-x86-64.so.2 libresolv.so.2 libpthread.so.0 libdl.so.2 librt.so.1 libutil.so.1)

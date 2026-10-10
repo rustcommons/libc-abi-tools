@@ -1,4 +1,4 @@
-use libc_abi_tools::{elf, glibc, version::Version};
+use libc_abi_tools::{elf, glibc, matrix::Matrix, version::Version};
 use std::{
     ffi::OsString,
     io::{self, Write},
@@ -11,6 +11,10 @@ USAGE
   libc-abi glibc snapshot --data DIR --release VERSION [--symbol NAME]
   libc-abi glibc collect --source GLIBC_CHECKOUT --output DIR
   libc-abi glibc elf --input SHARED_OBJECT
+  libc-abi glibc matrix --data DIR [--symbol NAME]
+  libc-abi glibc diff --data DIR --from VERSION --to VERSION [--symbol NAME]
+  libc-abi glibc changes --data DIR
+  libc-abi glibc expect --data DIR --release VERSION --library NAME --symbol NAME --version VERSION
   libc-abi --version
 
 snapshot writes stable TSV for one exact x86_64 Linux glibc release.
@@ -19,6 +23,9 @@ collect requires a clean checkout at an exact glibc release tag; no overwrites.
 elf writes defined dynamic-symbol evidence from ELF64 x86_64, including SONAME.
 An ELF file does not establish its source release or semantic alias relationships.
 Target releases start at 2.17; older symbol versions are retained.
+matrix compares all available snapshots; first observation is not introduction.
+expect prints accept/reject/unknown for exact library/symbol/version membership.
+Missing release/library evidence is unknown, not a rejection or fallback.
 No stub libraries, sysroots, headers, or runtime implementations are generated.
 ";
 
@@ -39,6 +46,10 @@ fn run(args: Vec<OsString>) -> Result<(), String> {
         "snapshot" => &["--data", "--release", "--symbol"],
         "collect" => &["--source", "--output"],
         "elf" => &["--input"],
+        "matrix" => &["--data", "--symbol"],
+        "diff" => &["--data", "--from", "--to", "--symbol"],
+        "changes" => &["--data"],
+        "expect" => &["--data", "--release", "--library", "--symbol", "--version"],
         _ => return Err(format!("unknown glibc command {command:?}")),
     };
     let mut options = std::collections::BTreeMap::new();
@@ -70,6 +81,41 @@ fn run(args: Vec<OsString>) -> Result<(), String> {
             .ok_or_else(|| format!("{flag} is required"))
     };
     match command {
+        "matrix" | "diff" | "changes" | "expect" => {
+            let matrix = Matrix::load(&PathBuf::from(required("--data")?))?;
+            let value = |flag| {
+                required(flag)?
+                    .to_str()
+                    .ok_or_else(|| format!("{flag} must be UTF-8"))
+            };
+            let symbol = options
+                .get("--symbol")
+                .map(|v| v.to_str().ok_or("symbol must be UTF-8"))
+                .transpose()?;
+            let text = match command {
+                "matrix" => matrix.to_tsv(symbol),
+                "diff" => {
+                    matrix.diff_tsv(value("--from")?.parse()?, value("--to")?.parse()?, symbol)?
+                }
+                "changes" => matrix.changes_tsv(),
+                _ => format!(
+                    "{}\n",
+                    matrix
+                        .expect(
+                            value("--release")?.parse()?,
+                            value("--library")?,
+                            value("--symbol")?,
+                            value("--version")?.parse()?
+                        )
+                        .label()
+                ),
+            };
+            if let Err(error) = io::stdout().lock().write_all(text.as_bytes()) {
+                if error.kind() != io::ErrorKind::BrokenPipe {
+                    return Err(error.to_string());
+                }
+            }
+        }
         "elf" => {
             let text = elf::Metadata::load(&PathBuf::from(required("--input")?))?.to_tsv();
             match io::stdout().lock().write_all(text.as_bytes()) {

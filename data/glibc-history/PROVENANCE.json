@@ -1,0 +1,413 @@
+{
+  "abi_source": {
+    "checksums": "../glibc/SHA256SUMS",
+    "commit": "9217cf899bf12bbb24a8a3de4cc2de682de0379d",
+    "license": "../glibc/COPYING.abilists",
+    "pin_file": "../glibc/UPSTREAM.toml",
+    "repository": "https://codeberg.org/ziglang/libc-abi-tools"
+  },
+  "default_policy": "Unknown outside measured profiles. Do not infer default versions or behavior from numeric ABI tags.",
+  "elf_profiles": {
+    "centos-7.9-prebuilt-2.17": {
+      "evidence_kind": "native ELF metadata independently compared with GNU readelf in the local qualified experiment",
+      "files": [
+        {
+          "defined_symbols": 2215,
+          "input_sha256": "74d15f40fdb93f1d7e014d2da1d32d459e81ad28700d4de9db54bea83c27149a",
+          "library": "c",
+          "metadata_sha256": "84a719f5d262600dc59220d297f11b4c79b083cf34cedb1b39f98cd1bd76e07c",
+          "pinned_differences": 0,
+          "route": "prebuilt",
+          "same_range_groups": 293,
+          "soname": "libc.so.6",
+          "types": {
+            "FUNC": 2056,
+            "IFUNC": 49,
+            "OBJECT": 106,
+            "TLS": 4
+          }
+        },
+        {
+          "defined_symbols": 395,
+          "input_sha256": "db6b50afa7e64564b83b313e5c271e19a9d4ca63c8d92d763c3ad58539cdbe27",
+          "library": "m",
+          "metadata_sha256": "003cc521cec01d08e08af58a823a725893ebcf6c1c42dd5bf27648a5991a9aaa",
+          "pinned_differences": 0,
+          "route": "prebuilt",
+          "same_range_groups": 17,
+          "soname": "libm.so.6",
+          "types": {
+            "FUNC": 373,
+            "IFUNC": 20,
+            "OBJECT": 2
+          }
+        },
+        {
+          "defined_symbols": 23,
+          "input_sha256": "09161025e77fda5d9514ef753504c97377aa59439ad8e03309b2ee17de301d6d",
+          "library": "ld",
+          "metadata_sha256": "5458e09555c6540a9f7ba624b6d28abeb892d64cc8f22d7e34ef88cc620eb7f5",
+          "pinned_differences": 0,
+          "route": "prebuilt",
+          "same_range_groups": 0,
+          "soname": "ld-linux-x86-64.so.2",
+          "types": {
+            "FUNC": 16,
+            "OBJECT": 7
+          }
+        },
+        {
+          "defined_symbols": 100,
+          "input_sha256": "654abd6c4d331eccce29961337316ad864beffc46bd44c7a3af58b70b1aff5ce",
+          "library": "resolv",
+          "metadata_sha256": "ef9bfff0996366a7f90b4d2ed536429a535027a0b784d9d4df1d1595bb00a226",
+          "pinned_differences": 0,
+          "route": "prebuilt",
+          "same_range_groups": 4,
+          "soname": "libresolv.so.2",
+          "types": {
+            "FUNC": 97,
+            "OBJECT": 3
+          }
+        },
+        {
+          "defined_symbols": 238,
+          "input_sha256": "b3bf84a9c150a558b0fe4512ed20e18a346b6485ee0c5e770e55811678505abb",
+          "library": "pthread",
+          "metadata_sha256": "85bee8782eeb610c30e6a89442d722e6cecdc8e9558fb96b4b7bbad50654264f",
+          "pinned_differences": 0,
+          "route": "prebuilt",
+          "same_range_groups": 43,
+          "soname": "libpthread.so.0",
+          "types": {
+            "FUNC": 238
+          }
+        },
+        {
+          "defined_symbols": 10,
+          "input_sha256": "13737172f88cf9cc0ddd18937c2064ed5289ea062a9f2d0538985298cc266523",
+          "library": "dl",
+          "metadata_sha256": "cd02caca6b238d02b4b119ecc50ff6345b150fd047c6b4a7a38f71bba82da29d",
+          "pinned_differences": 0,
+          "route": "prebuilt",
+          "same_range_groups": 0,
+          "soname": "libdl.so.2",
+          "types": {
+            "FUNC": 9,
+            "OBJECT": 1
+          }
+        },
+        {
+          "defined_symbols": 47,
+          "input_sha256": "d548efbb860c13e890e387bb171b0c43f2da214eba745d7d22590dfd3823b0d2",
+          "library": "rt",
+          "metadata_sha256": "f27fe1323d8a3fc686bed6f5e53f193c4d3bffa7620bcbca3891ecfdd5433218",
+          "pinned_differences": 0,
+          "route": "prebuilt",
+          "same_range_groups": 9,
+          "soname": "librt.so.1",
+          "types": {
+            "FUNC": 42,
+            "IFUNC": 5
+          }
+        },
+        {
+          "defined_symbols": 6,
+          "input_sha256": "c89def162e2f5064f89a68a0353a8afe0974c5fc825b11dc321d81ece000bfba",
+          "library": "util",
+          "metadata_sha256": "c5345e4ed5025ec174ac73c91498a8653846ef1a3e9174694ebc88f63dc370fa",
+          "pinned_differences": 0,
+          "route": "prebuilt",
+          "same_range_groups": 0,
+          "soname": "libutil.so.1",
+          "types": {
+            "FUNC": 6
+          }
+        }
+      ],
+      "input_source": {
+        "builder_image": "docker.io/library/centos@sha256:dead07b4d8ed7e29e98de0f4504d87e8880d4347859d839686a31da35a3b532f",
+        "development_package_repository": "https://vault.centos.org/7.9.2009/os/x86_64/",
+        "packages": "../logs/packages.txt"
+      },
+      "package_manifest_sha256": "f94c94cfcdadbae8e69a90cc64d050e1f693a1c794874e6fa907e069d43b36c8",
+      "release": "2.17",
+      "route": "prebuilt",
+      "source_adjustment_sha256": null,
+      "source_archive_sha256": null,
+      "source_manifest_sha256": "1ec5242003b9c99e45425539670523ed65c80fafb9e85566099d8108ece6fd77",
+      "target": "x86_64-unknown-linux-gnu"
+    },
+    "gnu-source-2.17": {
+      "evidence_kind": "native ELF metadata independently compared with GNU readelf in the local qualified experiment",
+      "files": [
+        {
+          "defined_symbols": 2187,
+          "input_sha256": "4470452ff51d6195dca8a9059187c69a0096a773e349736e329aba6e8c62f2ed",
+          "library": "c",
+          "metadata_sha256": "05e4799757f2af2ce726be128b9adda1b0c793d1a60dab8efae5cab49b6aa689",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 292,
+          "soname": "libc.so.6",
+          "types": {
+            "FUNC": 2029,
+            "IFUNC": 49,
+            "OBJECT": 106,
+            "TLS": 3
+          }
+        },
+        {
+          "defined_symbols": 395,
+          "input_sha256": "6775bcb0e9a8b80307655e18360bc1a1c415b3f5f6fc8a5ab150e5a143101c46",
+          "library": "m",
+          "metadata_sha256": "8ce6ea523cf86040acd5a3473267ce69c27e76f2b029f20595c1a419b51c7aee",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 17,
+          "soname": "libm.so.6",
+          "types": {
+            "FUNC": 373,
+            "IFUNC": 20,
+            "OBJECT": 2
+          }
+        },
+        {
+          "defined_symbols": 21,
+          "input_sha256": "28afc9d0226eeb0047cef2771a680efe3e2e33e8599de250aacc526bc5123255",
+          "library": "ld",
+          "metadata_sha256": "a3d30f7c9d6fe508a6819a532593185c12c95ffbd62b7d1a817fcf6773d4dacc",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 0,
+          "soname": "ld-linux-x86-64.so.2",
+          "types": {
+            "FUNC": 15,
+            "OBJECT": 6
+          }
+        },
+        {
+          "defined_symbols": 97,
+          "input_sha256": "a1df9df5a69e77ff624811ce94f659e67da5bdb59015b6233d45eedf4926abb2",
+          "library": "resolv",
+          "metadata_sha256": "e556fdfc2031a6bde9ec286bdb50879cf5fbcc048a7bad5dfa21a2aced5a269e",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 4,
+          "soname": "libresolv.so.2",
+          "types": {
+            "FUNC": 94,
+            "OBJECT": 3
+          }
+        },
+        {
+          "defined_symbols": 238,
+          "input_sha256": "5264dc2ba6c6c8f4a80e939039199d43eabc27749f06ff4a9b51b966bb443123",
+          "library": "pthread",
+          "metadata_sha256": "4cb7a2c4d872e949b03a6b6d1c39b8fe8e08ea596c30d2957b6946106bfb85e4",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 43,
+          "soname": "libpthread.so.0",
+          "types": {
+            "FUNC": 238
+          }
+        },
+        {
+          "defined_symbols": 10,
+          "input_sha256": "93cbbcefbc33e9f6e03d12b28acc96f746206f7b38ddeeb34e803116d75dae2c",
+          "library": "dl",
+          "metadata_sha256": "3fb0ba6e27f6877afa0230ababf9c280b6999608223f4cf16383d83746afbc12",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 0,
+          "soname": "libdl.so.2",
+          "types": {
+            "FUNC": 9,
+            "OBJECT": 1
+          }
+        },
+        {
+          "defined_symbols": 47,
+          "input_sha256": "3e7f1639c0dff0ef686ecda5af0bc543e0b9e1947a79f29ce46e8f20723ef50d",
+          "library": "rt",
+          "metadata_sha256": "ef7c420c8073ddd9f328383d0bcd74808bf76f1bd6a5e2754a0d9c35bbb17c2e",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 9,
+          "soname": "librt.so.1",
+          "types": {
+            "FUNC": 42,
+            "IFUNC": 5
+          }
+        },
+        {
+          "defined_symbols": 6,
+          "input_sha256": "b62eec7ed5c3a58b547b02b4b1455aa1f6309d8fe98d4b9723d5f42b685b9b22",
+          "library": "util",
+          "metadata_sha256": "58d214adf4b2edcbbb01a1c373960a8a161fecc92b291759cb91ceea2a847833",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 0,
+          "soname": "libutil.so.1",
+          "types": {
+            "FUNC": 6
+          }
+        }
+      ],
+      "input_source": {
+        "adjustment": "../logs/source-adjustment.patch",
+        "archive": "https://ftp.gnu.org/gnu/glibc/glibc-2.17.tar.xz",
+        "compiler": "../logs/builder-gcc.txt",
+        "configuration": "--prefix=/usr --disable-werror --enable-kernel=2.6.32"
+      },
+      "package_manifest_sha256": "f94c94cfcdadbae8e69a90cc64d050e1f693a1c794874e6fa907e069d43b36c8",
+      "release": "2.17",
+      "route": "source",
+      "source_adjustment_sha256": "cf9124d30313f35572857bdabb875ef52d59f39d625efeb7d9f6f84e2619c490",
+      "source_archive_sha256": "6914e337401e0e0ade23694e1b2c52a5f09e4eda3270c67e7c3ba93a89b5b23e",
+      "source_manifest_sha256": "1ec5242003b9c99e45425539670523ed65c80fafb9e85566099d8108ece6fd77",
+      "target": "x86_64-unknown-linux-gnu"
+    },
+    "gnu-source-2.22": {
+      "evidence_kind": "native ELF metadata independently compared with GNU readelf in the local qualified experiment",
+      "files": [
+        {
+          "defined_symbols": 2203,
+          "input_sha256": "3e7b6fe6584a144392fb821f33dbeb49016ffefa844775b2f271b22b95c59704",
+          "library": "c",
+          "metadata_sha256": "a24509292d8e733806f02fa2fd8b19f6cb21b10494e6c467692e366c9088c2f6",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 298,
+          "soname": "libc.so.6",
+          "types": {
+            "FUNC": 2052,
+            "IFUNC": 43,
+            "OBJECT": 105,
+            "TLS": 3
+          }
+        },
+        {
+          "defined_symbols": 398,
+          "input_sha256": "2f6994e38d21e66fea17ccf464ff8820105a0c4cc127e5166301cc212d7aa3df",
+          "library": "m",
+          "metadata_sha256": "1b5d0248c8a4f8d016e2f1b3995023327bb43163190567a0547542c3f36a9976",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 17,
+          "soname": "libm.so.6",
+          "types": {
+            "FUNC": 376,
+            "IFUNC": 20,
+            "OBJECT": 2
+          }
+        },
+        {
+          "defined_symbols": 22,
+          "input_sha256": "0f044547860835e2cd2b971576e9fcf98c272efad0470865fdf5f690df3f77e4",
+          "library": "ld",
+          "metadata_sha256": "e47d18eae53301d76e6bf20b8b532921b9e1e5a4c7f3b62c51a887cccf7ba480",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 0,
+          "soname": "ld-linux-x86-64.so.2",
+          "types": {
+            "FUNC": 16,
+            "OBJECT": 6
+          }
+        },
+        {
+          "defined_symbols": 97,
+          "input_sha256": "d69cf43e5128ee2f773621cba9ff8df2adfb1647ad5f5e919d91899072fc3339",
+          "library": "resolv",
+          "metadata_sha256": "ca627e37f35f0d1128414e0274e5a4ec58f8672e3e3e217d7cb8424b175149ff",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 4,
+          "soname": "libresolv.so.2",
+          "types": {
+            "FUNC": 94,
+            "OBJECT": 3
+          }
+        },
+        {
+          "defined_symbols": 243,
+          "input_sha256": "c655c589bae4bf646e3ec144d27ab4abd069f1d05180b8598984d8fc6f9320da",
+          "library": "pthread",
+          "metadata_sha256": "4482a5e798b56f581ee01755608abdffa49e7372d8bc36105722f860869bc4a5",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 45,
+          "soname": "libpthread.so.0",
+          "types": {
+            "FUNC": 236,
+            "IFUNC": 7
+          }
+        },
+        {
+          "defined_symbols": 10,
+          "input_sha256": "dbc912098e964c628ac56567524f3c884f2156b3863341a1d20bdf910f4a4898",
+          "library": "dl",
+          "metadata_sha256": "909d9985ae69132c122213c24eabab0727c10f6b42dd313964d573003391df6d",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 0,
+          "soname": "libdl.so.2",
+          "types": {
+            "FUNC": 9,
+            "OBJECT": 1
+          }
+        },
+        {
+          "defined_symbols": 47,
+          "input_sha256": "b589e5e94a1c8c26a59d05726b2466321b61d9f64b41a1aecb0d6306c012ec8a",
+          "library": "rt",
+          "metadata_sha256": "554d6bf623f8e14f482c68be12e1837817a9ab7e1209d85c7eb1369813b6e448",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 9,
+          "soname": "librt.so.1",
+          "types": {
+            "FUNC": 42,
+            "IFUNC": 5
+          }
+        },
+        {
+          "defined_symbols": 6,
+          "input_sha256": "2732bbf90398a5d05490b5f1193c52aef7bd039f7ea5555c71f131b8758c066a",
+          "library": "util",
+          "metadata_sha256": "93b3f20d99bde41206d169de1ea221806bbb481cfbc295ad94045a9a9a5e6ced",
+          "pinned_differences": 0,
+          "route": "source",
+          "same_range_groups": 0,
+          "soname": "libutil.so.1",
+          "types": {
+            "FUNC": 6
+          }
+        }
+      ],
+      "input_source": {
+        "adjustment": "../logs/source-adjustment.patch",
+        "archive": "https://ftp.gnu.org/gnu/glibc/glibc-2.22.tar.xz",
+        "compiler": "../logs/builder-gcc.txt",
+        "configuration": "--prefix=/usr --libdir=/usr/lib64 --disable-werror --enable-kernel=3.2"
+      },
+      "package_manifest_sha256": "f94c94cfcdadbae8e69a90cc64d050e1f693a1c794874e6fa907e069d43b36c8",
+      "release": "2.22",
+      "route": "source",
+      "source_adjustment_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_archive_sha256": "eb731406903befef1d8f878a46be75ef862b9056ab0cde1626d08a7a05328948",
+      "source_manifest_sha256": "4ed5eefaa84016f0b3806e5bec3aaad8ab4f198216a09cd685ee0afbde249e2a",
+      "target": "x86_64-unknown-linux-gnu"
+    }
+  },
+  "historical_sources": {
+    "old_archive_index": "https://gcc.gnu.org/pub/glibc/old-releases/",
+    "repository": "https://sourceware.org/git/glibc.git",
+    "status": "inventoried candidates only; release classification, checksums, architecture support and normalized symbols still require collection"
+  },
+  "retrieved": "2026-10-10",
+  "schema": 1,
+  "scope": "x86_64 Linux; eight numeric public GLIBC library ABI lists; covered snapshot labels 2.17\u20132.44"
+}
