@@ -114,7 +114,12 @@ The consumer work belongs to cargo-libc:
   data, scripts, docs, `kernel-abi-provider-v1` descriptor, SHA-256 inventory;
   reproducible from the commit (`scripts/package-release.sh`).
 - [x] Offline verification: `kernel-seccomp verify-bundle` (std-only SHA-256).
-- [x] Release workflow: dry run on demand, publish on `vX.Y.Z` tags.
+- [x] Release workflow: dry run on demand, publish on `vX.Y.Z` tags. First
+  dry run verified all 47 profiles from the bundle and published nothing
+  ([run](https://github.com/rustcommons/kernel-abi-tools/actions/runs/38075624314)).
+- [x] Reproducibility: commit `aa2aa13` built on the hosted runner and locally
+  (WSL2, same Rust 1.99.0) produced the identical archive
+  (`13505d22…14129`).
 - [x] Disconnected-network procedure, including `podman save`/`load` of images
   ([RELEASE.md](RELEASE.md)).
 - [ ] Publish v0.1.0.
