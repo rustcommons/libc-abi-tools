@@ -63,10 +63,16 @@ generated with `kernel-seccomp profile --kernel X.Y`.
 
 ## 2. Repository foundation
 
-- [ ] Create `rustcommons/kernel-abi-tools`; add CLAUDE.md/AGENTS.md, LICENSE,
-  NOTICE (kernel syscall tables are GPL-2.0 *source*; we ship derived facts,
-  not code — record provenance), CI, and banner to match the companions.
-- [ ] CI job: unit tests + `self-test.sh` on crun with the SLES 12 SP5 image.
+- [x] Create `rustcommons/kernel-abi-tools` with CLAUDE.md/AGENTS.md (Git
+  conventions from the companions), LICENSE, and line-ending settings.
+- [x] CI: fmt/test/clippy on Linux and Windows, committed-profile drift check,
+  MSRV 1.90, and `self-test.sh` under crun for profiles through 6.6 plus
+  `sles-12-sp5` (Ubuntu 24.04's libseccomp 2.5.5 cannot name 6.8+ syscalls).
+- [ ] Observe hosted CI results after the first push.
+- [ ] NOTICE (kernel syscall tables are GPL-2.0 *source*; we ship derived
+  facts, not code — record provenance) and banner to match the companions.
+- [ ] CI coverage for 6.8+ profiles (a runner image or container with
+  libseccomp 2.6+), and an SLES 12 SP5 userland run built with cargo-libc.
 - [ ] Rewrite the shell harness in Rust (`kernel-run`) for Windows/WSL callers
   and structured output; keep the scripts as thin wrappers.
 

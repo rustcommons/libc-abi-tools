@@ -2,6 +2,11 @@
 
 **Test against the kernel you ship to.**
 
+[![CI](https://github.com/rustcommons/kernel-abi-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/rustcommons/kernel-abi-tools/actions/workflows/ci.yml)
+![Rust 1.90+](https://img.shields.io/badge/Rust-1.90%2B-orange)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+![Status: prototype](https://img.shields.io/badge/status-prototype-yellow)
+
 Linux kernel ABI data and seccomp profiles that make a modern host kernel
 behave, at the syscall-availability level, like an older one. Run a Rust
 binary in a container of the target distribution with a profile for its
