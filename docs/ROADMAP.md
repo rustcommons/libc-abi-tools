@@ -2,6 +2,9 @@
 
 Plan established 2026-10-09. Start with x86_64 Linux and glibc target releases 2.17+.
 
+See [GLIBC-COVERAGE.md](GLIBC-COVERAGE.md) for current per-library coverage,
+test-stage guarantees, input profiles, and behavioral gaps.
+
 ## Resume here: first-release goal and next decision
 
 The goal is to provide the compatibility files needed to **build against a
@@ -247,6 +250,8 @@ input, ABI, relocation, Cargo, real runtime, and hosted CI gates.
 - [ ] Extend scope to other glibc libraries and architectures with explicit completeness evidence.
 - [ ] Collect native defaults/properties for every supported and historically covered profile.
 - [x] Generate exhaustive isolated-DSO function/object link probes and measured default checks from the matrix; test TLS relocation machinery with a synthetic fixture (current union has no TLS rows).
-- [ ] Observe the expanded exhaustive suite passing in all four hosted provider jobs.
+- [x] Observe the expanded exhaustive suite passing in all four hosted provider jobs at `c3faf20` ([run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38064818474)).
 - [ ] Add behavioral/header/feature-change ledgers with primary source references and semantic tests.
 - [ ] Apply the same artifact/runtime/distribution checks to every subsequently qualified provider.
+- [ ] Add dedicated real-runtime behavior suites for libm, libdl, librt, libutil, and libresolv.
+- [ ] Inventory additional glibc libraries/modules and establish explicit scope before expanding the matrix.

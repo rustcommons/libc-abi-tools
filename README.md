@@ -2,6 +2,9 @@
 
 # libc-abi-tools
 
+[Current glibc coverage](docs/GLIBC-COVERAGE.md) lists each library, test stage,
+qualified input profile, and remaining runtime/architecture work.
+
 [Browse versioned glibc interfaces](docs/reference/GLIBC-SYMBOLS.md),
 [release differences](docs/reference/GLIBC-DIFFS.md), and the
 [history/conformance plan](docs/GLIBC-HISTORY.md). These references distinguish
@@ -30,7 +33,7 @@ tooling and source data on which this project builds. See [NOTICE.md](NOTICE.md)
 for complete attribution, the source pin, and separate code/data licenses.
 
 The companion [cargo-libc](https://github.com/rustcommons/cargo-libc) coordinates
-Cargo builds with an existing sysroot or the experimental 2.17 provider.
+Cargo builds with an existing sysroot or the experimental 2.17/2.22 providers.
 
 ## What works today
 

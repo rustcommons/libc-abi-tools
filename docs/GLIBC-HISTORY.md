@@ -179,7 +179,8 @@ WSL input trees and GNU binutils 2.42:
 
 The different default counts reflect measured input profiles; they are not
 inferred from namespace ordering. The synthetic positive/negative TLS fixture
-also passed. Hosted qualification of this expanded suite is pending.
+also passed. [Hosted qualification](https://github.com/rustcommons/libc-abi-tools/actions/runs/38064818474)
+of this expanded suite passed all four Clang 21/24 provider jobs at `c3faf20`.
 
 The immediate next work is to classify/pin early sources, establish each target's
 historical applicability, normalize historical interface sets, and extend the
