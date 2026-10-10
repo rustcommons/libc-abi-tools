@@ -66,33 +66,40 @@ generated with `kernel-seccomp profile --kernel X.Y`.
 - [x] Create `rustcommons/kernel-abi-tools` with CLAUDE.md/AGENTS.md (Git
   conventions from the companions), LICENSE, and line-ending settings.
 - [x] CI: fmt/test/clippy on Linux and Windows, committed-profile drift check,
-  MSRV 1.90, and `self-test.sh` under crun for profiles through 6.6 plus
-  `sles-12-sp5` (Ubuntu 24.04's libseccomp 2.5.5 cannot name 6.8+ syscalls).
+  MSRV 1.90.
 - [x] Observe hosted CI passing: all jobs, 18 profiles verified on a 6.17 Azure
   kernel with crun 1.14.1 / libseccomp 2.5.5 ([run](https://github.com/rustcommons/kernel-abi-tools/actions/runs/38072993763)).
-- [ ] NOTICE (kernel syscall tables are GPL-2.0 *source*; we ship derived
-  facts, not code — record provenance) and banner to match the companions.
-- [ ] CI coverage for 6.8+ profiles (a runner image or container with
-  libseccomp 2.6+), and an SLES 12 SP5 userland run built with cargo-libc.
-- [ ] Rewrite the shell harness in Rust (`kernel-run`) for Windows/WSL callers
-  and structured output; keep the scripts as thin wrappers.
+- [x] NOTICE (data provenance: derived facts, no kernel source; statically
+  linked Rust std and musl in release binaries) and README banner.
+- [x] CI coverage for every profile, 6.8+ included, using a pinned static crun
+  (`scripts/install-crun.sh`) in SLES 12 SP5 userland.
+- [x] Runner in Rust (`kernel-seccomp run`); the shell script is a wrapper.
+- [ ] An SLES 12 SP5 userland run of an application built with cargo-libc
+  (needs cargo-libc changes; deferred).
 
 ## 3. Accuracy
 
+- [x] `madvise` advice values, derived from `mman-common.h` at every tag:
+  unknown advice returns `EINVAL`, verified for 107 values per profile.
 - [ ] Distribution backport data, sourced from vendor kernel changelogs and
   confirmed on real installs (e.g. a SLES 12 SP5 VM: `syscall-probe dump`).
-- [ ] Argument-level rules for flags that old kernels reject or ignore:
-  `madvise` advice values, `mmap`/`memfd_create`/`openat`/`statx`/`clone`
-  flags. Rules return `EINVAL` where the old kernel would.
+- [ ] Further argument-level rules: `memfd_create`, `openat`/`openat2`,
+  `statx`, `clone` flags (EINVAL where the old kernel rejects them). `mmap`
+  ignores unknown flags, which seccomp cannot reproduce; document per flag.
 - [ ] Extend the probe beyond the 3.3 floor using safe argument sets.
 - [ ] Additional architectures (aarch64 first) from their syscall tables.
 
-## 4. Integration with cargo-libc
+## 4. Integration with cargo-libc (deferred; this repo is ready)
 
-- [ ] **Shared target profile:** one preset id drives the glibc floor
-  (libc-abi-tools data), the kernel floor (this repo's data), and the image.
-- [ ] **`cargo libc test` / `cargo libc run`:** set the Cargo runner
-  automatically when a preset is selected.
+The provider side is complete: see [PROVIDER-CONTRACT.md](PROVIDER-CONTRACT.md).
+The consumer work belongs to cargo-libc:
+
+- [ ] **`--kernel-provider FILE`:** read and verify a `kernel-abi-provider-v1`
+  descriptor (`kernel_abi_tools::bundle::parse_descriptor` is the reference).
+- [ ] **`cargo libc test` / `cargo libc run`:** set the Cargo runner to the
+  bundle's `kernel-seccomp run --distro ID --`.
+- [ ] **Shared target selection:** one preset id drives the glibc floor
+  (libc-abi-tools), the kernel floor (this repo's `distros.tsv`), and the image.
 - [ ] **ELF check:** fail when `NT_GNU_ABI_TAG` exceeds the kernel floor, or
   when `DT_RELR` is present for a glibc older than 2.36.
 - [ ] **Source scan:** report `libc::syscall`/`SYS_*` use and newer `MADV_*`/`MAP_*`
@@ -100,10 +107,16 @@ generated with `kernel-seccomp profile --kernel X.Y`.
 - [ ] **Runtime trace:** optional `strace -f -Z` capture inside the container to
   list every failing syscall during a test run.
 
-## 5. Offline distribution
+## 5. Releases and offline distribution
 
-- [ ] Data and profiles are compiled in; no network at run time (done).
-- [ ] Document mirroring the needed images into an internal registry and
-  `podman save`/`load` bundles for disconnected networks.
-- [ ] Release artifacts: static `kernel-seccomp`/`syscall-probe` binaries and
-  a profile tarball, so consumers need neither this source nor Cargo.
+- [x] Data and profiles compiled in; no network at run time.
+- [x] Release bundle: static musl `kernel-seccomp`/`syscall-probe`, profiles,
+  data, scripts, docs, `kernel-abi-provider-v1` descriptor, SHA-256 inventory;
+  reproducible from the commit (`scripts/package-release.sh`).
+- [x] Offline verification: `kernel-seccomp verify-bundle` (std-only SHA-256).
+- [x] Release workflow: dry run on demand, publish on `vX.Y.Z` tags.
+- [x] Disconnected-network procedure, including `podman save`/`load` of images
+  ([RELEASE.md](RELEASE.md)).
+- [ ] Publish v0.1.0.
+- [ ] Publisher authentication (signatures or internal mirror trust chain);
+  checksums are integrity only.

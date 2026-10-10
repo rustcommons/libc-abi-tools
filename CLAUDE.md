@@ -31,8 +31,11 @@ The first architecture is x86_64. Its companions are `rustcommons/cargo-libc`
 Run `cargo fmt --all -- --check`, `cargo test --locked --offline`, and
 `cargo clippy --all-targets --locked --offline -- -D warnings` for Rust changes.
 Profile changes also require `scripts/self-test.sh` on Linux with a container
-runtime (crun with libseccomp 2.6+ covers every profile). Distinguish host
-simulation from actual oldest-target runtime qualification on a real kernel.
+runtime (crun with libseccomp 2.6+, e.g. from `scripts/install-crun.sh`, covers
+every profile). Packaging changes require `scripts/package-release.sh` and
+`kernel-seccomp verify-bundle`; never publish a release without the user's
+go-ahead. Distinguish host simulation from actual oldest-target runtime
+qualification on a real kernel.
 
 ## Git conventions
 
