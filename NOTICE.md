@@ -9,19 +9,42 @@ data, the collection workflow, the library selection, the abilist formats, and
 the explanation of how symbols migrate between libraries. This is an independent
 Rust project with no implied endorsement by Zig.
 
-Parts of the Rust code were adapted from Zig's tooling at commit
-`9217cf899bf12bbb24a8a3de4cc2de682de0379d` (2026-10-09). Those parts retain
-`Copyright (c) Zig contributors` and the upstream MIT notice in
+Parts of the Rust code were adapted from Zig's tooling at the commit recorded
+below. Those parts retain `Copyright (c) Zig contributors` and the MIT license
+under which that commit was published, copied in
 [LICENSES/Zig-MIT.txt](LICENSES/Zig-MIT.txt):
 
-| Material | Zig origin | Use here |
+| Material | Zig origin (git blob at the commit) | Use here |
 | --- | --- | --- |
-| Collection workflow | `glibc/collect.zig` | Rust collector restricted to eight x86_64 libraries; exact-tag/clean-tree checks added |
-| Parsing and library selection | `glibc/consolidate.zig` | Modern F/D/A parsing and the eight library names; grouped pre-2.23 format added |
-| Numeric version handling | `glibc/Version.zig` and the local cargo-glibc prototype | Strict Rust parsing; target-release validation separate from symbol versions |
-| ABI migration explanation | `glibc/README.md` | Design and regression tests; compact consolidation not implemented yet |
+| Collection workflow | `glibc/collect.zig` (`92171fc82a571d00d9823150afcd8e209b73706c`) | Rust collector restricted to eight x86_64 libraries; exact-tag/clean-tree checks added |
+| Parsing and library selection | `glibc/consolidate.zig` (`f9e9549098fb416a9d2394399bd355ee39847f51`) | Modern F/D/A parsing and the eight library names; grouped pre-2.23 format added |
+| Numeric version handling | `glibc/Version.zig` (`3681cd038fa0236f1e3ff754fff0f681affb3831`) and the local cargo-glibc prototype | Strict Rust parsing; target-release validation separate from symbol versions |
+| ABI migration explanation | `glibc/README.md` (`21cb228f2639e96cbf83d36705b9debedb16a01d`) | Design and regression tests; compact consolidation not implemented yet |
 
 No data is taken from Zig.
+
+### Zig attribution record
+
+The attribution and license above rest on this exact upstream state. It records
+the license under which that commit was published, so the basis for our use is
+preserved even if Zig's repository or license changes later.
+
+| Item | Value |
+| --- | --- |
+| Repository | https://codeberg.org/ziglang/libc-abi-tools |
+| Commit | `9217cf899bf12bbb24a8a3de4cc2de682de0379d` ([browse](https://codeberg.org/ziglang/libc-abi-tools/src/commit/9217cf899bf12bbb24a8a3de4cc2de682de0379d)) |
+| Commit title | `update to Zig 0.17.0` (the tools target **Zig 0.17.0**) |
+| Author, date | Alex Rønne Petersen, 2026-10-02T05:17:51+02:00 (committed 05:18:04+02:00) |
+| Tree | `05d2e09a1257d3630c7f7a886df8193c1a229f5c` |
+| `LICENSE` | git blob `9ce01373c89082fd81e8ea0793aab0978140526b`, SHA-256 `5c537d6853e005298a285d508cff9ac7192cea23576c840d485b2b586a7ff177`, "The MIT License (Expat)", `Copyright (c) Zig contributors` |
+| Our copy | [LICENSES/Zig-MIT.txt](LICENSES/Zig-MIT.txt) is byte-identical (same git blob id) |
+| First retrieved | 2026-10-09 |
+| Re-verified | 2026-10-10: the commit was the tip of Codeberg's default branch, and the same commit object is also served by https://github.com/ziglang/libc-abi-tools (whose default branch, `6878b563bd0620c626dc92c7b641a903b648c592` from 2025-10-18, is an ancestor of it) |
+
+For the record, Zig's tree at that commit also shipped `glibc/COPYING.abilists`
+(git blob `d159169d1050894d3ea3b98e1c965c4058208fe1`, the GNU GPL version 2) next
+to its copies of glibc's ABI lists. This project used those copies until
+2026-10-10 and now takes the lists from glibc itself (below).
 
 ## glibc ABI data: the GNU C Library
 
