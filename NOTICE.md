@@ -33,7 +33,8 @@ preserved even if Zig's repository or license changes later.
 | --- | --- |
 | Repository | https://codeberg.org/ziglang/libc-abi-tools |
 | Commit | `9217cf899bf12bbb24a8a3de4cc2de682de0379d` ([browse](https://codeberg.org/ziglang/libc-abi-tools/src/commit/9217cf899bf12bbb24a8a3de4cc2de682de0379d)) |
-| Commit title | `update to Zig 0.17.0` (the tools target **Zig 0.17.0**) |
+| Commit title | `update to Zig 0.17.0`; the repository has no tags |
+| Zig release targeted | **0.17.0**, Zig's latest release: tag `0.17.0` (tag object `afee4225358129f909e01dfaed265dca0977befe`), commit `7647adab80dd088f4de3610fd245915a912eb6ad`, released 2026-10-01 (tagged 2026-10-01T14:58:17-07:00; date confirmed by https://ziglang.org/download/index.json). Its `LICENSE` is the same git blob as below. |
 | Author, date | Alex Rønne Petersen, 2026-10-02T05:17:51+02:00 (committed 05:18:04+02:00) |
 | Tree | `05d2e09a1257d3630c7f7a886df8193c1a229f5c` |
 | `LICENSE` | git blob `9ce01373c89082fd81e8ea0793aab0978140526b`, SHA-256 `5c537d6853e005298a285d508cff9ac7192cea23576c840d485b2b586a7ff177`, "The MIT License (Expat)", `Copyright (c) Zig contributors` |
