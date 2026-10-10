@@ -6,15 +6,13 @@
 //! simulated kernel has is allowed. Other newer flags on old syscalls and
 //! behavior changes are not modelled yet; see the roadmap.
 
-use std::cmp::Ordering;
-use std::fmt;
-
 pub mod bundle;
 pub mod container;
 
+pub use linux_targets::{distro, distros, Distro, KernelVersion};
+
 const SYSCALL_DATA: &str = include_str!("../data/linux/syscalls-x86_64.tsv");
 const MADVISE_DATA: &str = include_str!("../data/linux/madvise-x86_64.tsv");
-const DISTRO_DATA: &str = include_str!("../data/distros.tsv");
 
 /// `ENOSYS` on Linux (all architectures).
 pub const ENOSYS: i32 = 38;
@@ -24,51 +22,11 @@ pub const EINVAL: i32 = 22;
 pub const PROVIDER_FORMAT: &str = "kernel-abi-provider-v1";
 
 /// Kernel releases shipped as generic profiles. Chosen to cover the kernels
-/// of the distributions in `data/distros.tsv` plus common LTS lines.
+/// of the `linux-targets` distribution presets plus common LTS lines.
 pub const GENERIC_KERNELS: &[&str] = &[
     "3.10", "3.16", "4.4", "4.9", "4.12", "4.14", "4.15", "4.18", "4.19", "5.3", "5.4", "5.10",
     "5.14", "5.15", "6.1", "6.4", "6.6", "6.8", "6.12",
 ];
-
-/// A mainline kernel release, compared by `major.minor` only.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct KernelVersion {
-    pub major: u32,
-    pub minor: u32,
-}
-
-impl KernelVersion {
-    /// Parses `4.12`, `4.12.14`, or a distribution release string such as
-    /// `4.12.14-122.37-default`. Only the leading `major.minor` is used.
-    pub fn parse(s: &str) -> Result<Self, String> {
-        let s = s.trim().trim_start_matches(['v', 'V']);
-        let mut parts = s.split(|c: char| !c.is_ascii_digit());
-        let major = parts.next().and_then(|p| p.parse().ok());
-        let minor = parts.next().and_then(|p| p.parse().ok());
-        match (major, minor) {
-            (Some(major), Some(minor)) => Ok(KernelVersion { major, minor }),
-            _ => Err(format!("not a kernel version: {s:?} (expected e.g. 4.12)")),
-        }
-    }
-}
-
-impl Ord for KernelVersion {
-    fn cmp(&self, other: &Self) -> Ordering {
-        (self.major, self.minor).cmp(&(other.major, other.minor))
-    }
-}
-
-impl PartialOrd for KernelVersion {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl fmt::Display for KernelVersion {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}.{}", self.major, self.minor)
-    }
-}
 
 /// One x86_64 syscall and the first mainline release whose table lists it.
 #[derive(Clone, Debug)]
@@ -123,48 +81,6 @@ pub fn missing_syscalls(kernel: KernelVersion, allow: &[&str]) -> Vec<Syscall> {
         .collect()
 }
 
-/// A distribution preset: a kernel floor, a glibc floor, and a test image.
-#[derive(Clone, Debug)]
-pub struct Distro {
-    pub id: &'static str,
-    pub name: &'static str,
-    pub kernel: KernelVersion,
-    pub glibc: &'static str,
-    pub image: &'static str,
-    /// Syscalls the distribution kernel backports beyond its mainline base.
-    pub backports: Vec<&'static str>,
-    /// How the kernel and glibc values were established.
-    pub status: &'static str,
-}
-
-/// All distribution presets from `data/distros.tsv`.
-pub fn distros() -> Vec<Distro> {
-    data_rows(DISTRO_DATA)
-        .map(|cols| {
-            let [id, name, kernel, glibc, image, backports, status] = cols[..] else {
-                panic!("distro data row needs 7 columns: {cols:?}");
-            };
-            Distro {
-                id,
-                name,
-                kernel: KernelVersion::parse(kernel).expect("distro kernel"),
-                glibc,
-                image,
-                backports: if backports == "-" {
-                    Vec::new()
-                } else {
-                    backports.split(',').collect()
-                },
-                status,
-            }
-        })
-        .collect()
-}
-
-pub fn distro(id: &str) -> Option<Distro> {
-    distros().into_iter().find(|d| d.id == id)
-}
-
 /// What a profile simulates.
 pub struct Target {
     pub label: String,
@@ -185,7 +101,7 @@ impl Target {
         Target {
             label: format!("{} (Linux {})", d.name, d.kernel),
             kernel: d.kernel,
-            allow: d.backports.clone(),
+            allow: d.kernel_backports.clone(),
         }
     }
 }
@@ -429,7 +345,7 @@ mod tests {
             .iter()
             .any(|d| d.id == "sles-12-sp5" && d.kernel == kv("4.12")));
         for d in &all {
-            for b in &d.backports {
+            for b in &d.kernel_backports {
                 assert!(
                     syscalls().iter().any(|s| s.name == *b),
                     "{}: unknown backport {b}",

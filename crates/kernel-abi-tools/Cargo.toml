@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.90"
 description = "Linux kernel ABI data and seccomp profiles that simulate older kernels when testing Rust binaries"
-repository = "https://github.com/rustcommons/kernel-abi-tools"
+repository = "https://github.com/rustcommons/linux-abi-tools"
 license = "MIT"
 publish = false
 
@@ -20,7 +20,5 @@ path = "src/bin/kernel-seccomp.rs"
 name = "syscall-probe"
 path = "src/bin/syscall-probe.rs"
 
-[profile.release]
-strip = true
-
 [dependencies]
+linux-targets = { path = "../linux-targets" }

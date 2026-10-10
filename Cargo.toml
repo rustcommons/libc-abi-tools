@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.90"
 description = "Rust tools for libc ABI metadata, starting with glibc"
-repository = "https://github.com/rustcommons/libc-abi-tools"
+repository = "https://github.com/rustcommons/linux-abi-tools"
 license = "MIT"
 publish = false
 
@@ -16,3 +16,9 @@ name = "libc-abi"
 path = "src/main.rs"
 
 [dependencies]
+
+# The root package stays libc-abi-tools; `cargo` commands run in the root act
+# on it alone unless given `--workspace` or `-p`.
+[workspace]
+members = ["crates/kernel-abi-tools", "crates/linux-targets"]
+resolver = "2"

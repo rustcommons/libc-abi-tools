@@ -1,16 +1,20 @@
-name: Release
-# Tag push vX.Y.Z: build, verify, self-test, and publish a GitHub release.
-# Manual run: the same steps as a dry run; the bundle is a workflow artifact
-# and nothing is published.
+name: kernel-abi-tools release
+# Tag push kernel-abi-tools-vX.Y.Z: build, verify, self-test, and publish a
+# GitHub release of the standalone kernel-abi-tools bundle. Manual run: the
+# same steps as a dry run; the bundle is a workflow artifact and nothing is
+# published. Tags are prefixed because this repository holds several crates.
 on:
   push:
-    tags: ["v*"]
+    tags: ["kernel-abi-tools-v*"]
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   bundle:
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: crates/kernel-abi-tools
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.99.0
@@ -20,9 +24,9 @@ jobs:
         if: github.ref_type == 'tag'
         run: |
           version=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n 1)
-          [ "$GITHUB_REF_NAME" = "v$version" ] \
+          [ "$GITHUB_REF_NAME" = "kernel-abi-tools-v$version" ] \
             || { echo "tag $GITHUB_REF_NAME does not match Cargo.toml version $version"; exit 1; }
-      - run: cargo test --all-targets --locked --offline
+      - run: cargo test -p kernel-abi-tools -p linux-targets --all-targets --locked --offline
       - name: Package
         run: |
           bash scripts/package-release.sh "$RUNNER_TEMP/dist"
@@ -64,5 +68,5 @@ jobs:
           (cd dist && sha256sum -c ./*.sha256)
           gh release create "$GITHUB_REF_NAME" dist/* \
             --repo "$GITHUB_REPOSITORY" \
-            --title "kernel-abi-tools ${GITHUB_REF_NAME#v}" \
+            --title "kernel-abi-tools ${GITHUB_REF_NAME#kernel-abi-tools-v}" \
             --notes "Verify with \`sha256sum -c\` and \`bin/kernel-seccomp verify-bundle\`; see docs/RELEASE.md and docs/PROVIDER-CONTRACT.md in the bundle."

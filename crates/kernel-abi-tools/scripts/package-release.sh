@@ -12,8 +12,9 @@
 #   package-release.sh OUT
 set -euo pipefail
 out=${1:?usage: package-release.sh OUT}
-repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-cd "$repo"
+crate=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+cd "$crate"
+targets_data=$crate/../linux-targets/data/distros.tsv
 
 version=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n 1)
 commit=$(git rev-parse HEAD)
@@ -30,10 +31,14 @@ for f in "$archive" "$archive.sha256"; do
 done
 
 target=x86_64-unknown-linux-musl
-cargo build --release --locked --offline --target "$target" --bins
+target_dir=$(cargo metadata --format-version 1 --no-deps --offline \
+  | sed -n 's/.*"target_directory":"\([^"]*\)".*/\1/p')
+CARGO_PROFILE_RELEASE_STRIP=true \
+  cargo build -p kernel-abi-tools --release --locked --offline --target "$target" --bins
+built=$target_dir/$target/release
 bins=(kernel-seccomp syscall-probe)
 for b in "${bins[@]}"; do
-  elf=target/$target/release/$b
+  elf=$built/$b
   if readelf -lW "$elf" | grep -q INTERP || readelf -dW "$elf" | grep -q NEEDED; then
     echo "package-release: $b is not statically linked" >&2; exit 1
   fi
@@ -41,15 +46,16 @@ done
 
 # The committed profiles must be exactly what this commit's data generates.
 check=$(mktemp -d); trap 'rm -rf "$check" "${stage_root:-}"' EXIT
-"target/$target/release/kernel-seccomp" generate "$check/profiles" 2>/dev/null
+"$built/kernel-seccomp" generate "$check/profiles" 2>/dev/null
 diff -r "$check/profiles" profiles >/dev/null \
   || { echo "package-release: profiles/ is stale; run kernel-seccomp generate profiles" >&2; exit 1; }
 
 stage_root=$(mktemp -d)
 stage=$stage_root/$name
 mkdir -p "$stage/bin" "$stage/scripts" "$stage/docs"
-for b in "${bins[@]}"; do install -m 0755 "target/$target/release/$b" "$stage/bin/$b"; done
+for b in "${bins[@]}"; do install -m 0755 "$built/$b" "$stage/bin/$b"; done
 cp -R profiles data "$stage/"
+install -m 0644 "$targets_data" "$stage/data/distros.tsv"
 for s in run-under-kernel.sh self-test.sh; do install -m 0755 "scripts/$s" "$stage/scripts/$s"; done
 install -m 0644 LICENSE NOTICE README.md "$stage/"
 install -m 0644 docs/PROVIDER-CONTRACT.md docs/RELEASE.md "$stage/docs/"

@@ -1,7 +1,23 @@
-name: CI
-on: [push, pull_request]
+name: kernel-abi-tools
+# CI for crates/kernel-abi-tools and crates/linux-targets. The glibc
+# workflows cover the root libc-abi-tools package.
+on:
+  push:
+    paths:
+      - crates/**
+      - Cargo.toml
+      - Cargo.lock
+      - .github/workflows/kernel-abi-tools*.yml
+  pull_request:
+    paths:
+      - crates/**
+      - Cargo.toml
+      - Cargo.lock
+      - .github/workflows/kernel-abi-tools*.yml
 permissions:
   contents: read
+env:
+  CRATES: -p kernel-abi-tools -p linux-targets
 jobs:
   rust:
     strategy:
@@ -14,15 +30,21 @@ jobs:
         with:
           components: rustfmt, clippy
       - run: cargo fmt --all -- --check
-      - run: cargo test --all-targets --locked --offline
-      - run: cargo clippy --all-targets --locked --offline -- -D warnings
+      - shell: bash
+        run: cargo test $CRATES --all-targets --locked --offline
+      - shell: bash
+        run: cargo clippy $CRATES --all-targets --locked --offline -- -D warnings
       - name: Committed profiles match the data
         shell: bash
+        working-directory: crates/kernel-abi-tools
         run: |
-          cargo run --release --locked --offline --bin kernel-seccomp -- generate profiles
+          cargo run -p kernel-abi-tools --release --locked --offline --bin kernel-seccomp -- generate profiles
           git diff --exit-code -- profiles
   kernel-simulation:
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: crates/kernel-abi-tools
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.99.0
@@ -55,4 +77,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.90.0
-      - run: cargo check --all-targets --locked --offline
+      - run: cargo check -p kernel-abi-tools -p linux-targets --all-targets --locked --offline

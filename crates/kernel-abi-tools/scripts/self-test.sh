@@ -15,7 +15,7 @@ engine=${CONTAINER_ENGINE:-podman}
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 gen=
 for candidate in "${KERNEL_SECCOMP:-}" "$(command -v kernel-seccomp || true)" \
-                 "$here/../target/release/kernel-seccomp" "$here/../bin/kernel-seccomp"; do
+                 "$here/../../../target/release/kernel-seccomp" "$here/../bin/kernel-seccomp"; do
   if [ -n "$candidate" ] && [ -x "$candidate" ]; then gen=$candidate; break; fi
 done
 [ -n "$gen" ] || { echo "self-test: kernel-seccomp not found (set KERNEL_SECCOMP)" >&2; exit 2; }
