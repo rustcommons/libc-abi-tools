@@ -68,10 +68,10 @@ impl Provider {
         }
         if fields.len() != 6
             || fields.get("target") != Some(&"x86_64-unknown-linux-gnu")
-            || !matches!(fields.get("glibc"), Some(&"2.17" | &"2.22"))
+            || !matches!(fields.get("glibc"), Some(&"2.17" | &"2.18" | &"2.22"))
         {
             return Err(
-                "provider v1 requires exactly six fields, x86_64 Linux and glibc 2.17 or 2.22"
+                "provider v1 requires exactly six fields, x86_64 Linux and glibc 2.17, 2.18 or 2.22"
                     .into(),
             );
         }
@@ -217,14 +217,16 @@ mod tests {
 
     #[test]
     fn selects_each_supported_release_without_fallback() {
-        for release in ["2.17", "2.22"] {
+        for release in ["2.17", "2.18", "2.22"] {
             let provider = Provider::parse(&valid().replace("2.17", release)).unwrap();
             assert_eq!(provider.release, release.parse().unwrap());
             assert!(provider
                 .validate_selection(release.parse().unwrap())
                 .is_ok());
-            for other in ["2.18", "2.23", "2.22.1"] {
-                assert!(provider.validate_selection(other.parse().unwrap()).is_err());
+            for other in ["2.17", "2.18", "2.22", "2.23", "2.22.1"] {
+                if other != release {
+                    assert!(provider.validate_selection(other.parse().unwrap()).is_err());
+                }
             }
         }
         assert!(Provider::parse(&valid())
