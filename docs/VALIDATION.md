@@ -10,8 +10,8 @@ without RPATH/RUNPATH. Independent link-map/runtime checks confirmed generated
 DSOs at link time and real target glibc/compatible unwinder at runtime. Mismatched
 provider versions failed; SHA-256 executable/input evidence is retained in logs.
 
-Hosted Rust 1.99/Clang 21 and 23 jobs are configured but have not run. Clang 18
-local success does not establish Clang 21/23 success. See
+Hosted Rust 1.99/Clang 21 and 24 jobs are configured but have not run. Clang 18
+local success does not establish Clang 21/24 success. See
 [the trusted local contract](PROVIDER-CONTRACT.md) and [per-version roadmap](ROADMAP.md).
 
 Validated 2026-10-09 with Rust 1.99.0 on Windows and Rust 1.98.1 in Ubuntu WSL.

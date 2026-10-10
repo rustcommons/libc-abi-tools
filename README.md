@@ -4,7 +4,7 @@
 
 The experimental glibc 2.17 [provider contract](docs/PROVIDER-CONTRACT.md) connects
 all eight generated stub libraries to the companion `cargo-libc` coordinator.
-CI targets Rust 1.99.0 and Clang 21/23; the roadmap tracks each vendored version's
+CI targets Rust 1.99.0 and Clang 21/24; the roadmap tracks each vendored version's
 remaining real input and runtime setup.
 
 **Target libc versions beyond your host.**

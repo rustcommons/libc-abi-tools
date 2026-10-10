@@ -144,18 +144,23 @@ Snapshot coverage does not establish released or runtime-qualified environments.
 
 The 2.17 workflow builds both pinned real input trees in a disposable CentOS
 builder, checks native ELF metadata and complete generated DSOs, and exercises
-Cargo integration separately with Clang 21 and 23. Modern host tools still use
+Cargo integration separately with Clang 21 and 24. Modern host tools still use
 compatible target CRT/nonshared files and the old real unwinder. Building glibc
 2.17 itself retains the qualified historical GCC builder; changing that compiler
 is a separate source-build task. GNU binutils remain the qualified assembler/linker;
-LLD needs separate qualification. Clang 23 is required without silent fallback;
-Use the explicit `llvm-toolchain-noble-23` suite; the moving development suite
-already publishes Clang 24. Record actual package
-revisions because those APT inputs can move.
+LLD needs separate qualification. The primary Clang 24 job intentionally uses
+the development snapshot from `llvm-toolchain-noble`, with a mandatory major-version
+check so a future feed change fails visibly. Clang 21 remains a release-compiler
+check. Record exact package revisions because these APT inputs can move.
 
-- [x] Configure per-snapshot CI and 2.17 integration with Rust 1.99/Clang 21/23.
+The first hosted companion run with the corrected package feed passed Rust
+1.99 Windows/Linux checks, Rust 1.90, and conventional sysroot linker smoke tests
+under Clang 21 and 23. The selected CI matrix is now Clang 21/24 at the user's request;
+glibc 2.17 provider/runtime qualification remains a separate gate.
+
+- [x] Configure per-snapshot CI and 2.17 integration with Rust 1.99/Clang 21/24.
 - [x] Land the companion provider integration and pin its locally tested commit
-  `904d58180bbf75fb4ac1b7d6ae1f04ef7bd0c862` in CI.
+  `7980d63873282cb9fef68bcaf08f8123546387ac` in CI.
 - [ ] Observe hosted jobs after pushing; local tests do not establish hosted success.
 - [ ] Add pinned headers/CRT/nonshared/compiler runtime, full-ABI generation,
   Cargo positive/negative tests, and real runtime jobs for each remaining version.
@@ -165,7 +170,7 @@ revisions because those APT inputs can move.
 
 | Snapshot label | Snapshot CI configured | Remaining real input / provider / runtime setup |
 | --- | --- | --- |
-| 2.17 | Yes | Both input routes and Cargo tested locally; hosted Clang 21/23 and old distro/kernel qualification pending |
+| 2.17 | Yes | Both input routes and Cargo tested locally; hosted Clang 21/24 and old distro/kernel qualification pending |
 | 2.18 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.19 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.20 | Yes | Pin inputs; generate provider; add runtime job |

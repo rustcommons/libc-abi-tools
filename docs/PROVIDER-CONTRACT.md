@@ -47,7 +47,7 @@ Consume from the cargo-libc checkout:
 
 ```bash
 cargo libc build --provider /work/provider.txt --glibc 2.17 \
-  --cc /usr/bin/clang-23 --ld /usr/bin/ld.bfd \
+  --cc /usr/bin/clang-24 --ld /usr/bin/ld.bfd \
   --artifact /work/app/x86_64-unknown-linux-gnu/debug/glibc-hello -- \
   --manifest-path examples/hello/Cargo.toml --target-dir /work/app --locked --offline
 ```

@@ -7,7 +7,7 @@ on:
       companion_ref:
         description: cargo-libc integration branch or tested commit
         required: false
-        default: 904d58180bbf75fb4ac1b7d6ae1f04ef7bd0c862
+        default: 7980d63873282cb9fef68bcaf08f8123546387ac
 permissions:
   contents: read
 jobs:
@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        clang: [21, 23]
+        clang: [21, 24]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,7 +27,7 @@ jobs:
           repository: rustcommons/cargo-libc
           path: cargo-libc
           # Pin the companion provider contract tested with this workflow.
-          ref: ${{ inputs.companion_ref || '904d58180bbf75fb4ac1b7d6ae1f04ef7bd0c862' }}
+          ref: ${{ inputs.companion_ref || '7980d63873282cb9fef68bcaf08f8123546387ac' }}
       - uses: dtolnay/rust-toolchain@1.99.0
         with:
           components: rustfmt, clippy
