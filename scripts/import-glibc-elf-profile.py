@@ -37,7 +37,7 @@ def main():
     files = [f for f in manifest["files"] if f["route"] == args.route]
     require(len(files) == 8 and {f["library"] for f in files} ==
             {"c", "m", "ld", "resolv", "pthread", "dl", "rt", "util"}, "Incomplete library profile")
-    require(manifest["upstream_pin_sha256"] == digest(repo / "data/glibc/UPSTREAM.toml"), "Different ABI source pin")
+    require(manifest["upstream_pin_sha256"] == digest(repo / "data/glibc/SOURCE.tsv"), "Different ABI source pin")
     require(manifest["package_manifest_sha256"] == digest(args.work / "logs/packages.txt"), "Package evidence changed")
     if args.route == "source":
         require(manifest["source_archive_sha256"] == digest(args.work / ("glibc-" + release + ".tar.xz")),

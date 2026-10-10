@@ -33,7 +33,7 @@ class TransferTests(unittest.TestCase):
         manifest = {"format": bundle.FORMAT, "release": bundle.RELEASE, "routes": list(bundle.ROUTES),
                     "target": "x86_64-unknown-linux-gnu",
                     "producer_commit": bundle.os.environ.get("GITHUB_SHA", "local-validation"),
-                    "upstream_pin_sha256": bundle.digest(bundle.REPO / "data/glibc/UPSTREAM.toml"),
+                    "upstream_pin_sha256": bundle.digest(bundle.REPO / "data/glibc/SOURCE.tsv"),
                     "entries": self.entries}
         if mutation:
             mutation(manifest)

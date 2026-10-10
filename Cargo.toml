@@ -9,8 +9,7 @@ license = "MIT"
 readme = "README.md"
 keywords = ["glibc", "abi", "linker", "symbols", "compatibility"]
 categories = ["development-tools::build-utils"]
-# The glibc ABI lists under data/ (GPL-2.0, see NOTICE.md) are read from a
-# checkout at run time and are not part of the published crate.
+# glibc's ABI lists come from the glibc-abilists crate (see [features]).
 include = ["src/**", "Cargo.toml", "README.md", "LICENSE", "LICENSES/**", "NOTICE.md"]
 
 [lib]
@@ -20,7 +19,14 @@ name = "libc_abi_tools"
 name = "libc-abi"
 path = "src/main.rs"
 
+[features]
+default = ["bundled-glibc-data"]
+# Compiles in the GNU C Library's ABI lists from the glibc-abilists crate
+# (LGPL-2.1-or-later). Without it, data is read from a directory (--data).
+bundled-glibc-data = ["dep:glibc-abilists"]
+
 [dependencies]
+glibc-abilists = { git = "https://github.com/rustcommons/glibc-abilists", version = "0.1.0", optional = true }
 
 # The root package stays libc-abi-tools; `cargo` commands run in the root act
 # on it alone unless given `--workspace` or `-p`.

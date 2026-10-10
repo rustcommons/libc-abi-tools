@@ -1,3 +1,5 @@
+#![cfg(feature = "bundled-glibc-data")]
+
 use libc_abi_tools::{
     glibc::{self, Kind, Snapshot},
     version::Version,
@@ -9,8 +11,18 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
+/// The bundled glibc-abilists data, exported once per test run so the
+/// directory code path is exercised too.
 fn data() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("data/glibc")
+    static DIR: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
+    DIR.get_or_init(|| {
+        let dir = PathBuf::from(env!("CARGO_TARGET_TMPDIR"))
+            .join(format!("glibc-data-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        glibc::export_bundled(&dir).unwrap();
+        dir
+    })
+    .clone()
 }
 
 fn snapshot(release: &str) -> Snapshot {

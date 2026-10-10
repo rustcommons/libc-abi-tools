@@ -2,7 +2,7 @@ use libc_abi_tools::{
     glibc::{self, Kind, Snapshot, Symbol},
     matrix::{Expectation, Matrix},
 };
-use std::{collections::BTreeMap, path::PathBuf, process::Command};
+use std::collections::BTreeMap;
 
 fn fixture(release: &str, entries: &[(&str, &str, &str, Kind)]) -> Snapshot {
     let mut libraries: BTreeMap<String, Vec<Symbol>> = glibc::LIBRARIES
@@ -170,10 +170,10 @@ fn historical_namespace_is_not_first_observed_release_or_default_binding() {
         .contains("c\tfmemopen\tGLIBC_2.22\t2.22\tabsent\tF"));
 }
 
+#[cfg(feature = "bundled-glibc-data")]
 #[test]
 fn pinned_matrix_classifies_version_boundaries_and_real_library_migration() {
-    let data = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("data/glibc");
-    let matrix = Matrix::load(&data).unwrap();
+    let matrix = Matrix::bundled().unwrap();
     for minor in 17..=44 {
         let release = format!("2.{minor}").parse().unwrap();
         let old = matrix.expect(release, "c", "fmemopen", "2.2.5".parse().unwrap());
@@ -224,9 +224,9 @@ fn pinned_matrix_classifies_version_boundaries_and_real_library_migration() {
             .label(),
         "accept"
     );
-    let output = Command::new(env!("CARGO_BIN_EXE_libc-abi"))
-        .args(["glibc", "expect", "--data"])
-        .arg(&data)
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_libc-abi"))
+        // No --data: the CLI reads the bundled glibc-abilists data.
+        .args(["glibc", "expect"])
         .args([
             "--release",
             "2.16",

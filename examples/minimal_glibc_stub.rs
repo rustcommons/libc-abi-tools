@@ -104,16 +104,12 @@ fn main() {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "bundled-glibc-data"))]
 mod tests {
     use super::*;
 
     fn snapshot() -> Snapshot {
-        Snapshot::load(
-            &PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("data/glibc"),
-            "2.17".parse().unwrap(),
-        )
-        .unwrap()
+        Snapshot::bundled("2.17".parse().unwrap()).unwrap()
     }
 
     fn evidence() -> elf::Metadata {

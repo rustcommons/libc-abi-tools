@@ -1,10 +1,11 @@
 {
   "abi_source": {
-    "checksums": "../glibc/SHA256SUMS",
-    "commit": "9217cf899bf12bbb24a8a3de4cc2de682de0379d",
-    "license": "../glibc/COPYING.abilists",
-    "pin_file": "../glibc/UPSTREAM.toml",
-    "repository": "https://codeberg.org/ziglang/libc-abi-tools"
+    "crate": "glibc-abilists",
+    "license": "LGPL-2.1-or-later",
+    "pin_file": "../glibc/SOURCE.tsv (written by libc-abi glibc export-data)",
+    "provenance": "data/releases.tsv and data/files.tsv in glibc-abilists: tag object, commit, signature, and per-file blob id and SHA-256",
+    "repository": "https://github.com/rustcommons/glibc-abilists",
+    "upstream": "https://sourceware.org/git/glibc.git"
   },
   "default_policy": "Unknown outside measured profiles. Do not infer default versions or behavior from numeric ABI tags.",
   "elf_profiles": {
@@ -540,5 +541,5 @@
   },
   "retrieved": "2026-10-10",
   "schema": 1,
-  "scope": "x86_64 Linux; eight numeric public GLIBC library ABI lists; covered snapshot labels 2.17\u20132.44"
+  "scope": "x86_64 Linux; eight numeric public GLIBC library ABI lists; covered snapshot labels 2.17–2.44"
 }

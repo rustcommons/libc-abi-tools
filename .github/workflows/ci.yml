@@ -13,18 +13,21 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.99.0
         with:
           components: rustfmt, clippy
+      # glibc-abilists is a git dependency until it is on crates.io.
+      - run: cargo fetch --locked
       - run: cargo fmt --all -- --check
       - run: cargo test --all-targets --locked --offline
       - run: cargo clippy --all-targets --locked --offline -- -D warnings
-      - name: Verify vendored data
-        if: runner.os == 'Linux'
-        working-directory: data/glibc
-        run: sha256sum --check SHA256SUMS
+      - name: Without the bundled glibc data (opt-out)
+        run: |
+          cargo test --all-targets --locked --offline --no-default-features
+          cargo clippy --all-targets --locked --offline --no-default-features -- -D warnings
   msrv:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.90.0
+      - run: cargo fetch --locked
       - run: cargo check --all-targets --locked --offline
   history:
     name: ABI matrix and user reference
@@ -32,7 +35,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.99.0
+      - run: cargo fetch --locked
       - run: cargo build --locked --offline
+      - name: Export the glibc ABI lists from glibc-abilists
+        run: target/debug/libc-abi glibc export-data --output data/glibc
       - name: Verify regenerated matrix and Markdown reference
         run: python3 scripts/build-glibc-reference.py --binary target/debug/libc-abi --check
       - name: Verify CI bundle integrity and extraction fixtures
@@ -53,13 +59,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.99.0
-      - name: Verify checksums and deterministic release export
+      - run: cargo fetch --locked
+      - name: Bundled and exported data agree; export is deterministic
         env:
           GLIBC_RELEASE: ${{ matrix.glibc }}
         run: |
-          (cd data/glibc && sha256sum --check SHA256SUMS)
-          cargo run --locked --offline -- glibc snapshot --data data/glibc --release "$GLIBC_RELEASE" > first.tsv
-          cargo run --locked --offline -- glibc snapshot --data data/glibc --release "$GLIBC_RELEASE" > second.tsv
+          cargo build --locked --offline
+          target/debug/libc-abi glibc export-data --output data/glibc
+          target/debug/libc-abi glibc snapshot --release "$GLIBC_RELEASE" > first.tsv
+          target/debug/libc-abi glibc snapshot --data data/glibc --release "$GLIBC_RELEASE" > second.tsv
           test -s first.tsv
           cmp first.tsv second.tsv
       - uses: actions/upload-artifact@v4

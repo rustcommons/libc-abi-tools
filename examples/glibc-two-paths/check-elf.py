@@ -69,7 +69,7 @@ manifest = {
     "target": "x86_64-unknown-linux-gnu",
     "release_label": RELEASE,
     "release_label_is_asserted_from_input_provenance": True,
-    "upstream_pin_sha256": digest(repo / "data/glibc/UPSTREAM.toml"),
+    "upstream_pin_sha256": digest(repo / "data/glibc/SOURCE.tsv"),
     "package_manifest_sha256": digest(work / "logs/packages.txt"),
     "source_archive_sha256": digest(work / ("glibc-" + RELEASE + ".tar.xz")),
     "source_adjustment_sha256": digest(work / "logs/source-adjustment.patch"),

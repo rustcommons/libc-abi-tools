@@ -115,8 +115,9 @@ def generate(binary):
         details = "; ".join(f"{r['profile']}: {'default' if r['default'] == 'yes' else 'compatibility'} / {r['type']} / {r['binding']} / {r['visibility']}" for r in observations[key]) or "Unknown (no ELF evidence)"
         first = row["first_observed_snapshot"]
         filename = "ld.abilist" if row["library"] == "ld" else "lib" + row["library"] + ".abilist"
-        path = f"../../data/glibc/{first}/sysdeps/unix/sysv/linux/x86_64/64/" + ("nptl/" if int(first.split('.')[1]) <= 19 else "") + filename
-        source = f"[ABI list]({path})"
+        tree_path = "sysdeps/unix/sysv/linux/x86_64/64/" + ("nptl/" if int(first.split('.')[1]) <= 19 else "") + filename
+        # The ABI list in glibc's own repository at the release tag.
+        source = f"[ABI list](https://sourceware.org/git/?p=glibc.git;a=blob;f={tree_path};hb=refs/tags/glibc-{first})"
         if observations[key]:
             source += "; [ELF/profile hashes](../../data/glibc-history/elf-evidence.tsv)"
         cells = [row["library"] + " / " + SONAMES[row["library"]], row["symbol"] + "@" + row["version"], first,

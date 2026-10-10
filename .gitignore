@@ -5,3 +5,7 @@ __pycache__/
 *.tmp
 .DS_Store
 Thumbs.db
+
+# glibc ABI lists exported from the glibc-abilists crate for scripts and CI
+# (`libc-abi glibc export-data --output data/glibc`); never committed.
+/data/glibc/

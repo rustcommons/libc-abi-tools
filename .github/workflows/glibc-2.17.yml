@@ -24,6 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.99.0
+      - name: Fetch dependencies and export the glibc ABI lists
+        run: |
+          cargo fetch --locked
+          cargo run --locked --offline --bin libc-abi -- glibc export-data --output data/glibc
       - name: Install preparation tools
         run: sudo apt-get update && sudo apt-get install -y podman make python3 gcc binutils
       - name: Build pinned target inputs once per release
@@ -91,6 +95,11 @@ jobs:
         with:
           name: glibc-${{ matrix.glibc }}-prepared-inputs
           path: ${{ runner.temp }}/prepared-inputs
+      - name: Fetch dependencies and export the glibc ABI lists
+        working-directory: libc-abi-tools
+        run: |
+          cargo fetch --locked
+          cargo run --locked --offline --bin libc-abi -- glibc export-data --output data/glibc
       - name: Verify and restore provider inputs into this runner
         working-directory: libc-abi-tools
         run: |

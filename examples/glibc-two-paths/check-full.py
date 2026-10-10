@@ -66,7 +66,7 @@ manifest = {"schema": 1, "scope": "selected application/runtime evidence" if mod
             "release": RELEASE, "libraries": [], "executables": {},
             "compiler_runtime_sha256": digest(work / "compiler-runtime/libgcc_s.so.1"),
             "compiler_runtime_source_sha256": digest(work / "prebuilt/usr/lib64/libgcc_s.so.1"),
-            "upstream_pin_sha256": digest(repo / "data/glibc/UPSTREAM.toml"),
+            "upstream_pin_sha256": digest(repo / "data/glibc/SOURCE.tsv"),
             "real_input_manifest_sha256": digest(work / "elf-metadata/manifest.json")}
 total = 0
 for route in ROUTES:

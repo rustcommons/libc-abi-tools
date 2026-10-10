@@ -131,12 +131,22 @@ pub struct Snapshot {
 }
 
 impl Snapshot {
-    /// Load one exact release from a Zig-style glibc data directory.
+    /// Load one exact release from a data directory laid out like
+    /// glibc-abilists' `data/`: `<root>/<release>/<path in glibc's tree>`.
     /// Missing libraries fail instead of silently producing an incomplete ABI.
     pub fn load(root: &Path, release: Version) -> Result<Self, String> {
         release.validate_release()?;
         let release_dir = root.join(release.to_string());
         let (snapshot, _) = load_source(&release_dir, release)?;
+        Ok(snapshot)
+    }
+
+    /// Load one exact release from the glibc ABI lists compiled into the
+    /// `glibc-abilists` crate (the default `bundled-glibc-data` feature).
+    #[cfg(feature = "bundled-glibc-data")]
+    pub fn bundled(release: Version) -> Result<Self, String> {
+        release.validate_release()?;
+        let (snapshot, _) = load_with(release, |relative| bundled_file(release, relative))?;
         Ok(snapshot)
     }
 
@@ -198,20 +208,32 @@ fn load_source(source: &Path, release: Version) -> Result<(Snapshot, SourceFiles
     let source = source
         .canonicalize()
         .map_err(|e| format!("{}: {e}", source.display()))?;
+    load_with(release, |relative| read_inside(&source, relative))
+}
+
+/// The path of a library's ABI list in glibc's tree (and in a data
+/// directory's release subdirectory).
+pub fn abilist_path(release: Version, library: &str) -> PathBuf {
+    let mut path = PathBuf::from(ABI_PATH);
+    if release.minor <= 19 {
+        path.push("nptl");
+    }
+    path.join(if library == "ld" {
+        "ld.abilist".to_owned()
+    } else {
+        format!("lib{library}.abilist")
+    })
+}
+
+fn load_with(
+    release: Version,
+    read: impl Fn(&Path) -> Result<Vec<u8>, String>,
+) -> Result<(Snapshot, SourceFiles), String> {
     let mut libraries = BTreeMap::new();
     let mut files = Vec::new();
-    let mut abi_path = PathBuf::from(ABI_PATH);
-    if release.minor <= 19 {
-        abi_path.push("nptl");
-    }
     for library in LIBRARIES {
-        let name = if library == "ld" {
-            "ld.abilist".to_owned()
-        } else {
-            format!("lib{library}.abilist")
-        };
-        let relative = abi_path.join(name);
-        let bytes = read_inside(&source, &relative)?;
+        let relative = abilist_path(release, library);
+        let bytes = read(&relative)?;
         let text =
             std::str::from_utf8(&bytes).map_err(|e| format!("{}: {e}", relative.display()))?;
         let records = parse_abilist(text).map_err(|e| format!("{}: {e}", relative.display()))?;
@@ -244,6 +266,59 @@ fn git(source: &Path, args: &[&str]) -> Result<String, String> {
     String::from_utf8(output.stdout)
         .map(|s| s.trim().to_owned())
         .map_err(|e| e.to_string())
+}
+
+/// The bundled file at `relative` for `release`.
+#[cfg(feature = "bundled-glibc-data")]
+fn bundled_file(release: Version, relative: &Path) -> Result<Vec<u8>, String> {
+    let version = release.to_string();
+    let path = relative.to_string_lossy().replace('\\', "/");
+    glibc_abilists::abilists()
+        .iter()
+        .find(|a| a.release == version && a.path == path)
+        .map(|a| a.text.as_bytes().to_vec())
+        .ok_or_else(|| format!("glibc-abilists has no {path} for {release}"))
+}
+
+/// Releases available in the bundled glibc-abilists data.
+#[cfg(feature = "bundled-glibc-data")]
+pub fn bundled_releases() -> Result<Vec<Version>, String> {
+    glibc_abilists::releases()
+        .iter()
+        .map(|r| r.version.parse())
+        .collect()
+}
+
+/// Writes the bundled ABI lists into `output` in the data-directory layout
+/// that [`Snapshot::load`] reads, for tools that need files on disk. The
+/// directory must not exist yet. Returns the number of files written.
+#[cfg(feature = "bundled-glibc-data")]
+pub fn export_bundled(output: &Path) -> Result<usize, String> {
+    fs::create_dir(output)
+        .map_err(|e| format!("cannot create new directory {}: {e}", output.display()))?;
+    let mut count = 0;
+    for a in glibc_abilists::abilists() {
+        let path = output.join(a.release).join(a.path);
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        fs::write(&path, a.text).map_err(|e| format!("{}: {e}", path.display()))?;
+        count += 1;
+    }
+    let mut provenance = String::from(
+        "# ABI lists exported from the glibc-abilists crate; see its data/releases.tsv\n\
+         # and data/files.tsv for each tag's commit, signature, and file hashes.\n\
+         # License: LGPL-2.1-or-later (the GNU C Library's).\n\
+         release\ttag\tcommit\n",
+    );
+    for r in glibc_abilists::releases() {
+        writeln!(provenance, "{}\t{}\t{}", r.version, r.tag, r.commit).unwrap();
+    }
+    fs::write(output.join("SOURCE.tsv"), provenance).map_err(|e| e.to_string())?;
+    // The LGPL travels with every redistributed copy of the lists.
+    fs::write(output.join("COPYING.LIB"), glibc_abilists::LICENSE_TEXT)
+        .map_err(|e| e.to_string())?;
+    Ok(count)
 }
 
 /// Collect the eight x86_64 ABI lists from a clean, exactly tagged glibc checkout.

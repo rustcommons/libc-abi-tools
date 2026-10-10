@@ -93,7 +93,7 @@ def pack(work, archive):
     add("link-matrix/manifest.json")
     add("glibc-" + RELEASE + ".tar.xz", dereference=True)
     for name, path in (("licenses/PROJECT-MIT", REPO / "LICENSE"),
-                       ("licenses/ABI-DATA-COPYING", REPO / "data/glibc/COPYING.abilists"),
+                       ("licenses/ABI-DATA-COPYING", REPO / "data/glibc/COPYING.LIB"),
                        ("licenses/NOTICE.md", REPO / "NOTICE.md")):
         entries[name] = {"type": "file", "sha256": digest(path), "size": path.stat().st_size, "mode": 0o644}
         sources[name] = path
@@ -106,7 +106,7 @@ def pack(work, archive):
     require(probes["release"] == RELEASE and set(probes["routes"]) == set(ROUTES), "Missing exhaustive-link evidence")
     manifest = {"format": FORMAT, "release": RELEASE, "routes": list(ROUTES),
                 "target": "x86_64-unknown-linux-gnu",
-                "upstream_pin_sha256": digest(REPO / "data/glibc/UPSTREAM.toml"),
+                "upstream_pin_sha256": digest(REPO / "data/glibc/SOURCE.tsv"),
                 "producer_commit": os.environ.get("GITHUB_SHA", "local-validation"), "entries": entries}
     payload = (json.dumps(manifest, sort_keys=True, indent=2) + "\n").encode()
     with archive.open("xb") as output, gzip.GzipFile(fileobj=output, mode="wb", filename="", mtime=0) as compressed:
@@ -144,7 +144,7 @@ def unpack(archive, work):
         require(manifest.get("target") == "x86_64-unknown-linux-gnu", "Wrong bundle target")
         expected_commit = os.environ.get("GITHUB_SHA")
         require(not expected_commit or manifest.get("producer_commit") == expected_commit, "Bundle came from another commit")
-        require(manifest["upstream_pin_sha256"] == digest(REPO / "data/glibc/UPSTREAM.toml"), "Bundle uses another ABI source")
+        require(manifest["upstream_pin_sha256"] == digest(REPO / "data/glibc/SOURCE.tsv"), "Bundle uses another ABI source")
         entries = manifest["entries"]
         require(set(names) == set(entries) | {"bundle-manifest.json"}, "Bundle inventory mismatch")
         for member in members:

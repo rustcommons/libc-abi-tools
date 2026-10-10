@@ -132,7 +132,7 @@ for route in ("prebuilt", "source"):
 
 manifest["fixture_source_sha256"] = digest(repo / "tests/fixtures/elf/symbols.S")
 manifest["fixture_versions_sha256"] = digest(repo / "tests/fixtures/elf/symbols.map")
-manifest["upstream_pin_sha256"] = digest(repo / "data/glibc/UPSTREAM.toml")
+manifest["upstream_pin_sha256"] = digest(repo / "data/glibc/SOURCE.tsv")
 manifest["real_input_metadata_manifest_sha256"] = digest(work / "elf-metadata/manifest.json")
 manifest["executables"] = {name: digest(work / name) for name in
                            ("expanded-prebuilt", "expanded-source", "fixture-prebuilt", "fixture-source")}

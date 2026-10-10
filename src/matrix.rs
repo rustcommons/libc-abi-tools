@@ -81,6 +81,16 @@ impl Matrix {
         Ok(matrix)
     }
 
+    /// Every release in the bundled glibc-abilists data.
+    #[cfg(feature = "bundled-glibc-data")]
+    pub fn bundled() -> Result<Self, String> {
+        let mut matrix = Self::default();
+        for release in glibc::bundled_releases()? {
+            matrix.insert(Snapshot::bundled(release)?)?;
+        }
+        Ok(matrix)
+    }
+
     pub fn from_snapshots(snapshots: impl IntoIterator<Item = Snapshot>) -> Result<Self, String> {
         let mut matrix = Self::default();
         for snapshot in snapshots {

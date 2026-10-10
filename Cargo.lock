@@ -3,6 +3,11 @@
 version = 4
 
 [[package]]
+name = "glibc-abilists"
+version = "0.1.0"
+source = "git+https://github.com/rustcommons/glibc-abilists#abcc9ce353c292fcf53099022f6dbc054548cc8c"
+
+[[package]]
 name = "kernel-abi-tools"
 version = "0.1.0"
 dependencies = [
@@ -12,6 +17,9 @@ dependencies = [
 [[package]]
 name = "libc-abi-tools"
 version = "0.1.0"
+dependencies = [
+ "glibc-abilists",
+]
 
 [[package]]
 name = "linux-abi-tools"

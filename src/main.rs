@@ -8,17 +8,24 @@ use std::{
 const HELP: &str = "libc-abi - Rust libc ABI metadata tools (glibc first)
 
 USAGE
-  libc-abi glibc snapshot --data DIR --release VERSION [--symbol NAME]
+  libc-abi glibc snapshot [--data DIR] --release VERSION [--symbol NAME]
   libc-abi glibc collect --source GLIBC_CHECKOUT --output DIR
+  libc-abi glibc export-data --output DIR
   libc-abi glibc elf --input SHARED_OBJECT
-  libc-abi glibc matrix --data DIR [--symbol NAME]
-  libc-abi glibc diff --data DIR --from VERSION --to VERSION [--symbol NAME]
-  libc-abi glibc changes --data DIR
-  libc-abi glibc expect --data DIR --release VERSION --library NAME --symbol NAME --version VERSION
+  libc-abi glibc matrix [--data DIR] [--symbol NAME]
+  libc-abi glibc diff [--data DIR] --from VERSION --to VERSION [--symbol NAME]
+  libc-abi glibc changes [--data DIR]
+  libc-abi glibc expect [--data DIR] --release VERSION --library NAME --symbol NAME --version VERSION
   libc-abi --version
 
+The glibc ABI lists come from the GNU C Library's release tags through the
+glibc-abilists crate (LGPL-2.1-or-later), compiled in by default. --data DIR
+reads them from a directory instead; DIR contains version directories such as
+2.17/ and 2.22/ (the layout of glibc-abilists' data/ and of export-data).
+Built without the bundled-glibc-data feature, --data is required.
+
 snapshot writes stable TSV for one exact x86_64 Linux glibc release.
-DIR contains version directories such as 2.17/ and 2.22/.
+export-data writes the bundled ABI lists into a new directory.
 collect requires a clean checkout at an exact glibc release tag; no overwrites.
 elf writes defined dynamic-symbol evidence from ELF64 x86_64, including SONAME.
 An ELF file does not establish its source release or semantic alias relationships.
@@ -45,6 +52,7 @@ fn run(args: Vec<OsString>) -> Result<(), String> {
     let allowed: &[&str] = match command {
         "snapshot" => &["--data", "--release", "--symbol"],
         "collect" => &["--source", "--output"],
+        "export-data" => &["--output"],
         "elf" => &["--input"],
         "matrix" => &["--data", "--symbol"],
         "diff" => &["--data", "--from", "--to", "--symbol"],
@@ -82,7 +90,10 @@ fn run(args: Vec<OsString>) -> Result<(), String> {
     };
     match command {
         "matrix" | "diff" | "changes" | "expect" => {
-            let matrix = Matrix::load(&PathBuf::from(required("--data")?))?;
+            let matrix = match options.get("--data") {
+                Some(dir) => Matrix::load(&PathBuf::from(dir))?,
+                None => bundled_matrix()?,
+            };
             let value = |flag| {
                 required(flag)?
                     .to_str()
@@ -126,7 +137,6 @@ fn run(args: Vec<OsString>) -> Result<(), String> {
             }
         }
         "snapshot" => {
-            let data = PathBuf::from(required("--data")?);
             let release: Version = required("--release")?
                 .to_str()
                 .ok_or("release must be UTF-8")?
@@ -135,7 +145,11 @@ fn run(args: Vec<OsString>) -> Result<(), String> {
                 .get("--symbol")
                 .map(|s| s.to_str().ok_or("symbol must be UTF-8"))
                 .transpose()?;
-            let text = glibc::Snapshot::load(&data, release)?.to_tsv(symbol);
+            let snapshot = match options.get("--data") {
+                Some(dir) => glibc::Snapshot::load(&PathBuf::from(dir), release)?,
+                None => bundled_snapshot(release)?,
+            };
+            let text = snapshot.to_tsv(symbol);
             match io::stdout().lock().write_all(text.as_bytes()) {
                 Err(error) if error.kind() != io::ErrorKind::BrokenPipe => {
                     return Err(error.to_string())
@@ -150,9 +164,46 @@ fn run(args: Vec<OsString>) -> Result<(), String> {
             )?;
             println!("Collected {}", destination.display());
         }
+        "export-data" => export_data(&PathBuf::from(required("--output")?))?,
         _ => unreachable!(),
     }
     Ok(())
+}
+
+#[cfg(feature = "bundled-glibc-data")]
+fn bundled_matrix() -> Result<Matrix, String> {
+    Matrix::bundled()
+}
+
+#[cfg(feature = "bundled-glibc-data")]
+fn bundled_snapshot(release: Version) -> Result<glibc::Snapshot, String> {
+    glibc::Snapshot::bundled(release)
+}
+
+#[cfg(feature = "bundled-glibc-data")]
+fn export_data(output: &std::path::Path) -> Result<(), String> {
+    let count = glibc::export_bundled(output)?;
+    println!("Exported {count} glibc ABI lists to {}", output.display());
+    Ok(())
+}
+
+#[cfg(not(feature = "bundled-glibc-data"))]
+const NOT_BUNDLED: &str =
+    "built without the bundled-glibc-data feature; pass --data DIR (see --help)";
+
+#[cfg(not(feature = "bundled-glibc-data"))]
+fn bundled_matrix() -> Result<Matrix, String> {
+    Err(NOT_BUNDLED.into())
+}
+
+#[cfg(not(feature = "bundled-glibc-data"))]
+fn bundled_snapshot(_: Version) -> Result<glibc::Snapshot, String> {
+    Err(NOT_BUNDLED.into())
+}
+
+#[cfg(not(feature = "bundled-glibc-data"))]
+fn export_data(_: &std::path::Path) -> Result<(), String> {
+    Err(NOT_BUNDLED.into())
 }
 
 fn main() {
