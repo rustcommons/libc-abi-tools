@@ -5,14 +5,40 @@
 The local version-1 exporter and companion `--provider` mode passed in WSL with
 Rust 1.99.0, Clang 18.1.3, and GNU binutils 2.42 against both glibc 2.17 input
 trees. Cargo ran host build scripts/procedural macros and the real 2.17 loader
-ran the target thread example. Both executables required at most GLIBC_2.16,
+ran the target thread example. Their highest direct GLIBC symbol requirement was 2.16,
 without RPATH/RUNPATH. Independent link-map/runtime checks confirmed generated
 DSOs at link time and real target glibc/compatible unwinder at runtime. Mismatched
 provider versions failed; SHA-256 executable/input evidence is retained in logs.
 
-Hosted Rust 1.99/Clang 21 and 24 jobs are configured but have not run. Clang 18
-local success does not establish Clang 21/24 success. See
-[the trusted local contract](PROVIDER-CONTRACT.md) and [per-version roadmap](ROADMAP.md).
+Hosted qualification passed on 2026-10-10 for commit
+`084d2b6316a3af6ab16f3d25cdd67187e0b852c3`, consuming cargo-libc commit
+`7980d63873282cb9fef68bcaf08f8123546387ac`:
+
+| Hosted gate | Result |
+| --- | --- |
+| Rust 1.99 Windows/Linux tests, formatting, and linting | Passed |
+| Rust 1.90 all-targets minimum-version check | Passed |
+| All 28 vendored ABI snapshot jobs | Passed |
+| glibc 2.17 provider, Clang 21.1.8 | Passed with both real input routes |
+| glibc 2.17 provider, Clang 24.0.0 development snapshot | Passed with both real input routes |
+
+[ABI/host CI](https://github.com/rustcommons/libc-abi-tools/actions/runs/38055872899),
+[provider/runtime CI](https://github.com/rustcommons/libc-abi-tools/actions/runs/38055872917),
+and [companion CI](https://github.com/rustcommons/cargo-libc/actions/runs/38055844632)
+retain the checks and downloadable evidence. The Clang 24 package was
+`1:24~++20260917082238+28f36e6d3912-1~exp1~20260917082250.1854`; Clang 21 was
+`1:21.1.8~++20251221032922+2078da43e25a-1~exp1~20251221153059.70`.
+Both used GNU binutils 2.42. Per job, 5830 definitions across 16 generated DSOs
+were independently checked. Cargo host build scripts/procedural macros, target
+threads, wrong-version rejection, and link/runtime path audits passed. The broader
+GNU-linker experiment also passed C historical data views and Rust allocation,
+TLS destruction, and unwinding under both real 2.17 loaders.
+
+The highest directly required GLIBC symbol version in these Cargo examples is
+`GLIBC_2.16`. This is a property of their imported interfaces, not qualification
+for glibc 2.16: the supported/tested target remains 2.17. Hosted execution used a
+modern Linux kernel; actual old distro/kernel and SLES qualification remain open.
+See [the trusted local contract](PROVIDER-CONTRACT.md) and [per-version roadmap](ROADMAP.md).
 
 Validated 2026-10-09 with Rust 1.99.0 on Windows and Rust 1.98.1 in Ubuntu WSL.
 

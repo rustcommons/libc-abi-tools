@@ -129,7 +129,7 @@ environments must be agreed before claiming support.
 | Badges | CI, Rust 1.90+, MIT code, separate upstream data license, prototype status |
 
 - [ ] Apply description/topics to GitHub settings; describe generation as planned.
-- [ ] Observe hosted CI and the MSRV job after the first push.
+- [x] Observe hosted Windows/Linux CI, all snapshot jobs, and the MSRV check.
 - [ ] Decide packaging and crate publication policy; verify crate-name availability.
 - [ ] Publish only after the advertised milestone passes its validation gates.
 
@@ -159,9 +159,9 @@ under Clang 21 and 23. The selected CI matrix is now Clang 21/24 at the user's r
 glibc 2.17 provider/runtime qualification remains a separate gate.
 
 - [x] Configure per-snapshot CI and 2.17 integration with Rust 1.99/Clang 21/24.
-- [x] Land the companion provider integration and pin its locally tested commit
+- [x] Land the companion provider integration and pin its locally and hosted-tested commit
   `7980d63873282cb9fef68bcaf08f8123546387ac` in CI.
-- [ ] Observe hosted jobs after pushing; local tests do not establish hosted success.
+- [x] Observe hosted Rust 1.99, Clang 21/24, all 28 snapshots, and both real 2.17 input routes passing.
 - [ ] Add pinned headers/CRT/nonshared/compiler runtime, full-ABI generation,
   Cargo positive/negative tests, and real runtime jobs for each remaining version.
 - [ ] Include native C dependencies, TLS/unwind, historical data views, and actual
@@ -170,7 +170,7 @@ glibc 2.17 provider/runtime qualification remains a separate gate.
 
 | Snapshot label | Snapshot CI configured | Remaining real input / provider / runtime setup |
 | --- | --- | --- |
-| 2.17 | Yes | Both input routes and Cargo tested locally; hosted Clang 21/24 and old distro/kernel qualification pending |
+| 2.17 | Yes | Both input routes and Cargo tested locally; hosted Clang 21/24 passed; old distro/kernel qualification pending |
 | 2.18 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.19 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.20 | Yes | Pin inputs; generate provider; add runtime job |
