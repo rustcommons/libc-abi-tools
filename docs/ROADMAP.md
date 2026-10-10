@@ -16,7 +16,7 @@ release for this goal must go beyond collecting and inspecting metadata.
 
 **Current checkpoint:** milestone 1 is implemented and tested. Exact-release ABI
 snapshots, source collection, attribution, and a pinned upstream are in place.
-Beyond the tested 2.17/2.22 providers, compact consolidation, authenticated SDK packaging, and additional releases
+Beyond the tested 2.17/2.18/2.22 providers, compact consolidation, authenticated SDK packaging, and additional releases
 are not implemented. Native ELF evidence now drives all 2915 pinned public numeric
 GLIBC 2.17 definitions across eight generated libraries, using both real input
 sources. C data-version/copy-relocation tests and Rust allocation/thread/TLS
@@ -169,7 +169,7 @@ glibc 2.17 provider/runtime qualification remains a separate gate.
 
 - [x] Configure per-snapshot CI and 2.17 integration with Rust 1.99/Clang 21/24.
 - [x] Land the companion provider integration and pin the extended consumer revision
-  `695ac536a791650d0d351c74562e008c47a82392` in CI.
+  `edfca5b9f9fb811069f302e8d2d5ef2f99f7fd33` in CI (including 2.18 selection).
 - [x] Observe hosted Rust 1.99, Clang 21/24, all 28 snapshots, and both real 2.17 input routes passing.
 - [ ] Add pinned headers/CRT/nonshared/compiler runtime, full-ABI generation,
   Cargo positive/negative tests, and real runtime jobs for each remaining version.
@@ -180,7 +180,7 @@ glibc 2.17 provider/runtime qualification remains a separate gate.
 | Snapshot label | Snapshot CI configured | Remaining real input / provider / runtime setup |
 | --- | --- | --- |
 | 2.17 | Yes | Both input routes and Cargo tested locally; hosted Clang 21/24 passed; old distro/kernel qualification pending |
-| 2.18 | Yes | Pin inputs; generate provider; add runtime job |
+| 2.18 | Yes | Pinned GNU source inputs, eight libraries, Cargo, exhaustive links, and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
 | 2.19 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.20 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.21 | Yes | Pin inputs; generate provider; add runtime job |
@@ -237,7 +237,7 @@ input, ABI, relocation, Cargo, real runtime, and hosted CI gates.
 
 - [x] Generate the complete covered-snapshot union: 4671 interfaces across 28 labels.
 - [x] Document all adjacent membership/kind/size differences and measured native changes.
-- [x] Preserve 8752 native observations with input provenance and default/compatibility flags.
+- [x] Preserve 11673 native observations with input provenance and default/compatibility flags, including the new GNU 2.18 profile.
 - [x] Publish generated Markdown interface tables and machine-readable matrices.
 - [x] Inventory early official archives/patches referring to 1.00 and 71 upstream tag candidates.
 - [x] Model unknown evidence separately from known absence; avoid guessing introduction/defaults.
@@ -254,5 +254,6 @@ input, ABI, relocation, Cargo, real runtime, and hosted CI gates.
 - [ ] Add behavioral/header/feature-change ledgers with primary source references and semantic tests.
 - [ ] Apply the same artifact/runtime/distribution checks to every subsequently qualified provider.
 - [x] Add focused real-runtime behavior suites for libm, libdl, librt, libutil, and libresolv; all 15 local profile/library cases pass.
-- [ ] Qualify the new behavior suites in hosted Clang 21/24 provider jobs and expand semantic boundary coverage.
+- [x] Qualify the new behavior suites in all four hosted Clang 21/24 provider jobs at `a055e8f` ([run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38065649690)).
+- [ ] Expand semantic boundary coverage beyond the focused library behavior suites.
 - [ ] Inventory additional glibc libraries/modules and establish explicit scope before expanding the matrix.

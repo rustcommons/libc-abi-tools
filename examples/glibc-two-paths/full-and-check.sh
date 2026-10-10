@@ -25,6 +25,8 @@ chmod +x full-rust-linker.sh
 rustc --version > logs/full-rustc.txt
 libraries=(c m ld resolv pthread dl rt util)
 fmemopen_expectation=$(python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" c fmemopen GLIBC_2.22)
+pthread_defaults_expectation=$(python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" pthread pthread_getattr_default_np GLIBC_2.18)
+python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" pthread pthread_setattr_default_np GLIBC_2.18 "$pthread_defaults_expectation"
 python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" c fmemopen GLIBC_2.2.5 accept
 python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" c memfd_create GLIBC_2.27 reject
 files=(libc.so.6 libm.so.6 ld-linux-x86-64.so.2 libresolv.so.2 libpthread.so.0 libdl.so.2 librt.so.1 libutil.so.1)
@@ -55,7 +57,7 @@ for route in "${routes[@]}"; do
     "$root/lib64/ld-linux-x86-64.so.2" --library-path "$work/compiler-runtime:$root/lib64:$root/usr/lib64" \
         "./rust-full-$route" > "logs/full-$route-rust-run.txt"
     grep -qx 'Rust allocation, thread/TLS, and unwinding work!' "logs/full-$route-rust-run.txt"
-    for program in expanded data-views too-new fmemopen-2.22 fmemopen-default; do
+    for program in expanded data-views too-new fmemopen-2.22 fmemopen-default pthread-default-2.18; do
         gcc -O0 -fno-builtin -fno-pie -fno-stack-protector -nostdinc \
             -isystem "$root/usr/include" -isystem "$(gcc -print-file-name=include)" \
             -c "$example_dir/$program.c" -o "$program-full-$route.o"
@@ -81,6 +83,24 @@ for route in "${routes[@]}"; do
         echo 'Unexpected success linking memfd_create.' >&2; exit 1
     fi
     grep -q 'undefined reference to .*memfd_create' "logs/full-$route-negative.txt"
+    pthread_command=(ld -o "pthread-default-full-$route" --dynamic-linker /lib64/ld-linux-x86-64.so.2
+        "${inputs[@]}" "pthread-default-2.18-full-$route.o" -L"$generated" -lpthread "${libs[@]}")
+    if [ "$pthread_defaults_expectation" = accept ]; then
+        "${pthread_command[@]}"
+        "$root/lib64/ld-linux-x86-64.so.2" --library-path "$root/lib64:$root/usr/lib64" \
+            "./pthread-default-full-$route" > "logs/full-$route-pthread-default-run.txt"
+        grep -qx 'glibc 2.18 pthread defaults work!' "logs/full-$route-pthread-default-run.txt"
+        readelf --wide --dyn-syms --version-info "pthread-default-full-$route" \
+            > "logs/full-$route-pthread-default-executable.txt"
+        grep -q 'pthread_getattr_default_np@GLIBC_2.18' "logs/full-$route-pthread-default-executable.txt"
+        grep -q 'pthread_setattr_default_np@GLIBC_2.18' "logs/full-$route-pthread-default-executable.txt"
+    else
+        if "${pthread_command[@]}" > "logs/full-$route-pthread-default-negative.txt" 2>&1; then
+            echo 'Unexpected acceptance of glibc 2.18 pthread default APIs' >&2; exit 1
+        fi
+        grep -q 'undefined reference to .*pthread_getattr_default_np' "logs/full-$route-pthread-default-negative.txt"
+        grep -q 'undefined reference to .*pthread_setattr_default_np' "logs/full-$route-pthread-default-negative.txt"
+    fi
     ld -o "fmemopen-default-$route" --dynamic-linker /lib64/ld-linux-x86-64.so.2 \
         "${inputs[@]}" "fmemopen-default-full-$route.o" "${libs[@]}"
     "$root/lib64/ld-linux-x86-64.so.2" --library-path "$root/lib64:$root/usr/lib64" \
@@ -102,7 +122,7 @@ for route in "${routes[@]}"; do
         if ld -o "fmemopen-full-$route" --dynamic-linker /lib64/ld-linux-x86-64.so.2 \
             "${inputs[@]}" "fmemopen-2.22-full-$route.o" "${libs[@]}" \
             > "logs/full-$route-fmemopen-negative.txt" 2>&1; then
-            echo '2.17 unexpectedly accepted fmemopen@GLIBC_2.22' >&2; exit 1
+            echo "$release unexpectedly accepted fmemopen@GLIBC_2.22" >&2; exit 1
         fi
         grep -q 'undefined reference to .*fmemopen@GLIBC_2.22' "logs/full-$route-fmemopen-negative.txt"
     fi

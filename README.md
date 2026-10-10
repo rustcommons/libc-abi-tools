@@ -10,12 +10,14 @@ qualified input profile, and remaining runtime/architecture work.
 [history/conformance plan](docs/GLIBC-HISTORY.md). These references distinguish
 new defaults from retained compatibility interfaces and link to input provenance.
 
-The experimental glibc 2.17/2.22 [provider contract](docs/PROVIDER-CONTRACT.md) connects
+The experimental glibc 2.17/2.18/2.22 [provider contract](docs/PROVIDER-CONTRACT.md) connects
 all eight generated stub libraries to the companion `cargo-libc` coordinator.
 CI targets Rust 1.99.0 and Clang 21/24; the roadmap tracks each vendored version's
 remaining real input and runtime setup.
 The [2.22 experiment](docs/GLIBC-2.22.md) includes a source-built GNU runtime and
 an explicit 2.22 symbol test; SLES qualification remains separate.
+The [2.18 provider](docs/GLIBC-2.18.md) fills the first gap with pinned source
+inputs, exhaustive linking, and pthread default-attribute boundary tests.
 
 **Target libc versions beyond your host.**
 
@@ -33,7 +35,7 @@ tooling and source data on which this project builds. See [NOTICE.md](NOTICE.md)
 for complete attribution, the source pin, and separate code/data licenses.
 
 The companion [cargo-libc](https://github.com/rustcommons/cargo-libc) coordinates
-Cargo builds with an existing sysroot or the experimental 2.17/2.22 providers.
+Cargo builds with an existing sysroot or the experimental 2.17/2.18/2.22 providers.
 
 ## What works today
 

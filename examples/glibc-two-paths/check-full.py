@@ -156,6 +156,23 @@ for route in ROUTES:
     require(imported == set(expected_default), "Unversioned fmemopen did not bind to the measured default")
     manifest["executables"][route]["fmemopen_default"] = expected_default[0]
     manifest["executables"][route]["fmemopen_default_sha256"] = digest(work / ("fmemopen-default-" + route))
+    pthread_rows = [r for r in rows(work / "elf-metadata/matrix.tsv")
+                    if r["library"] == "pthread" and r["version"] == "GLIBC_2.18"
+                    and r["symbol"] in ("pthread_getattr_default_np", "pthread_setattr_default_np")]
+    require(len(pthread_rows) == 2, "Missing pthread boundary evidence")
+    pthread_accept = all(r[RELEASE] == "F" for r in pthread_rows)
+    require(pthread_accept or all(r[RELEASE] == "absent" for r in pthread_rows), "Inconsistent pthread boundary")
+    if pthread_accept:
+        imported = (work / "logs" / ("full-" + route + "-pthread-default-executable.txt")).read_text()
+        for row in pthread_rows:
+            require(row["symbol"] + "@GLIBC_2.18" in imported, "Missing pthread boundary import")
+        require((work / "logs" / ("full-" + route + "-pthread-default-run.txt")).read_text().strip() ==
+                "glibc 2.18 pthread defaults work!", "pthread defaults runtime failed")
+        manifest["executables"][route]["pthread_defaults_sha256"] = digest(work / ("pthread-default-full-" + route))
+    else:
+        diagnostic = (work / "logs" / ("full-" + route + "-pthread-default-negative.txt")).read_text()
+        for row in pthread_rows:
+            require("undefined reference" in diagnostic and row["symbol"] in diagnostic, "Wrong pthread boundary rejection")
     if RELEASE == "2.22":
         versions = (work / "logs" / ("full-" + route + "-fmemopen-executable.txt")).read_text()
         require("fmemopen@GLIBC_2.22" in versions and "fmemopen@GLIBC_2.2.5" in versions,
@@ -165,7 +182,7 @@ for route in ROUTES:
         manifest["executables"][route]["fmemopen_sha256"] = digest(work / ("fmemopen-full-" + route))
     else:
         require("fmemopen@GLIBC_2.22" in (work / "logs" / ("full-" + route + "-fmemopen-negative.txt")).read_text(),
-                "2.17 must reject the 2.22 interface")
+                RELEASE + " must reject the 2.22 interface")
     print(route + ": full ABI exports, data views, Rust target requirements and real runtime inputs verified")
 manifest["rust_source_sha256"] = digest(repo / "examples/glibc-two-paths/rust-hello.rs")
 manifest["rust_compiler"] = (work / "logs/full-rustc.txt").read_text().strip()

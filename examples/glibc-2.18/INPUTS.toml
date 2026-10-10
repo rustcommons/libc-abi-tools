@@ -1,0 +1,13 @@
+release = "2.18"
+target = "x86_64-unknown-linux-gnu"
+runtime_source = "GNU glibc source build; not a distribution-qualified sysroot"
+source_url = "https://ftp.gnu.org/gnu/glibc/glibc-2.18.tar.xz"
+source_sha256 = "2cb4e1e381928f1e5e55e71ab1ba8e0ea7ede75ff9709770435bfd018ea257a3"
+# Checksum pins retrieved bytes over HTTPS; the upstream signature was not independently verified.
+builder_image = "docker.io/library/centos@sha256:dead07b4d8ed7e29e98de0f4504d87e8880d4347859d839686a31da35a3b532f"
+bootstrap_repository = "https://vault.centos.org/7.9.2009/os/x86_64/"
+bootstrap_gcc = "4.8.5-44.el7"
+bootstrap_kernel_headers = "3.10.0-1160.el7"
+compiler_runtime = "Real CentOS GCC 4.8.5 libgcc_s.so.1, GLIBC requirements independently inspected"
+configuration = "--prefix=/usr --libdir=/usr/lib64 --disable-werror --enable-kernel=3.2"
+source_patches = "none"

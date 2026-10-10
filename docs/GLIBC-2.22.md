@@ -61,7 +61,7 @@ after their ceilings. Requests for a provider's other release fail before
 Cargo runs; the consumer also requires headers to match the selected release.
 
 The existing v1 six-field descriptor remains unchanged. Its `glibc` field now
-accepts exactly `2.17` or `2.22`. Existing 2.17 descriptors and the old exporter
+accepts exactly `2.17`, `2.18` or `2.22`. Existing 2.17 descriptors and the old exporter
 remain valid; older consumers correctly reject the newly supported release.
 Use the generic exporter for explicit selection:
 
