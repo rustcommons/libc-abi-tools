@@ -26,23 +26,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.99.0
-      - run: cargo build --release --locked --offline
-      - name: Container runtime
+        with:
+          targets: x86_64-unknown-linux-musl
+      - run: shellcheck -S warning scripts/*.sh
+      - name: Package and verify the release bundle
         run: |
-          command -v crun >/dev/null || { sudo apt-get update && sudo apt-get install -y crun; }
-          podman version --format '{{.Client.Version}}'
-          crun --version
-          dpkg-query -W libseccomp2
-      - name: Self-test profiles under crun
-        # Ubuntu 24.04 ships libseccomp 2.5.5, which does not know syscalls
-        # added in Linux 6.8 and later; those profiles fail closed there and
-        # are verified locally with libseccomp 2.6 (see README).
+          bash scripts/package-release.sh "$RUNNER_TEMP/dist"
+          mkdir "$RUNNER_TEMP/bundle"
+          tar -xzf "$RUNNER_TEMP"/dist/*.tar.gz -C "$RUNNER_TEMP/bundle"
+          echo "BUNDLE=$(ls -d "$RUNNER_TEMP"/bundle/kernel-abi-tools-*)" >> "$GITHUB_ENV"
+      - run: '"$BUNDLE/bin/kernel-seccomp" verify-bundle "$BUNDLE"'
+      - name: Static crun (libseccomp that names every syscall)
+        run: bash scripts/install-crun.sh "$RUNNER_TEMP/crun"
+      - name: Self-test every profile from the bundle in SLES 12 SP5 userland
         env:
-          KERNEL_ABI_ENGINE_ARGS: --runtime crun
+          KERNEL_ABI_ENGINE_ARGS: --runtime ${{ runner.temp }}/crun
         run: >-
-          bash scripts/self-test.sh target/release/syscall-probe docker.io/library/ubuntu:24.04
-          3.10 3.16 4.4 4.9 4.12 4.14 4.15 4.18 4.19 5.3 5.4 5.10 5.14 5.15 6.1 6.4 6.6
-          sles-12-sp5
+          bash "$BUNDLE/scripts/self-test.sh" "$BUNDLE/bin/syscall-probe"
+          registry.suse.com/suse/sles12sp5:latest
+          $(cd "$BUNDLE/profiles/kernel" && ls | sed 's/^linux-//; s/\.json$//' | sort -V)
+          sles-12-sp5 rhel-7 ubuntu-24.04
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kernel-abi-tools-bundle
+          path: ${{ runner.temp }}/dist/
   msrv:
     runs-on: ubuntu-latest
     steps:

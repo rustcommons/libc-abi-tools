@@ -1,18 +1,24 @@
 #!/usr/bin/env bash
 # Proves each generated profile simulates its kernel on this host/runtime:
-# every syscall the kernel lacks must return ENOSYS, and every syscall it has
-# must behave exactly as it does without a profile.
+# every syscall the kernel lacks must return ENOSYS, every madvise advice it
+# lacks must return EINVAL, and everything it has must behave exactly as it
+# does without a profile.
 #
 #   self-test.sh PROBE IMAGE [KERNEL|DISTRO_ID ...]
 #
-# PROBE is a syscall-probe binary built for a glibc no newer than IMAGE's
-# (e.g. with cargo-libc or a glibc 2.17 floor). With no selections, every
-# generic kernel profile is tested.
+# PROBE is a syscall-probe binary that runs in IMAGE: the static musl build
+# from a release bundle runs in any image; a glibc build needs a glibc no newer
+# than IMAGE's. With no selections, every generic kernel profile is tested.
 set -euo pipefail
 
 engine=${CONTAINER_ENGINE:-podman}
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-gen=${KERNEL_SECCOMP:-$(command -v kernel-seccomp || echo "$here/../target/release/kernel-seccomp")}
+gen=
+for candidate in "${KERNEL_SECCOMP:-}" "$(command -v kernel-seccomp || true)" \
+                 "$here/../target/release/kernel-seccomp" "$here/../bin/kernel-seccomp"; do
+  if [ -n "$candidate" ] && [ -x "$candidate" ]; then gen=$candidate; break; fi
+done
+[ -n "$gen" ] || { echo "self-test: kernel-seccomp not found (set KERNEL_SECCOMP)" >&2; exit 2; }
 probe=$(cd "$(dirname "${1:?usage: self-test.sh PROBE IMAGE [KERNEL|DISTRO_ID ...]}")" && pwd)/$(basename "$1")
 image=${2:?usage: self-test.sh PROBE IMAGE [KERNEL|DISTRO_ID ...]}
 shift 2

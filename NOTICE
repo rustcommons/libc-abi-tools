@@ -1,0 +1,33 @@
+kernel-abi-tools
+Copyright (c) 2026 kernel-abi-tools contributors
+Licensed under the MIT License; see LICENSE.
+
+DATA PROVENANCE
+
+data/linux/syscalls-x86_64.tsv and data/linux/madvise-x86_64.tsv record
+syscall numbers, names, advice values, and the first mainline release that
+lists each one. They were derived by scripts/fetch-syscall-tables.sh,
+scripts/build-syscall-data.sh, and scripts/build-madvise-data.sh from these
+files of the Linux kernel at every release tag v3.3 through v7.2:
+
+  https://github.com/torvalds/linux
+  arch/x86/entry/syscalls/syscall_64.tbl (arch/x86/syscalls/ before v4.2)
+  include/uapi/asm-generic/mman-common.h (include/asm-generic/ before v3.7)
+
+No Linux kernel source code is included in this repository or its release
+bundles. Credit to the Linux kernel contributors for the source of this data.
+The Linux kernel is licensed under GPL-2.0; its UAPI headers carry the
+Linux-syscall-note exception.
+
+data/distros.tsv lists distribution releases and the container images used to
+read their glibc versions. Distribution names are trademarks of their owners.
+No distribution software or container image is included or redistributed.
+
+STATICALLY LINKED COMPONENTS IN RELEASE BINARIES
+
+The bin/ executables in release bundles are built for
+x86_64-unknown-linux-musl and statically link:
+
+  - The Rust standard library, licensed MIT OR Apache-2.0
+    (https://github.com/rust-lang/rust).
+  - musl libc, licensed MIT (https://musl.libc.org/).

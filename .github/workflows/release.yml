@@ -1,0 +1,68 @@
+name: Release
+# Tag push vX.Y.Z: build, verify, self-test, and publish a GitHub release.
+# Manual run: the same steps as a dry run; the bundle is a workflow artifact
+# and nothing is published.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bundle:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.99.0
+        with:
+          targets: x86_64-unknown-linux-musl
+      - name: Tag matches Cargo.toml
+        if: github.ref_type == 'tag'
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n 1)
+          [ "$GITHUB_REF_NAME" = "v$version" ] \
+            || { echo "tag $GITHUB_REF_NAME does not match Cargo.toml version $version"; exit 1; }
+      - run: cargo test --all-targets --locked --offline
+      - name: Package
+        run: |
+          bash scripts/package-release.sh "$RUNNER_TEMP/dist"
+          mkdir "$RUNNER_TEMP/bundle"
+          tar -xzf "$RUNNER_TEMP"/dist/*.tar.gz -C "$RUNNER_TEMP/bundle"
+          echo "BUNDLE=$(ls -d "$RUNNER_TEMP"/bundle/kernel-abi-tools-*)" >> "$GITHUB_ENV"
+      - name: Verify archive checksum and bundle inventory
+        run: |
+          (cd "$RUNNER_TEMP/dist" && sha256sum -c ./*.sha256)
+          "$BUNDLE/bin/kernel-seccomp" verify-bundle "$BUNDLE"
+      - run: bash scripts/install-crun.sh "$RUNNER_TEMP/crun"
+      - name: Self-test every profile from the bundle in SLES 12 SP5 userland
+        env:
+          KERNEL_ABI_ENGINE_ARGS: --runtime ${{ runner.temp }}/crun
+        run: >-
+          bash "$BUNDLE/scripts/self-test.sh" "$BUNDLE/bin/syscall-probe"
+          registry.suse.com/suse/sles12sp5:latest
+          $(cd "$BUNDLE/profiles/kernel" && ls | sed 's/^linux-//; s/\.json$//' | sort -V)
+          $(cd "$BUNDLE/profiles/distro" && ls | sed 's/\.json$//' | sort)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kernel-abi-tools-release
+          path: ${{ runner.temp }}/dist/
+  publish:
+    needs: bundle
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: kernel-abi-tools-release
+          path: dist
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          (cd dist && sha256sum -c ./*.sha256)
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "kernel-abi-tools ${GITHUB_REF_NAME#v}" \
+            --notes "Verify with \`sha256sum -c\` and \`bin/kernel-seccomp verify-bundle\`; see docs/RELEASE.md and docs/PROVIDER-CONTRACT.md in the bundle."

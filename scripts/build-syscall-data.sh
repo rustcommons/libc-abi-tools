@@ -5,7 +5,7 @@
 set -euo pipefail
 raw=${1:?usage: build-syscall-data.sh <raw-dir> <out.tsv>}
 out=${2:?}
-tags=$(ls "$raw" | sed 's/\.tbl$//' | sort -V)
+tags=$(cd "$raw" && printf '%s\n' *.tbl | sed 's/\.tbl$//' | sort -V)
 first=$(echo "$tags" | head -n1); last=$(echo "$tags" | tail -n1)
 {
   echo "# x86_64 Linux syscalls and the first mainline release whose table lists them."
