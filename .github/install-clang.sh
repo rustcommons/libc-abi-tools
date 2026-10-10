@@ -4,7 +4,7 @@ set -euo pipefail
 major=${1:?Supply Clang major 21 or 23}
 case "$major" in
     21) suite=llvm-toolchain-noble-21 ;;
-    23) suite=llvm-toolchain-noble ;;
+    23) suite=llvm-toolchain-noble-23 ;;
     *) echo 'Supported CI Clang majors: 21, 23' >&2; exit 1 ;;
 esac
 sudo apt-get update

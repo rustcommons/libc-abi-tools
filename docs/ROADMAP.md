@@ -149,12 +149,13 @@ compatible target CRT/nonshared files and the old real unwinder. Building glibc
 2.17 itself retains the qualified historical GCC builder; changing that compiler
 is a separate source-build task. GNU binutils remain the qualified assembler/linker;
 LLD needs separate qualification. Clang 23 is required without silent fallback;
-apt.llvm.org currently publishes it on the development suite. Record actual package
+Use the explicit `llvm-toolchain-noble-23` suite; the moving development suite
+already publishes Clang 24. Record actual package
 revisions because those APT inputs can move.
 
 - [x] Configure per-snapshot CI and 2.17 integration with Rust 1.99/Clang 21/23.
 - [x] Land the companion provider integration and pin its locally tested commit
-  `bb8f11c73611c9e1a29a98700c183bbb43aed8bb` in CI.
+  `904d58180bbf75fb4ac1b7d6ae1f04ef7bd0c862` in CI.
 - [ ] Observe hosted jobs after pushing; local tests do not establish hosted success.
 - [ ] Add pinned headers/CRT/nonshared/compiler runtime, full-ABI generation,
   Cargo positive/negative tests, and real runtime jobs for each remaining version.
