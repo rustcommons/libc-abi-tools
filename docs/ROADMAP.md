@@ -5,6 +5,25 @@ Plan established 2026-10-09. Start with x86_64 Linux and glibc target releases 2
 See [GLIBC-COVERAGE.md](GLIBC-COVERAGE.md) for current per-library coverage,
 test-stage guarantees, input profiles, and behavioral gaps.
 
+## Team handoff (2026-10-10)
+
+Versioned targets (F01) and normal Cargo flags/workspace fixtures (F02) are
+qualified for glibc 2.17/2.18/2.22, including both 2.17 routes, with Rust 1.99
+and Clang 21/24. Latest qualified producer code is c442310; CI pins consumer
+6b072609e1eafd27904ee3102bb40d2374f63270.
+[All nine jobs passed](https://github.com/rustcommons/libc-abi-tools/actions/runs/38077381465).
+
+Next coordinator task is F03, cargo libc check; its checklist is in the
+[companion roadmap](https://github.com/rustcommons/cargo-libc/blob/main/docs/ROADMAP.md).
+The next independent provider rollout is glibc 2.19, following the provider
+implementation plan below. Historical research and the symbol matrix remain
+separate from provider/runtime qualification. Public authenticated SDK releases
+and additional platform/distribution/kernel qualification remain unfinished.
+
+Read CLAUDE.md before working. Preserve exact source/tool/consumer pins and update
+qualification references after new code passes. The feature review is an inventory
+for individual decisions, not a blanket commitment to match all Zig features.
+
 ## Resume here: first-release goal and next decision
 
 The goal is to provide the compatibility files needed to **build against a
