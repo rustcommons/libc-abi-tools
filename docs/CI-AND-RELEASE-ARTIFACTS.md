@@ -29,8 +29,8 @@ The audit emits separate `abi-manifest.json` and `application-manifest.json`.
 
 Hosted qualification passed on 2026-10-10 at producer commit
 `8939827c12bf0354b81c8c2f2707d0a2b7985b1b`, consuming pinned cargo-libc commit
-`edfca5b9f9fb811069f302e8d2d5ef2f99f7fd33`: all [three preparation and six application jobs](https://github.com/rustcommons/libc-abi-tools/actions/runs/38069527581)
-passed. [Main CI](https://github.com/rustcommons/libc-abi-tools/actions/runs/38069527607)
+`edfca5b9f9fb811069f302e8d2d5ef2f99f7fd33`: all [three preparation and six application jobs](https://github.com/rustcommons/linux-abi-tools/actions/runs/38069527581)
+passed. [Main CI](https://github.com/rustcommons/linux-abi-tools/actions/runs/38069527607)
 also passed Rust host/MSRV checks, all 28 snapshots, reference regeneration,
 and all eight original integrity/extraction fixture tests.
 
@@ -143,7 +143,7 @@ and [the roadmap](ROADMAP.md).
 
 Producer `cbf31dd` pinned consumer `ed4c997` and passed all three
 preparation and six Rust 1.99/Clang 21 or 24 application jobs for 2.17/2.18/2.22
-([run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38076305526)).
+([run](https://github.com/rustcommons/linux-abi-tools/actions/runs/38076305526)).
 Both real 2.17 input routes passed. The suffix selected matching providers;
 Cargo reported ordinary-triple artifact paths; host scripts/proc macros, target
 threads, direct ELF/path audits and real-loader execution passed. Mismatched

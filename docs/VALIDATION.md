@@ -22,8 +22,8 @@ Hosted qualification passed on 2026-10-10 for commit
 | glibc 2.17 provider, Clang 21.1.8 | Passed with both real input routes |
 | glibc 2.17 provider, Clang 24.0.0 development snapshot | Passed with both real input routes |
 
-[ABI/host CI](https://github.com/rustcommons/libc-abi-tools/actions/runs/38055872899),
-[provider/runtime CI](https://github.com/rustcommons/libc-abi-tools/actions/runs/38055872917),
+[ABI/host CI](https://github.com/rustcommons/linux-abi-tools/actions/runs/38055872899),
+[provider/runtime CI](https://github.com/rustcommons/linux-abi-tools/actions/runs/38055872917),
 and [companion CI](https://github.com/rustcommons/cargo-libc/actions/runs/38055844632)
 retain the checks and downloadable evidence. The Clang 24 package was
 `1:24~++20260917082238+28f36e6d3912-1~exp1~20260917082250.1854`; Clang 21 was
@@ -221,7 +221,7 @@ allocation/thread/TLS-destruction/unwind tests, Cargo host build/proc-macro and
 runtime tests, incompatible-release selection, and newer-symbol rejection.
 Both fmemopen versions ran under 2.22; both 2.17 routes rejected the 2.22 interface.
 
-[The hosted provider matrix](https://github.com/rustcommons/libc-abi-tools/actions/runs/38058240922)
+[The hosted provider matrix](https://github.com/rustcommons/linux-abi-tools/actions/runs/38058240922)
 passed all four 2.17/2.22 and Clang 21/24 combinations with Rust 1.99.0 on
 2026-10-10. This qualified producer commit 39101a0bdf9d824e3fb89931552b0a771fee5e0e
 and companion commit 695ac536a791650d0d351c74562e008c47a82392.
@@ -231,8 +231,8 @@ also passed. SLES 12 SP5, old distro/kernel, and SDK redistribution remain separ
 ## Historical matrix and shared conformance harness
 
 On 2026-10-10, commit `a7c48acbd27025ccdeb7f67c99fb462072d61900` passed
-[reference/host CI](https://github.com/rustcommons/libc-abi-tools/actions/runs/38061222375)
-and [all four provider conformance jobs](https://github.com/rustcommons/libc-abi-tools/actions/runs/38061222447).
+[reference/host CI](https://github.com/rustcommons/linux-abi-tools/actions/runs/38061222375)
+and [all four provider conformance jobs](https://github.com/rustcommons/linux-abi-tools/actions/runs/38061222447).
 The same matrix-driven boundaries and measured-default probe ran for glibc
 2.17/2.22 under Clang 21/24. Both 2.17 input routes and the 2.22 source route
 passed, preserving host build/proc-macro separation and real runtime checks.
@@ -249,9 +249,9 @@ per-interface link probes and behavioral/header history remain planned.
 
 ## Exhaustive linking, library behavior, and GNU 2.18 extension
 
-The subsequent [exhaustive suite](https://github.com/rustcommons/libc-abi-tools/actions/runs/38064818474)
+The subsequent [exhaustive suite](https://github.com/rustcommons/linux-abi-tools/actions/runs/38064818474)
 passed all four existing Clang 21/24 provider jobs. The five dedicated library
-[behavior suites](https://github.com/rustcommons/libc-abi-tools/actions/runs/38065649690)
+[behavior suites](https://github.com/rustcommons/linux-abi-tools/actions/runs/38065649690)
 then passed all four jobs as well. These supersede the earlier planned status
 of exhaustive link probes; complete behavioral/header history remains open.
 
@@ -285,9 +285,9 @@ denied. Distribution/kernel/native-dependency and SDK qualification remain open.
 
 Producer commit `75945c278187899c537af636fdc311a07e27132f` pins consumer commit
 `edfca5b9f9fb811069f302e8d2d5ef2f99f7fd33`. The expanded six-job
-[hosted provider matrix](https://github.com/rustcommons/libc-abi-tools/actions/runs/38066726167)
+[hosted provider matrix](https://github.com/rustcommons/linux-abi-tools/actions/runs/38066726167)
 passed all six Clang 21/24 and 2.17/2.18/2.22 jobs. The producer's
-[host/reference/snapshot CI](https://github.com/rustcommons/libc-abi-tools/actions/runs/38066726169)
+[host/reference/snapshot CI](https://github.com/rustcommons/linux-abi-tools/actions/runs/38066726169)
 and [companion CI](https://github.com/rustcommons/cargo-libc/actions/runs/38066613985)
 also passed, including Windows/Linux Rust 1.99, Rust 1.90 minimum checks,
 all 28 snapshots, regenerated tables, and conventional companion sysroot smoke tests.
@@ -295,7 +295,7 @@ all 28 snapshots, regenerated tables, and conventional companion sysroot smoke t
 ## Shared preparation and restored application qualification
 
 Producer commit `8939827c12bf0354b81c8c2f2707d0a2b7985b1b` passed all nine
-[split-provider jobs](https://github.com/rustcommons/libc-abi-tools/actions/runs/38069527581):
+[split-provider jobs](https://github.com/rustcommons/linux-abi-tools/actions/runs/38069527581):
 three once-per-release preparation jobs and six Rust 1.99/Clang 21 or 24
 application jobs. Preparation preserved all previous native/export/storage and
 exhaustive accepted/rejected/default tests. Applications downloaded the same
@@ -312,7 +312,7 @@ executables/plugins are allowed explicitly, while host module leakage fails.
 This extends observed runtime dependency coverage without claiming a complete
 NSS/libnsl public ABI matrix or arbitrary application dependency resolver.
 
-[Main CI](https://github.com/rustcommons/libc-abi-tools/actions/runs/38069527607)
+[Main CI](https://github.com/rustcommons/linux-abi-tools/actions/runs/38069527607)
 passed Rust formatting/tests/clippy, the minimum-version check, all snapshots,
 reference regeneration, and eight original Python archive fixtures. Fixtures
 cover byte/permission/relative-alias preservation, archive and member hash

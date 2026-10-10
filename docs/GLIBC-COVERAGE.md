@@ -9,7 +9,7 @@ or qualify its runtime.
 Provider CI now has three preparation jobs (one per supported release) and six
 Rust 1.99/Clang 21 or 24 application jobs consuming the same prepared inputs.
 Both application variants compile Rust. See [CI and release artifacts](CI-AND-RELEASE-ARTIFACTS.md).
-All nine [split-workflow jobs](https://github.com/rustcommons/libc-abi-tools/actions/runs/38069527581)
+All nine [split-workflow jobs](https://github.com/rustcommons/linux-abi-tools/actions/runs/38069527581)
 passed at `8939827`, including cross-runner input restoration and dynamic-module auditing.
 
 All eight libraries below already have snapshot parsing, historical matrix
@@ -74,13 +74,13 @@ suite and retains individual results and input/tool hashes in `link-matrix/`.
 Hosted provider CI uses Rust 1.99.0 and Clang 21/24 for application builds and
 tests all three provider releases; historical glibc source builds use their pinned
 qualified builder. Snapshot/reference and Rust host checks at commit `c3faf20`
-[passed](https://github.com/rustcommons/libc-abi-tools/actions/runs/38064818450).
-The [expanded provider run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38064818474)
+[passed](https://github.com/rustcommons/linux-abi-tools/actions/runs/38064818450).
+The [expanded provider run](https://github.com/rustcommons/linux-abi-tools/actions/runs/38064818474)
 also passed all four 2.17/2.22 Clang 21/24 jobs, including the exhaustive suite.
-The [three-provider qualification](https://github.com/rustcommons/libc-abi-tools/actions/runs/38066726167)
+The [three-provider qualification](https://github.com/rustcommons/linux-abi-tools/actions/runs/38066726167)
 passed all six 2.17/2.18/2.22 Clang 21/24 jobs at `75945c2`.
 The earlier
-[provider run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38061222447)
+[provider run](https://github.com/rustcommons/linux-abi-tools/actions/runs/38061222447)
 passed all four jobs, before exhaustive per-interface relocation tests were added.
 
 ## Dedicated library behavior suite
@@ -97,13 +97,13 @@ embedded search paths, and runtime resolution inside the selected real tree.
 All 15 cases passed locally across the three profiles with GCC 13.3 and Clang 18.
 The five additional 2.18 cases passed with Clang 18, bringing local coverage to
 20 profile/library cases. Both new 2.18 Clang 21/24 jobs in the
-[expanded matrix](https://github.com/rustcommons/libc-abi-tools/actions/runs/38066726167)
+[expanded matrix](https://github.com/rustcommons/linux-abi-tools/actions/runs/38066726167)
 passed as well.
 The fixture was checked for the expected versioned export and no dependencies;
 the final audit also records plugin and real runtime library hashes. Hosted jobs
 compile these tests with their selected Clang 21/24. Logs, executable/plugin
 artifacts, compiler revision, executable hashes, and runtime paths are retained.
-The [hosted behavior suite](https://github.com/rustcommons/libc-abi-tools/actions/runs/38065649690)
+The [hosted behavior suite](https://github.com/rustcommons/linux-abi-tools/actions/runs/38065649690)
 passed all four 2.17/2.22 Clang 21/24 jobs at `a055e8f`. These are focused
 smoke tests, not exhaustive semantic tests for all interfaces.
 

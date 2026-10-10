@@ -63,17 +63,25 @@ generated with `kernel-seccomp profile --kernel X.Y`.
 
 ## 2. Repository foundation
 
-- [x] Create `rustcommons/kernel-abi-tools` with CLAUDE.md/AGENTS.md (Git
+- [x] Created as `rustcommons/kernel-abi-tools` with CLAUDE.md/AGENTS.md (Git
   conventions from the companions), LICENSE, and line-ending settings.
 - [x] CI: fmt/test/clippy on Linux and Windows, committed-profile drift check,
   MSRV 1.90.
 - [x] Observe hosted CI passing: all jobs, 18 profiles verified on a 6.17 Azure
-  kernel with crun 1.14.1 / libseccomp 2.5.5 ([run](https://github.com/rustcommons/kernel-abi-tools/actions/runs/38072993763)).
+  kernel with crun 1.14.1 / libseccomp 2.5.5 (run 38072993763 in the former
+  kernel-abi-tools repository).
 - [x] NOTICE (data provenance: derived facts, no kernel source; statically
   linked Rust std and musl in release binaries) and README banner.
 - [x] CI coverage for every profile, 6.8+ included, using a pinned static crun
   (`scripts/install-crun.sh`) in SLES 12 SP5 userland.
-- [x] Runner in Rust (`kernel-seccomp run`); the shell script is a wrapper.
+- [x] Runner in Rust: `container::run` in the library; `kernel-seccomp run`
+  and the shell script are thin wrappers.
+- [x] **Merged into `rustcommons/linux-abi-tools`** (2026-10-10) as
+  `crates/kernel-abi-tools`, history kept by subtree merge. Distribution
+  presets moved to the new `crates/linux-targets`, which also owns the
+  `--distro`/`--glibc`/`--kernel`/`--target` selection rules. Workflows are
+  `kernel-abi-tools.yml` and `kernel-abi-tools-release.yml`; release tags
+  are `kernel-abi-tools-vX.Y.Z`.
 - [ ] An SLES 12 SP5 userland run of an application built with cargo-libc
   (needs cargo-libc changes; deferred).
 
@@ -89,17 +97,21 @@ generated with `kernel-seccomp profile --kernel X.Y`.
 - [ ] Extend the probe beyond the 3.3 floor using safe argument sets.
 - [ ] Additional architectures (aarch64 first) from their syscall tables.
 
-## 4. Integration with cargo-libc (deferred; this repo is ready)
+## 4. Integration with cargo-libc (crate dependency)
 
-The provider side is complete: see [PROVIDER-CONTRACT.md](PROVIDER-CONTRACT.md).
-The consumer work belongs to cargo-libc:
+Planned model: cargo-libc depends on `kernel-abi-tools` and `linux-targets`
+from this repository (git dependency pinned to a commit; `cargo vendor` for
+offline use). Data is compiled in; no bundle or descriptor is needed.
 
-- [ ] **`--kernel-provider FILE`:** read and verify a `kernel-abi-provider-v1`
-  descriptor (`kernel_abi_tools::bundle::parse_descriptor` is the reference).
-- [ ] **`cargo libc test` / `cargo libc run`:** set the Cargo runner to the
-  bundle's `kernel-seccomp run --distro ID --`.
-- [ ] **Shared target selection:** one preset id drives the glibc floor
-  (libc-abi-tools), the kernel floor (this repo's `distros.tsv`), and the image.
+- [x] **Shared target selection:** `linux_targets::Selection::resolve`
+  implements the agreed rules; a missing kernel floor means host kernel, and
+  output says so (`Selection::describe`).
+- [x] **Library runner:** `kernel_abi_tools::container::run`.
+- [ ] **Decision pending:** in-process seccomp filter (apply the filter and
+  `exec` on the host, so `--kernel` without `--distro` needs no container and
+  no runtime name resolution).
+- [ ] **cargo-libc side:** depend on the crates; add `--distro`/`--glibc`/
+  `--kernel`/`--target`; a runner helper binary that calls the library.
 - [ ] **ELF check:** fail when `NT_GNU_ABI_TAG` exceeds the kernel floor, or
   when `DT_RELR` is present for a glibc older than 2.36.
 - [ ] **Source scan:** report `libc::syscall`/`SYS_*` use and newer `MADV_*`/`MAP_*`
@@ -114,14 +126,15 @@ The consumer work belongs to cargo-libc:
   data, scripts, docs, `kernel-abi-provider-v1` descriptor, SHA-256 inventory;
   reproducible from the commit (`scripts/package-release.sh`).
 - [x] Offline verification: `kernel-seccomp verify-bundle` (std-only SHA-256).
-- [x] Release workflow: dry run on demand, publish on `vX.Y.Z` tags. First
-  dry run verified all 47 profiles from the bundle and published nothing
-  ([run](https://github.com/rustcommons/kernel-abi-tools/actions/runs/38075624314)).
+- [x] Release workflow: dry run on demand, publish on tags. First dry run
+  verified all 47 profiles from the bundle and published nothing (run
+  38075624314 in the former kernel-abi-tools repository).
 - [x] Reproducibility: commit `aa2aa13` built on the hosted runner and locally
   (WSL2, same Rust 1.99.0) produced the identical archive
   (`13505d22…14129`).
 - [x] Disconnected-network procedure, including `podman save`/`load` of images
   ([RELEASE.md](RELEASE.md)).
-- [ ] Publish v0.1.0.
+- [ ] **Decision pending:** keep publishing standalone bundles, or deliver
+  only through cargo-libc. Nothing has been published.
 - [ ] Publisher authentication (signatures or internal mirror trust chain);
   checksums are integrity only.

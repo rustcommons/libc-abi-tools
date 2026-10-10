@@ -1,8 +1,13 @@
 # Releasing
 
+> **Under review (2026-10-10):** cargo-libc is planned to depend on this crate
+> directly, which makes the bundle optional. Whether standalone bundles keep
+> being published is an open decision; until then this process stays working.
+
 ## What a release publishes
 
-Each GitHub release `vX.Y.Z` has two assets:
+Each GitHub release `kernel-abi-tools-vX.Y.Z` (tags are prefixed because the
+linux-abi-tools repository holds several crates) has two assets:
 
 | Asset | Contents |
 | --- | --- |
@@ -10,20 +15,20 @@ Each GitHub release `vX.Y.Z` has two assets:
 | `kernel-abi-tools-X.Y.Z-x86_64-linux.tar.gz.sha256` | `sha256sum` line for the archive |
 
 GitHub also attaches its automatic source archives. The crate is not published
-to crates.io (`publish = false`); consumers use the bundle, not a Cargo
-dependency.
+to crates.io (`publish = false`).
 
 ## Cutting a release
 
-1. Update `version` in `Cargo.toml` (and `Cargo.lock` via `cargo check`), add
-   the release to the roadmap, and merge to `main` with CI green.
-2. Run the **Release** workflow manually (`workflow_dispatch`) on `main` as a
-   dry run. It builds and verifies the bundle, runs the self-test from the
-   bundle's own binaries, and uploads the result as a workflow artifact
-   without publishing anything.
+1. Update `version` in `crates/kernel-abi-tools/Cargo.toml` (and the root
+   `Cargo.lock` via `cargo check -p kernel-abi-tools`), add the release to the
+   roadmap, and merge to `main` with CI green.
+2. Run the **kernel-abi-tools release** workflow manually
+   (`workflow_dispatch`) on `main` as a dry run. It builds and verifies the
+   bundle, runs the self-test from the bundle's own binaries, and uploads the
+   result as a workflow artifact without publishing anything.
 3. Tag the same commit and push the tag:
-   `git tag -a vX.Y.Z -m "kernel-abi-tools X.Y.Z" && git push origin vX.Y.Z`.
-   The tag must match `Cargo.toml`; the workflow refuses a mismatch.
+   `git tag -a kernel-abi-tools-vX.Y.Z -m "kernel-abi-tools X.Y.Z" && git push origin kernel-abi-tools-vX.Y.Z`.
+   The tag must match the crate's `Cargo.toml`; the workflow refuses a mismatch.
 4. The workflow repeats the dry-run steps and creates the GitHub release with
    both assets. Check the release notes and the published checksum.
 
@@ -36,7 +41,7 @@ build is an independent check of a published asset.
 On a connected machine:
 
 ```bash
-gh release download vX.Y.Z -R rustcommons/kernel-abi-tools
+gh release download kernel-abi-tools-vX.Y.Z -R rustcommons/linux-abi-tools
 sha256sum -c kernel-abi-tools-X.Y.Z-x86_64-linux.tar.gz.sha256
 podman pull registry.suse.com/suse/sles12sp5:latest      # each image you need
 podman save -o sles12sp5.tar registry.suse.com/suse/sles12sp5:latest

@@ -19,7 +19,8 @@ bundles. Credit to the Linux kernel contributors for the source of this data.
 The Linux kernel is licensed under GPL-2.0; its UAPI headers carry the
 Linux-syscall-note exception.
 
-data/distros.tsv lists distribution releases and the container images used to
+../linux-targets/data/distros.tsv (copied to data/distros.tsv in release bundles)
+lists distribution releases and the container images used to
 read their glibc versions. Distribution names are trademarks of their owners.
 No distribution software or container image is included or redistributed.
 

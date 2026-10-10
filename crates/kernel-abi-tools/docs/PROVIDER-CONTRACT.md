@@ -1,7 +1,12 @@
 # Kernel provider contract (`kernel-abi-provider-v1`)
 
-This is how a consumer, such as a future cargo-libc release, finds and uses a
-kernel-abi-tools release bundle. It mirrors the style of libc-abi-tools'
+> **Under review (2026-10-10):** cargo-libc is planned to depend on the
+> `kernel-abi-tools` and `linux-targets` crates directly, with data compiled
+> in, so it would not need this descriptor. The contract still describes the
+> standalone release bundle; whether that bundle remains a product is an open
+> decision.
+
+This is how a consumer finds and uses a kernel-abi-tools release bundle. It mirrors the style of libc-abi-tools'
 `libc-abi-provider-v1` descriptor, with one deliberate difference: **paths are
 relative to the descriptor's directory**, so a verified bundle can be unpacked
 anywhere, including on a disconnected network, without being rewritten.

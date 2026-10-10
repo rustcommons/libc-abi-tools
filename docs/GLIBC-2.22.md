@@ -87,8 +87,8 @@ The tested compilers were Clang 21.1.8 and Clang 24.0.0 development snapshot
 `1:24~++20260917082238+28f36e6d3912-1~exp1~20260917082250.1854`.
 Rust 1.99 Windows/Linux, Rust 1.90 all-targets, and all 28 snapshot jobs passed.
 
-[Provider/runtime evidence](https://github.com/rustcommons/libc-abi-tools/actions/runs/38058240922),
-[ABI/host checks](https://github.com/rustcommons/libc-abi-tools/actions/runs/38058240932),
+[Provider/runtime evidence](https://github.com/rustcommons/linux-abi-tools/actions/runs/38058240922),
+[ABI/host checks](https://github.com/rustcommons/linux-abi-tools/actions/runs/38058240932),
 and [companion checks](https://github.com/rustcommons/cargo-libc/actions/runs/38058191649)
 retain the hosted results and downloadable artifacts.
 

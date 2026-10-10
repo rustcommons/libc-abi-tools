@@ -4,7 +4,7 @@
 
 **Test against the kernel you ship to.**
 
-[![CI](https://github.com/rustcommons/kernel-abi-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/rustcommons/kernel-abi-tools/actions/workflows/ci.yml)
+[![CI](https://github.com/rustcommons/linux-abi-tools/actions/workflows/kernel-abi-tools.yml/badge.svg)](https://github.com/rustcommons/linux-abi-tools/actions/workflows/kernel-abi-tools.yml)
 ![Rust 1.90+](https://img.shields.io/badge/Rust-1.90%2B-orange)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![Status: prototype](https://img.shields.io/badge/status-prototype-yellow)
@@ -17,11 +17,16 @@ distribution with a profile for its kernel, and:
 - **`madvise` advice values it does not know** return `EINVAL` (for example
   `MADV_POPULATE_READ` on 4.12, the kernel of SLES 12 SP5).
 
-Companion to [cargo-libc](https://github.com/rustcommons/cargo-libc) (build
-for an old glibc) and [libc-abi-tools](https://github.com/rustcommons/libc-abi-tools)
-(glibc ABI data). Those answer "will it link and load?"; this answers "will its
-syscalls work on that kernel?". Initial scope: **x86_64 Linux**. Std-only Rust,
-no dependencies, works offline.
+Part of the [linux-abi-tools](../../README.md) workspace, beside
+`libc-abi-tools` (glibc ABI data) and [`linux-targets`](../linux-targets/README.md)
+(distribution presets), and used by [cargo-libc](https://github.com/rustcommons/cargo-libc).
+The glibc side answers "will it link and load?"; this crate answers "will its
+syscalls work on that kernel?". Initial scope: **x86_64 Linux**. Std-only
+Rust; its only dependency is `linux-targets`. Works offline.
+
+As a library, `container::run` runs a program under a profile and
+`seccomp_profile` returns the profile JSON, so a consumer such as cargo-libc
+does not need the `kernel-seccomp` binary.
 
 **Status: prototype.** Every profile is verified in CI (see
 [Verification](#verification)); vendor kernel backports and most flag-level
@@ -33,7 +38,7 @@ differences are not modelled yet. See [docs/ROADMAP.md](docs/ROADMAP.md).
 | --- | --- |
 | `data/linux/syscalls-x86_64.tsv` | Every x86_64 syscall and the first mainline release whose table lists it (v3.3 to v7.2, from 81 kernel tags) |
 | `data/linux/madvise-x86_64.tsv` | Every `madvise` advice value and the first release defining it |
-| `data/distros.tsv` | 28 distribution presets: kernel floor, glibc, container image |
+| `../linux-targets` (dependency) | 28 distribution presets: kernel floor, glibc, container image |
 | `profiles/kernel/linux-X.Y.json` | 19 generic kernel profiles |
 | `profiles/distro/ID.json` | One profile per distribution preset |
 | `kernel-seccomp` | Generates profiles, runs programs under them, verifies release bundles |
@@ -46,7 +51,7 @@ differences are not modelled yet. See [docs/ROADMAP.md](docs/ROADMAP.md).
 ## Usage
 
 ```bash
-cargo build --release
+cargo build -p kernel-abi-tools --release        # from the repository root
 target/release/kernel-seccomp distros
 target/release/kernel-seccomp missing --distro sles-12-sp5
 target/release/kernel-seccomp profile --kernel 4.12 --output linux-4.12.json
@@ -143,5 +148,5 @@ such as cargo-libc uses a bundle.
 scripts/fetch-syscall-tables.sh /tmp/raw
 scripts/build-syscall-data.sh /tmp/raw data/linux/syscalls-x86_64.tsv
 scripts/build-madvise-data.sh /tmp/raw data/linux/madvise-x86_64.tsv
-cargo test && target/release/kernel-seccomp generate profiles
+cargo test -p kernel-abi-tools && ../../target/release/kernel-seccomp generate profiles
 ```

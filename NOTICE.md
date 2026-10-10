@@ -49,3 +49,17 @@ tag/archive catalogs are evidence inventories, not validated runtime support.
 
 The companion `cargo-libc` begins with the MIT-licensed `cargo-glibc` prototype,
 whose original copyright notice is preserved in that repository.
+
+## Workspace crates
+
+The sections above cover the root `libc-abi-tools` crate. The other crates
+carry their own attribution:
+
+- [`crates/kernel-abi-tools/NOTICE`](crates/kernel-abi-tools/NOTICE): Linux
+  kernel syscall and `madvise` data provenance (derived facts; no kernel
+  source), and the Rust standard library and musl statically linked into its
+  release binaries.
+- `crates/linux-targets`: the distribution presets name distribution releases
+  and their public container images, which were used to read glibc versions.
+  No distribution software or image is included. Distribution names are
+  trademarks of their owners.

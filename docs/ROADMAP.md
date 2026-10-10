@@ -5,13 +5,32 @@ Plan established 2026-10-09. Start with x86_64 Linux and glibc target releases 2
 See [GLIBC-COVERAGE.md](GLIBC-COVERAGE.md) for current per-library coverage,
 test-stage guarantees, input profiles, and behavioral gaps.
 
+## Repository merge (2026-10-10)
+
+This repository was renamed from `libc-abi-tools` to `linux-abi-tools` and is
+now a Cargo workspace. The root package is still `libc-abi-tools`; its paths,
+commands, and CI are unchanged. Added members:
+
+- `crates/kernel-abi-tools` (imported with its history from the former
+  `rustcommons/kernel-abi-tools`): kernel syscall/`madvise` data and seccomp
+  profiles that simulate older kernels. Own roadmap:
+  [crates/kernel-abi-tools/docs/ROADMAP.md](../crates/kernel-abi-tools/docs/ROADMAP.md).
+- `crates/linux-targets`: distribution presets (glibc and kernel floors,
+  image) and the `--distro`/`--glibc`/`--kernel`/`--target` selection rules.
+
+Planned: cargo-libc depends on these crates directly (git dependency pinned to
+a commit). Pending decisions: an in-process seccomp filter, and whether
+kernel-abi-tools keeps publishing standalone bundles. Whether the libc side
+should consume `linux-targets` presets (e.g. to map a distro to its qualified
+provider) is not yet decided.
+
 ## Team handoff (2026-10-10)
 
 Versioned targets (F01) and normal Cargo flags/workspace fixtures (F02) are
 qualified for glibc 2.17/2.18/2.22, including both 2.17 routes, with Rust 1.99
 and Clang 21/24. Latest qualified producer code is c442310; CI pins consumer
 6b072609e1eafd27904ee3102bb40d2374f63270.
-[All nine jobs passed](https://github.com/rustcommons/libc-abi-tools/actions/runs/38077381465).
+[All nine jobs passed](https://github.com/rustcommons/linux-abi-tools/actions/runs/38077381465).
 
 Next coordinator task is F03, cargo libc check; its checklist is in the
 [companion roadmap](https://github.com/rustcommons/cargo-libc/blob/main/docs/ROADMAP.md).
@@ -255,7 +274,7 @@ See [CI and release artifacts](CI-AND-RELEASE-ARTIFACTS.md).
 - [x] Split preparation/ABI auditing from Rust/C application integration.
 - [x] Transfer checksummed input inventories with permissions/relative links and rematerialize descriptors on each runner.
 - [x] Preserve matching NSS runtime modules and audit initialized dynamic modules after relocation.
-- [x] Observe all three preparation and six Rust/Clang application jobs passing at `8939827` ([run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38069527581)).
+- [x] Observe all three preparation and six Rust/Clang application jobs passing at `8939827` ([run](https://github.com/rustcommons/linux-abi-tools/actions/runs/38069527581)).
 - [x] Add wrapper parsing for targets such as `x86_64-unknown-linux-gnu.2.17`, forwarding the normal Rust triple and selecting the exact provider.
 - [ ] Implement authenticated user SDK packaging, provider discovery/download, cache identity, and install contracts before publishing releases.
 
@@ -288,18 +307,18 @@ input, ABI, relocation, Cargo, real runtime, and hosted CI gates.
 - [ ] Extend scope to other glibc libraries and architectures with explicit completeness evidence.
 - [ ] Collect native defaults/properties for every supported and historically covered profile.
 - [x] Generate exhaustive isolated-DSO function/object link probes and measured default checks from the matrix; test TLS relocation machinery with a synthetic fixture (current union has no TLS rows).
-- [x] Observe the expanded exhaustive suite passing in all four hosted provider jobs at `c3faf20` ([run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38064818474)).
+- [x] Observe the expanded exhaustive suite passing in all four hosted provider jobs at `c3faf20` ([run](https://github.com/rustcommons/linux-abi-tools/actions/runs/38064818474)).
 - [ ] Add behavioral/header/feature-change ledgers with primary source references and semantic tests.
 - [ ] Apply the same artifact/runtime/distribution checks to every subsequently qualified provider.
 - [x] Add focused real-runtime behavior suites for libm, libdl, librt, libutil, and libresolv; all 15 local profile/library cases pass.
-- [x] Qualify the new behavior suites in all four hosted Clang 21/24 provider jobs at `a055e8f` ([run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38065649690)).
+- [x] Qualify the new behavior suites in all four hosted Clang 21/24 provider jobs at `a055e8f` ([run](https://github.com/rustcommons/linux-abi-tools/actions/runs/38065649690)).
 - [ ] Expand semantic boundary coverage beyond the focused library behavior suites.
 - [ ] Inventory additional glibc libraries/modules and establish explicit scope before expanding the matrix.
 
 ## Versioned-target checkpoint
 
 - [x] Pin consumer ed4c997 and qualify suffix selection for 2.17/2.18/2.22 with Rust 1.99 and Clang 21/24, including both 2.17 routes.
-- [x] Verify ordinary Rust artifact paths, host units, real-loader execution, provider/version conflicts and too-new-symbol rejection ([run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38076305526)).
+- [x] Verify ordinary Rust artifact paths, host units, real-loader execution, provider/version conflicts and too-new-symbol rejection ([run](https://github.com/rustcommons/linux-abi-tools/actions/runs/38076305526)).
 
 Provider acquisition and authenticated release SDKs remain open.
 
@@ -308,4 +327,4 @@ Provider acquisition and authenticated release SDKs remain open.
 - [x] Pin consumer 6b07260 and qualify workspace/exclusion, package/bin/example selection, features/no-default-features, custom/release profiles, locked/offline and fresh cached output for 2.17/2.18/2.22 with Rust 1.99 and Clang 21/24, including both 2.17 routes.
 - [x] Execute all three workflow fixtures with matching real loaders and reject an existing executable not reported by the current invocation.
 
-Producer c442310: [all nine jobs passed](https://github.com/rustcommons/libc-abi-tools/actions/runs/38077381465). See the companion [Cargo workflow reference](https://github.com/rustcommons/cargo-libc/blob/main/docs/CARGO-WORKFLOWS.md). Workspace-wide inspection, arbitrary flag merging and new link modes remain separate work.
+Producer c442310: [all nine jobs passed](https://github.com/rustcommons/linux-abi-tools/actions/runs/38077381465). See the companion [Cargo workflow reference](https://github.com/rustcommons/cargo-libc/blob/main/docs/CARGO-WORKFLOWS.md). Workspace-wide inspection, arbitrary flag merging and new link modes remain separate work.

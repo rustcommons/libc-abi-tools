@@ -1,6 +1,21 @@
 ![libc-abi-tools: an orange gear and release-to-ABI diagram](docs/assets/banner.svg)
 
-# libc-abi-tools
+# linux-abi-tools
+
+ABI data and tools for targeting older Linux systems from Rust: which libc
+interfaces and which kernel syscalls a selected target provides. Formerly
+`libc-abi-tools`; renamed on 2026-10-10 when `kernel-abi-tools` joined it.
+
+| Crate | Location | Purpose |
+| --- | --- | --- |
+| `libc-abi-tools` | repository root | glibc ABI metadata, stub generation, providers (described below) |
+| [`kernel-abi-tools`](crates/kernel-abi-tools/README.md) | `crates/kernel-abi-tools` | Kernel syscall/`madvise` data and seccomp profiles that simulate older kernels |
+| [`linux-targets`](crates/linux-targets/README.md) | `crates/linux-targets` | Distribution presets (glibc and kernel floors, image) and target selection rules |
+
+Each crate is std-only. `cargo` in the root acts on `libc-abi-tools` unless
+given `--workspace` or `-p`.
+
+## libc-abi-tools
 
 [Current glibc coverage](docs/GLIBC-COVERAGE.md) lists each library, test stage,
 qualified input profile, and remaining runtime/architecture work.
@@ -23,7 +38,7 @@ inputs, exhaustive linking, and pthread default-attribute boundary tests.
 
 **Target libc versions beyond your host.**
 
-[![CI](https://github.com/rustcommons/libc-abi-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/rustcommons/libc-abi-tools/actions/workflows/ci.yml)
+[![CI](https://github.com/rustcommons/linux-abi-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/rustcommons/linux-abi-tools/actions/workflows/ci.yml)
 ![Rust 1.90+](https://img.shields.io/badge/Rust-1.90%2B-orange)
 [![Code: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
 [![Data: upstream license](https://img.shields.io/badge/data-upstream_license-blue)](data/glibc/COPYING.abilists)

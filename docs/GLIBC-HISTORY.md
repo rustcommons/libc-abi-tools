@@ -179,7 +179,7 @@ WSL input trees and GNU binutils 2.42:
 
 The different default counts reflect measured input profiles; they are not
 inferred from namespace ordering. The synthetic positive/negative TLS fixture
-also passed. [Hosted qualification](https://github.com/rustcommons/libc-abi-tools/actions/runs/38064818474)
+also passed. [Hosted qualification](https://github.com/rustcommons/linux-abi-tools/actions/runs/38064818474)
 of this expanded suite passed all four Clang 21/24 provider jobs at `c3faf20`.
 
 The immediate next work is to classify/pin early sources, establish each target's
@@ -187,4 +187,4 @@ historical applicability, normalize historical interface sets, and extend the
 same conformance collection. Historical research does not change the currently
 supported provider versions or promise that modern Rust runs on glibc 1.x.
 
-The first hosted [shared conformance matrix](https://github.com/rustcommons/libc-abi-tools/actions/runs/38061222447) and [reference regeneration gate](https://github.com/rustcommons/libc-abi-tools/actions/runs/38061222375) passed on 2026-10-10 at commit a7c48acbd27025ccdeb7f67c99fb462072d61900. This qualifies the collected-snapshot/reference and existing-provider stages; early-history normalization and exhaustive relocation/behavior probes remain open.
+The first hosted [shared conformance matrix](https://github.com/rustcommons/linux-abi-tools/actions/runs/38061222447) and [reference regeneration gate](https://github.com/rustcommons/linux-abi-tools/actions/runs/38061222375) passed on 2026-10-10 at commit a7c48acbd27025ccdeb7f67c99fb462072d61900. This qualifies the collected-snapshot/reference and existing-provider stages; early-history normalization and exhaustive relocation/behavior probes remain open.
