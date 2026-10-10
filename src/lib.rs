@@ -10,6 +10,7 @@ use std::cmp::Ordering;
 use std::fmt;
 
 pub mod bundle;
+pub mod container;
 
 const SYSCALL_DATA: &str = include_str!("../data/linux/syscalls-x86_64.tsv");
 const MADVISE_DATA: &str = include_str!("../data/linux/madvise-x86_64.tsv");

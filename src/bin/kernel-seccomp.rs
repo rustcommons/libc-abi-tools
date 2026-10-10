@@ -11,13 +11,13 @@
 //! kernel-seccomp version
 
 use kernel_abi_tools::bundle::{verify_bundle, Descriptor};
+use kernel_abi_tools::container::{self, Engine};
 use kernel_abi_tools::{
     distro, distros, madvise_advice, missing_syscalls, seccomp_profile, syscalls, table_ceiling,
     table_floor, KernelVersion, Target, GENERIC_KERNELS, PROVIDER_FORMAT,
 };
-use std::path::{Path, PathBuf};
-use std::process::{Command, ExitCode};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::path::Path;
+use std::process::ExitCode;
 use std::{env, fs};
 
 const USAGE: &str = "\
@@ -139,12 +139,8 @@ fn dispatch(args: &[String]) -> Result<ExitCode, String> {
     Ok(ExitCode::SUCCESS)
 }
 
-/// Runs PROGRAM in a container under the selected profile and returns its
-/// exit status. The current directory and, if PROGRAM is a host path outside
-/// it, the PROGRAM file are mounted at their own absolute paths so relative
-/// paths and compile-time `CARGO_MANIFEST_DIR` values keep working; a bare
-/// PROGRAM name runs from the image. `CARGO*`/`RUST*` variables are
-/// forwarded. Usable as a Cargo `runner`.
+/// `run` subcommand: parses the selection and delegates to
+/// [`container::run`], which documents mounts and environment.
 fn run(args: &[String]) -> Result<ExitCode, String> {
     let split = args.iter().position(|a| a == "--");
     let (opts, program) = match split {
@@ -160,52 +156,8 @@ fn run(args: &[String]) -> Result<ExitCode, String> {
         (None, Some(id)) => distro(&id).map(|d| d.image.to_string()).unwrap_or_default(),
         (None, None) => return Err("--image is required with --kernel".to_string()),
     };
-
-    let cwd = env::current_dir().map_err(|e| format!("current directory: {e}"))?;
-    // A bare name runs from the image's PATH. A path names a host file, which
-    // is mounted by itself (never its directory, which could hide the image's
-    // own /bin or /usr/bin) unless it is already under the mounted cwd.
-    let host_program = program
-        .contains('/')
-        .then(|| absolute(&cwd, Path::new(program)));
-    if let Some(p) = &host_program {
-        if !p.is_file() {
-            return Err(format!("{} is not a file on this host", p.display()));
-        }
-    }
-
-    let profile = TempFile::new("kernel-seccomp", ".json")?;
-    write(&profile.0, &seccomp_profile(&target))?;
-
-    let engine = env::var("CONTAINER_ENGINE").unwrap_or_else(|_| "podman".to_string());
-    let mut cmd = Command::new(&engine);
-    cmd.args(env_words("KERNEL_ABI_ENGINE_ARGS"));
-    cmd.args(["run", "--rm", "--security-opt"]);
-    cmd.arg(format!("seccomp={}", profile.0.display()));
-    cmd.arg("-v").arg(format!("{0}:{0}:z", cwd.display()));
-    match &host_program {
-        Some(p) if !p.starts_with(&cwd) => {
-            cmd.arg("-v").arg(format!("{0}:{0}:ro,z", p.display()));
-        }
-        _ => {}
-    }
-    cmd.arg("-w").arg(&cwd);
-    cmd.args(["-e", "CARGO*", "-e", "RUST*"]);
-    cmd.args(env_words("KERNEL_ABI_RUN_ARGS"));
-    cmd.arg(&image);
-    match &host_program {
-        Some(p) => cmd.arg(p),
-        None => cmd.arg(program),
-    };
-    cmd.args(program_args);
-
-    let status = cmd
-        .status()
-        .map_err(|e| format!("cannot start {engine}: {e}"))?;
-    Ok(match status.code() {
-        Some(code) => ExitCode::from(code.clamp(0, 255) as u8),
-        None => ExitCode::from(128),
-    })
+    let code = container::run(&Engine::from_env(), &target, &image, program, program_args)?;
+    Ok(ExitCode::from(code.clamp(0, 255) as u8))
 }
 
 fn select_target(args: &[String]) -> Result<Target, String> {
@@ -239,22 +191,6 @@ fn flag(args: &[String], name: &str) -> Option<String> {
         .cloned()
 }
 
-fn env_words(name: &str) -> Vec<String> {
-    env::var(name)
-        .unwrap_or_default()
-        .split_whitespace()
-        .map(str::to_string)
-        .collect()
-}
-
-fn absolute(cwd: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        cwd.join(path)
-    }
-}
-
 fn write(path: &Path, contents: &str) -> Result<(), String> {
     if let Some(parent) = path.parent() {
         if !parent.as_os_str().is_empty() {
@@ -262,30 +198,4 @@ fn write(path: &Path, contents: &str) -> Result<(), String> {
         }
     }
     fs::write(path, contents).map_err(|e| format!("{}: {e}", path.display()))
-}
-
-/// A file in the temporary directory, removed when dropped.
-struct TempFile(PathBuf);
-
-impl TempFile {
-    fn new(prefix: &str, suffix: &str) -> Result<Self, String> {
-        let nanos = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map(|d| d.as_nanos())
-            .unwrap_or(0);
-        let name = format!("{prefix}-{}-{nanos}{suffix}", std::process::id());
-        let path = env::temp_dir().join(name);
-        fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(&path)
-            .map_err(|e| format!("{}: {e}", path.display()))?;
-        Ok(TempFile(path))
-    }
-}
-
-impl Drop for TempFile {
-    fn drop(&mut self) {
-        let _ = fs::remove_file(&self.0);
-    }
 }
