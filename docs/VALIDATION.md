@@ -212,3 +212,18 @@ This is one qualified glibc release/reference pair on the newer WSL kernel. A
 release provider contract, Cargo host/target integration, MSRV qualification,
 old-distribution/SLES execution, broader APIs/native dependencies, version-parent
 graphs/general alias semantics, and redistribution/packaging remain open.
+
+## GNU glibc 2.22 hosted extension
+
+The [2.22 provider](GLIBC-2.22.md) passed source-build, all eight real DSO/readelf
+comparisons, all 2922 public ABI definitions, C historical data views, Rust
+allocation/thread/TLS-destruction/unwind tests, Cargo host build/proc-macro and
+runtime tests, incompatible-release selection, and newer-symbol rejection.
+Both fmemopen versions ran under 2.22; both 2.17 routes rejected the 2.22 interface.
+
+[The hosted provider matrix](https://github.com/rustcommons/libc-abi-tools/actions/runs/38058240922)
+passed all four 2.17/2.22 and Clang 21/24 combinations with Rust 1.99.0 on
+2026-10-10. This qualified producer commit 39101a0bdf9d824e3fb89931552b0a771fee5e0e
+and companion commit 695ac536a791650d0d351c74562e008c47a82392.
+Windows/Linux checks, the Rust 1.90 all-targets check, and all 28 snapshot jobs
+also passed. SLES 12 SP5, old distro/kernel, and SDK redistribution remain separate.

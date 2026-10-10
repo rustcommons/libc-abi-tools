@@ -76,7 +76,21 @@ Local validation used Rust 1.99.0, Clang 18.1.3, and GNU binutils 2.42. The Carg
 example's highest directly required symbol tag was GLIBC_2.18; the C boundary
 example explicitly requires GLIBC_2.22. These measurements do not establish
 support for older runtimes. Hosted CI adds Rust 1.99 with Clang 21 and Clang 24
-for both release profiles; results must be observed before claiming hosted success.
+for both release profiles.
+
+Hosted qualification passed on 2026-10-10 for libc-abi-tools commit
+`39101a0bdf9d824e3fb89931552b0a771fee5e0e` with cargo-libc commit
+`695ac536a791650d0d351c74562e008c47a82392`. All four combinations of
+2.17/2.22 and Clang 21/24 passed, including the original two 2.17 input routes,
+2.22's source route, fmemopen version boundaries, and Cargo newer-symbol rejection.
+The tested compilers were Clang 21.1.8 and Clang 24.0.0 development snapshot
+`1:24~++20260917082238+28f36e6d3912-1~exp1~20260917082250.1854`.
+Rust 1.99 Windows/Linux, Rust 1.90 all-targets, and all 28 snapshot jobs passed.
+
+[Provider/runtime evidence](https://github.com/rustcommons/libc-abi-tools/actions/runs/38058240922),
+[ABI/host checks](https://github.com/rustcommons/libc-abi-tools/actions/runs/38058240932),
+and [companion checks](https://github.com/rustcommons/cargo-libc/actions/runs/38058191649)
+retain the hosted results and downloadable artifacts.
 
 SLES distribution patches, native dependencies, old-kernel behavior, signed
 source verification, authenticated SDK inventories, and redistribution packaging

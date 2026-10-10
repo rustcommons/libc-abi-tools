@@ -13,7 +13,7 @@ release for this goal must go beyond collecting and inspecting metadata.
 
 **Current checkpoint:** milestone 1 is implemented and tested. Exact-release ABI
 snapshots, source collection, attribution, and a pinned upstream are in place.
-Compact consolidation, authenticated SDK packaging, and additional provider versions
+Beyond the tested 2.17/2.22 providers, compact consolidation, authenticated SDK packaging, and additional releases
 are not implemented. Native ELF evidence now drives all 2915 pinned public numeric
 GLIBC 2.17 definitions across eight generated libraries, using both real input
 sources. C data-version/copy-relocation tests and Rust allocation/thread/TLS
@@ -175,7 +175,7 @@ glibc 2.17 provider/runtime qualification remains a separate gate.
 | 2.19 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.20 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.21 | Yes | Pin inputs; generate provider; add runtime job |
-| 2.22 | Yes | Source inputs, all eight libraries, Cargo, and local runtime passed; observe hosted matrix and qualify SLES 12 SP5 |
+| 2.22 | Yes | Source inputs, all eight libraries, Cargo, and Clang 21/24 hosted runtime jobs passed; qualify SLES 12 SP5 |
 | 2.23 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.24 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.25 | Yes | Pin inputs; generate provider; add runtime job |
@@ -211,7 +211,7 @@ leakage, or execution of generated stubs.
 - [x] Pass local Cargo host build/proc-macro, thread, real runtime, and path checks.
 - [x] Run both fmemopen versions under 2.22; reject the 2.22 interface under 2.17.
 - [x] Configure Rust 1.99 / Clang 21 and 24 CI for both releases.
-- [ ] Observe all four hosted provider jobs with the extended consumer.
+- [x] Observe all four hosted provider jobs with the extended consumer passing.
 - [ ] Qualify actual SLES 12 SP5 inputs, native dependencies, and target kernels.
 
 The [2.22 provider](GLIBC-2.22.md) uses a generic source-built GNU runtime.
