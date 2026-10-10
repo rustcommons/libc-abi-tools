@@ -1,0 +1,44 @@
+# Distribution presets: the kernel and glibc a release ships, and an image for
+# runtime tests. A preset is an alias for a generic kernel profile plus
+# metadata; it adds no seccomp logic of its own.
+#
+# kernel:    mainline major.minor of the release's GA kernel (the oldest kernel
+#            a supported install can run). From vendor release notes; a
+#            container cannot report it because it shares the host kernel.
+# glibc:     the release's glibc.
+# backports: comma-separated syscalls the vendor kernel provides beyond its
+#            mainline base, or "-". Empty is the conservative default: an
+#            unlisted backport makes the profile stricter than the real kernel,
+#            never looser.
+# status:    image-checked = glibc read from the image with `ldd --version`
+#            on 2026-10-10 (all 28 presets); reference = not yet checked.
+#
+# id	name	kernel	glibc	image	backports	status
+sles-12-sp5	SUSE Linux Enterprise Server 12 SP5	4.12	2.22	registry.suse.com/suse/sles12sp5:latest	-	image-checked
+sles-15-sp1	SUSE Linux Enterprise Server 15 SP1	4.12	2.26	registry.suse.com/suse/sle15:15.1	-	image-checked
+sles-15-sp2	SUSE Linux Enterprise Server 15 SP2	5.3	2.26	registry.suse.com/suse/sle15:15.2	-	image-checked
+sles-15-sp3	SUSE Linux Enterprise Server 15 SP3	5.3	2.31	registry.suse.com/suse/sle15:15.3	-	image-checked
+sles-15-sp4	SUSE Linux Enterprise Server 15 SP4	5.14	2.31	registry.suse.com/suse/sle15:15.4	-	image-checked
+sles-15-sp5	SUSE Linux Enterprise Server 15 SP5	5.14	2.31	registry.suse.com/suse/sle15:15.5	-	image-checked
+sles-15-sp6	SUSE Linux Enterprise Server 15 SP6	6.4	2.38	registry.suse.com/suse/sle15:15.6	-	image-checked
+sles-15-sp7	SUSE Linux Enterprise Server 15 SP7	6.4	2.38	registry.suse.com/suse/sle15:15.7	-	image-checked
+sles-16.0	SUSE Linux Enterprise Server 16.0	6.12	2.40	registry.suse.com/bci/bci-base:16.0	-	image-checked
+rhel-7	Red Hat Enterprise Linux 7	3.10	2.17	registry.access.redhat.com/ubi7/ubi:latest	-	image-checked
+rhel-8	Red Hat Enterprise Linux 8	4.18	2.28	registry.access.redhat.com/ubi8/ubi:latest	-	image-checked
+rhel-9	Red Hat Enterprise Linux 9	5.14	2.34	registry.access.redhat.com/ubi9/ubi:latest	-	image-checked
+rhel-10	Red Hat Enterprise Linux 10	6.12	2.39	registry.access.redhat.com/ubi10/ubi:latest	-	image-checked
+centos-7	CentOS Linux 7	3.10	2.17	docker.io/library/centos:7	-	image-checked
+ubuntu-14.04	Ubuntu 14.04 LTS	3.13	2.19	docker.io/library/ubuntu:14.04	-	image-checked
+ubuntu-16.04	Ubuntu 16.04 LTS	4.4	2.23	docker.io/library/ubuntu:16.04	-	image-checked
+ubuntu-18.04	Ubuntu 18.04 LTS	4.15	2.27	docker.io/library/ubuntu:18.04	-	image-checked
+ubuntu-20.04	Ubuntu 20.04 LTS	5.4	2.31	docker.io/library/ubuntu:20.04	-	image-checked
+ubuntu-22.04	Ubuntu 22.04 LTS	5.15	2.35	docker.io/library/ubuntu:22.04	-	image-checked
+ubuntu-24.04	Ubuntu 24.04 LTS	6.8	2.39	docker.io/library/ubuntu:24.04	-	image-checked
+debian-8	Debian 8 (jessie)	3.16	2.19	docker.io/library/debian:jessie	-	image-checked
+debian-9	Debian 9 (stretch)	4.9	2.24	docker.io/library/debian:stretch	-	image-checked
+debian-10	Debian 10 (buster)	4.19	2.28	docker.io/library/debian:buster	-	image-checked
+debian-11	Debian 11 (bullseye)	5.10	2.31	docker.io/library/debian:bullseye	-	image-checked
+debian-12	Debian 12 (bookworm)	6.1	2.36	docker.io/library/debian:bookworm	-	image-checked
+debian-13	Debian 13 (trixie)	6.12	2.41	docker.io/library/debian:trixie	-	image-checked
+amzn-2	Amazon Linux 2	4.14	2.26	docker.io/library/amazonlinux:2	-	image-checked
+amzn-2023	Amazon Linux 2023	6.1	2.34	docker.io/library/amazonlinux:2023	-	image-checked

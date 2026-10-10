@@ -1,0 +1,26 @@
+[package]
+name = "kernel-abi-tools"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+description = "Linux kernel ABI data and seccomp profiles that simulate older kernels when testing Rust binaries"
+repository = "https://github.com/rustcommons/kernel-abi-tools"
+license = "MIT"
+publish = false
+
+[lib]
+name = "kernel_abi_tools"
+path = "src/lib.rs"
+
+[[bin]]
+name = "kernel-seccomp"
+path = "src/bin/kernel-seccomp.rs"
+
+[[bin]]
+name = "syscall-probe"
+path = "src/bin/syscall-probe.rs"
+
+[profile.release]
+strip = true
+
+[dependencies]
