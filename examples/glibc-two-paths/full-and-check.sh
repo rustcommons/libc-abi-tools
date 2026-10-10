@@ -108,3 +108,4 @@ for route in "${routes[@]}"; do
     fi
 done
 python3 "$example_dir/check-full.py" "$work" "$repo"
+python3 "$example_dir/check-link-matrix.py" "$work"

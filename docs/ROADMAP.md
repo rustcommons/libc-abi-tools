@@ -223,6 +223,13 @@ leakage, or execution of generated stubs.
 The [2.22 provider](GLIBC-2.22.md) uses a generic source-built GNU runtime.
 Distribution qualification and authenticated SDK packaging remain separate gates.
 
+## Additional provider implementation plan
+
+Follow [GLIBC-PROVIDER-PLAN.md](GLIBC-PROVIDER-PLAN.md) for the ordered rollout:
+fill 2.18–2.21 first, then 2.23–2.33, qualify the 2.34 library merger, and
+extend subsequent releases individually. Each provider must pass the same
+input, ABI, relocation, Cargo, real runtime, and hosted CI gates.
+
 ## Historical matrix and standardized conformance
 
 - [x] Generate the complete covered-snapshot union: 4671 interfaces across 28 labels.
@@ -239,6 +246,7 @@ Distribution qualification and authenticated SDK packaging remain separate gates
 - [ ] Normalize pre-2.17 x86_64 evidence and early target/unversioned history with dedicated adapters.
 - [ ] Extend scope to other glibc libraries and architectures with explicit completeness evidence.
 - [ ] Collect native defaults/properties for every supported and historically covered profile.
-- [ ] Generate exhaustive isolated-DSO function/object/TLS link probes from the matrix.
+- [x] Generate exhaustive isolated-DSO function/object link probes and measured default checks from the matrix; test TLS relocation machinery with a synthetic fixture (current union has no TLS rows).
+- [ ] Observe the expanded exhaustive suite passing in all four hosted provider jobs.
 - [ ] Add behavioral/header/feature-change ledgers with primary source references and semantic tests.
 - [ ] Apply the same artifact/runtime/distribution checks to every subsequently qualified provider.

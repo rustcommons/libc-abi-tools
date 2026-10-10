@@ -68,5 +68,6 @@ jobs:
           path: |
             ${{ runner.temp }}/glibc-${{ matrix.glibc }}/logs
             ${{ runner.temp }}/glibc-${{ matrix.glibc }}/elf-metadata
+            ${{ runner.temp }}/glibc-${{ matrix.glibc }}/link-matrix
             ${{ runner.temp }}/glibc-${{ matrix.glibc }}/provider-*-v1-*.txt
             ${{ runner.temp }}/modern-toolchain.txt
