@@ -233,7 +233,7 @@ Distribution qualification and authenticated SDK packaging remain separate gates
 - [x] Model unknown evidence separately from known absence; avoid guessing introduction/defaults.
 - [x] Use the matrix for common version-boundary tests and add an ordinary default-binding probe.
 - [x] Add CI regeneration checks for all generated reference outputs.
-- [ ] Observe hosted reference/conformance checks with the new matrix harness.
+- [x] Observe hosted reference regeneration, all 28 snapshot jobs, and all four 2.17/2.22 Clang 21/24 conformance jobs passing.
 - [ ] Classify historical tags, patches, releases, target applicability, and evidence completeness.
 - [ ] Pin/archive hashes and recover missing early source material; record unrecoverable gaps.
 - [ ] Normalize pre-2.17 x86_64 evidence and early target/unversioned history with dedicated adapters.

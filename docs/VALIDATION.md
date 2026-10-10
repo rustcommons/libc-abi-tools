@@ -227,3 +227,22 @@ passed all four 2.17/2.22 and Clang 21/24 combinations with Rust 1.99.0 on
 and companion commit 695ac536a791650d0d351c74562e008c47a82392.
 Windows/Linux checks, the Rust 1.90 all-targets check, and all 28 snapshot jobs
 also passed. SLES 12 SP5, old distro/kernel, and SDK redistribution remain separate.
+
+## Historical matrix and shared conformance harness
+
+On 2026-10-10, commit `a7c48acbd27025ccdeb7f67c99fb462072d61900` passed
+[reference/host CI](https://github.com/rustcommons/libc-abi-tools/actions/runs/38061222375)
+and [all four provider conformance jobs](https://github.com/rustcommons/libc-abi-tools/actions/runs/38061222447).
+The same matrix-driven boundaries and measured-default probe ran for glibc
+2.17/2.22 under Clang 21/24. Both 2.17 input routes and the 2.22 source route
+passed, preserving host build/proc-macro separation and real runtime checks.
+Ordinary fmemopen bound to GLIBC_2.2.5 in the measured 2.17 profiles and GLIBC_2.22
+in the 2.22 source profile; explicit older compatibility remained available.
+
+Rust 1.99 Windows/Linux checks, the Rust 1.90 all-targets check, all 28 snapshot
+jobs, and byte-identical regenerated matrices/Markdown passed. Local suites
+contain 29 producer tests including unknown-history, migration, removal,
+reintroduction, and kind/size-change regressions. The interface reference covers
+4671 tuples and 8752 native observations; historical candidates before 2.17 are
+inventoried rather than normalized or runtime-qualified. Exhaustive generated
+per-interface link probes and behavioral/header history remain planned.

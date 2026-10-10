@@ -159,3 +159,5 @@ The immediate next work is to classify/pin early sources, establish each target'
 historical applicability, normalize historical interface sets, and extend the
 same conformance collection. Historical research does not change the currently
 supported provider versions or promise that modern Rust runs on glibc 1.x.
+
+The first hosted [shared conformance matrix](https://github.com/rustcommons/libc-abi-tools/actions/runs/38061222447) and [reference regeneration gate](https://github.com/rustcommons/libc-abi-tools/actions/runs/38061222375) passed on 2026-10-10 at commit a7c48acbd27025ccdeb7f67c99fb462072d61900. This qualifies the collected-snapshot/reference and existing-provider stages; early-history normalization and exhaustive relocation/behavior probes remain open.
