@@ -119,10 +119,12 @@ container. See [WORKFLOWS.md](../../../docs/WORKFLOWS.md).
 - [ ] **cargo-libc side:** depend on the crates; add `--distro`/`--glibc`/
   `--kernel`/`--target` and `--runner`; a runner helper binary that calls the
   library.
-- [ ] **ELF check:** fail when `NT_GNU_ABI_TAG` exceeds the kernel floor, or
-  when `DT_RELR` is present for a glibc older than 2.36.
-- [ ] **Source scan:** report `libc::syscall`/`SYS_*` use and newer `MADV_*`/`MAP_*`
-  constants in vendored dependencies against the kernel floor.
+- [x] **ELF check** and **binary scan** (2026-10-10): `crates/linux-abi-scan`
+  reports `NT_GNU_ABI_TAG`, `DT_RELR`, glibc versions, imported syscall
+  wrappers (exact), and constant `syscall()`/raw-syscall/`madvise` call sites
+  (heuristic) against the floors. Tier 1; cargo-libc integration pending.
+- [ ] **Source scan:** `MAP_*` and other flag constants, which the binary scan
+  does not cover.
 - [ ] **Runtime trace:** optional `strace -f -Z` capture to list every failing
   syscall during a test run (container or local).
 

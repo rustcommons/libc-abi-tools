@@ -11,7 +11,8 @@ interfaces and which kernel syscalls a selected target provides. Formerly
 | `libc-abi-tools` | repository root | glibc ABI metadata, stub generation, providers (described below) |
 | [`kernel-abi-tools`](crates/kernel-abi-tools/README.md) | `crates/kernel-abi-tools` | Kernel syscall/`madvise` data and seccomp profiles that simulate older kernels |
 | [`linux-targets`](crates/linux-targets/README.md) | `crates/linux-targets` | Distribution presets (glibc and kernel floors, image) and target selection rules |
-| [`linux-abi-tools`](crates/linux-abi-tools/README.md) | `crates/linux-abi-tools` | One dependency that re-exports the three crates above |
+| [`linux-abi-scan`](crates/linux-abi-scan/README.md) | `crates/linux-abi-scan` | Static inspection of built executables against the glibc and kernel floors (tier 1) |
+| [`linux-abi-tools`](crates/linux-abi-tools/README.md) | `crates/linux-abi-tools` | One dependency that re-exports the four crates above |
 
 [Workflows](docs/WORKFLOWS.md) explains which tool answers which question:
 building against an older glibc, inspecting a binary, and running it under an

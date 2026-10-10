@@ -1,6 +1,6 @@
 # Releasing
 
-The workspace publishes four crates to **crates.io only**, after
+The workspace publishes five crates to **crates.io only**, after
 [glibc-abilists](https://github.com/rustcommons/glibc-abilists), which holds the
 glibc ABI lists and is released from its own repository first. No standalone
 binary bundles or GitHub release assets are published. Nothing is published
@@ -11,7 +11,8 @@ without the maintainer's go-ahead.
 | `linux-targets` | none | Library; distribution presets compiled in |
 | `kernel-abi-tools` | `linux-targets` | Library and the `kernel-seccomp`/`syscall-probe` binaries; syscall and `madvise` data compiled in |
 | `libc-abi-tools` | `glibc-abilists` (default `bundled-glibc-data` feature) | Library and the `libc-abi` binary; no data of its own |
-| `linux-abi-tools` | the three above | Re-exports only |
+| `linux-abi-scan` | `kernel-abi-tools`, `linux-targets` | Library and the `linux-abi-scan` binary (tier 1 static inspection) |
+| `linux-abi-tools` | the four above | Re-exports only |
 
 Each manifest has an `include` list, so only sources, compiled-in data,
 README, and license/notice files are packaged. `libc-abi-tools` leaves out
@@ -25,7 +26,7 @@ manifest's `git` source is for development, and `cargo publish` uses its
 
 ## Cutting a release
 
-1. Set the same `version` in the four manifests and in the internal
+1. Set the same `version` in the five manifests and in the internal
    dependency requirements (`version = "X.Y.Z"` next to each `path`). Run
    `cargo check --workspace` to update `Cargo.lock`, and record the release in
    the roadmaps.
@@ -42,6 +43,7 @@ manifest's `git` source is for development, and `cargo publish` uses its
    # first, in the glibc-abilists repository: cargo publish
    cargo publish -p linux-targets
    cargo publish -p kernel-abi-tools
+   cargo publish -p linux-abi-scan
    cargo publish -p libc-abi-tools
    cargo publish -p linux-abi-tools
    ```
@@ -54,7 +56,7 @@ from selecting it.
 
 ## Versioning
 
-All four crates share one version while they are 0.x.
+All five crates share one version while they are 0.x.
 
 - **Patch:** data refreshes and preset corrections that do not loosen any
   simulation, documentation, and fixes.

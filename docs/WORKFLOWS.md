@@ -12,9 +12,24 @@ Shipping a Rust program to an older Linux system raises three separate questions
 | Which glibc symbol versions may the binary require? | Link time | `libc-abi-tools` (ABI data, stub libraries, providers) and `cargo libc build` |
 | Which syscalls and `madvise` advice will the kernel accept? | Run time | `kernel-abi-tools` (syscall data, seccomp filter/profile, runners) |
 | Which glibc and kernel does "the target" mean? | Both | `linux-targets` (distribution presets and selection rules) |
+| Does a built file already require more than the target has? | After the build | `linux-abi-scan` (static inspection) |
 
-The `linux-abi-tools` crate re-exports all three (`linux_abi_tools::{libc,
-kernel, targets}`).
+The `linux-abi-tools` crate re-exports all four (`linux_abi_tools::{libc,
+kernel, targets, scan}`).
+
+### Testing tiers
+
+Checks get more reliable, and more expensive, from tier to tier:
+
+| Tier | How | Reliability | Tool |
+| --- | --- | --- | --- |
+| 1. Inspect | Read the built ELF files; nothing runs | Exact for symbols, versions, ELF notes; heuristic for syscalls in code | `linux-abi-scan`, `cargo libc inspect` |
+| 2. Simulate | Run the tests under a seccomp filter (host userland) or in a container (target userland) | Catches what executes; syscall availability and `madvise` only | `kernel-seccomp run`, `cargo libc test` (planned) |
+| 3. Qualify | Run on a real host at the target's minimums, e.g. a SLES 12 SP5 VM | The only qualification | Your target environment |
+
+Tier 1 is documented as the least reliable: it reports what a file *could*
+do. Tiers 1 and 2 use the same kernel data, so they cannot disagree about
+what a kernel provides.
 
 ## 1. Choose a target
 
@@ -46,16 +61,28 @@ The stubs are used only for linking and never deployed. The provider is still
 supplied by the user; how released providers are sourced, authenticated, and
 distributed is an open decision (see [ROADMAP.md](ROADMAP.md)).
 
-## 3. Inspect a built binary
+## 3. Inspect a built binary (tier 1)
 
-| Check | Status |
-| --- | --- |
-| `GLIBC_*` version requirements against the glibc floor (`cargo libc inspect --max-glibc`) | Implemented |
-| `NT_GNU_ABI_TAG` above the kernel floor | Planned |
-| `DT_RELR` with a glibc floor older than 2.36 | Planned |
-| `libc::syscall`/`SYS_*` use and newer `MADV_*`/`MAP_*` constants in dependencies | Planned |
+**Status: implemented in `linux-abi-scan`** (tested on synthetic ELF files and
+real binaries on Linux 6.18; not yet called by cargo-libc).
 
-Inspection proves what the file *requires*; it does not run it.
+```sh
+linux-abi-scan target/release/app --distro sles-12-sp5 [--strict] [--verbose] [--tsv]
+```
+
+| Check | Confidence | Fails when |
+| --- | --- | --- |
+| `GLIBC_*` version requirements against the glibc floor | Exact | A non-weak requirement is above the floor |
+| `DT_RELR` relocations | Exact | The glibc floor is older than 2.36 |
+| Imported syscall wrappers (`statx`, `getrandom`, `pidfd_open`, ...) against the kernel floor | Exact | A non-weak import's syscall is missing (weak: warning) |
+| `NT_GNU_ABI_TAG` minimum kernel | Exact | Warning only |
+| `syscall(N, ...)` calls and raw `syscall` instructions with a constant number | Heuristic | Warning only (error with `--strict`) |
+| `madvise()` calls with constant advice | Heuristic | Warning only (error with `--strict`) |
+
+`cargo libc inspect --max-glibc` (implemented in cargo-libc) covers the first
+row today. A scan cannot see syscalls inside the C library, numbers computed
+at run time, `dlopen`ed libraries, new flags on old syscalls, or whether a
+fallback works; see the [crate README](../crates/linux-abi-scan/README.md).
 
 ## 4. Run under an older kernel
 
@@ -133,6 +160,7 @@ it. eBPF programs (the `bpf()` syscall, tracing, BPF-LSM) need `CAP_BPF` or
 
 | Need | API |
 | --- | --- |
+| Inspect a built file (tier 1) | `linux_abi_scan::scan_file`, `ScanTarget::from_selection`, `Report::{to_text, to_tsv, exit_code}` |
 | Resolve user options to floors | `linux_targets::Selection::resolve`, `Selection::describe` |
 | What a target lacks | `kernel_abi_tools::missing_syscalls`, `madvise_accepts` |
 | OCI profile for a container runtime | `kernel_abi_tools::seccomp_profile` |
@@ -154,7 +182,8 @@ cargo-libc cannot pin a commit of this repository. Offline builds use
 | `--distro`, `--glibc`, `--kernel`, `--target triple.X` on every command | `Selection::resolve`; print `Selection::describe` so "kernel not simulated" is visible | `--glibc` and versioned `--target` implemented; `--distro`/`--kernel` planned |
 | `cargo libc build` | Provider for the glibc floor | Implemented (provider supplied by the user) |
 | `cargo libc check` (F03) | Same selection and target configuration, no link | Next coordinator task |
-| `cargo libc inspect` | Kernel and `DT_RELR` checks against both floors | glibc check implemented; kernel checks planned |
+| `cargo libc inspect` | `linux_abi_scan::scan_file` with `ScanTarget::from_selection`; `--strict` maps to `Report::exit_code(true)` | Library implemented; cargo-libc integration planned (its glibc check exists today) |
+| `cargo libc build` (after linking) | Optionally run the same scan on every built executable | Planned |
 | `cargo libc test` / `run` with `--runner local\|container` | Sets Cargo's target runner to a cargo-libc helper binary. That helper calls `Runner::choose`, then `local::run` or `container::run` | Planned; the library side is implemented |
 | `cargo libc doctor` | Reports runner availability: seccomp support, container engine, crun/libseccomp version | Planned |
 
@@ -174,7 +203,7 @@ process and the build scripts never run under the filter.
 ### Release order
 
 1. Publish `glibc-abilists` (its own repository), then `linux-targets`,
-   `kernel-abi-tools`, `libc-abi-tools`, and `linux-abi-tools`. Each depends
+   `kernel-abi-tools`, `linux-abi-scan`, `libc-abi-tools`, and `linux-abi-tools`. Each depends
    only on crates published before it.
    `cargo package --workspace` verifies the set together before anything is
    uploaded.

@@ -12,7 +12,8 @@ workspace of rustcommons' ABI tools for targeting older Linux systems from Rust:
 | `libc-abi-tools` | repository root | glibc ABI metadata, stub generation, and providers, inspired by (and partly adapted from) [Zig's libc ABI tools](https://codeberg.org/ziglang/libc-abi-tools); ABI data from glibc via [glibc-abilists](https://github.com/rustcommons/glibc-abilists); other libc implementations are future work |
 | `kernel-abi-tools` | `crates/kernel-abi-tools` | Linux kernel syscall and `madvise` data and seccomp profiles that simulate older kernels |
 | `linux-targets` | `crates/linux-targets` | Distribution presets (glibc and kernel floors, image) and target selection rules |
-| `linux-abi-tools` | `crates/linux-abi-tools` | Re-exports the three crates above; no code of its own |
+| `linux-abi-scan` | `crates/linux-abi-scan` | Static inspection of built executables against the floors: tier 1 of the testing tiers |
+| `linux-abi-tools` | `crates/linux-abi-tools` | Re-exports the four crates above; no code of its own |
 
 The companion Cargo integration is `rustcommons/cargo-libc`, which depends on
 the published crates. `cargo` in the root acts on `libc-abi-tools` alone unless
@@ -63,11 +64,21 @@ every workflow and its cargo-libc mapping; keep it in step with changes.
   missing kernel floor means the host kernel and must be reported as "not
   simulated".
 
+## Scope and implementation: linux-abi-scan
+
+- Tier 1 of three (inspect, simulate, qualify); always document it as the
+  least reliable tier and never present a clean scan as compatibility.
+- Every finding states its confidence: `Exact` only for ELF metadata the
+  loader uses; anything recovered from machine code is `Heuristic`.
+- Take kernel facts only from `kernel-abi-tools` and floors only from
+  `linux-targets`, so the scan and the seccomp simulation cannot disagree.
+- Parse untrusted ELF input with bounds checks and no panics.
+
 ## Shared rules
 
 - Every crate stays std-only apart from rustcommons crates: `kernel-abi-tools`
-  may depend on `linux-targets`, `libc-abi-tools` on `glibc-abilists`, and
-  `linux-abi-tools` on the other three.
+  may depend on `linux-targets`, `linux-abi-scan` on both of those,
+  `libc-abi-tools` on `glibc-abilists`, and `linux-abi-tools` on the other four.
 - Releases go to crates.io only (see [docs/RELEASING.md](docs/RELEASING.md)).
   Keep each manifest's `include` list minimal. The glibc ABI lists
   (LGPL-2.1-or-later) are published only in `glibc-abilists`, which must be
