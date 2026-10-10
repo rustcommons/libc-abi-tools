@@ -68,7 +68,8 @@ generated with `kernel-seccomp profile --kernel X.Y`.
 - [x] CI: fmt/test/clippy on Linux and Windows, committed-profile drift check,
   MSRV 1.90, and `self-test.sh` under crun for profiles through 6.6 plus
   `sles-12-sp5` (Ubuntu 24.04's libseccomp 2.5.5 cannot name 6.8+ syscalls).
-- [ ] Observe hosted CI results after the first push.
+- [x] Observe hosted CI passing: all jobs, 18 profiles verified on a 6.17 Azure
+  kernel with crun 1.14.1 / libseccomp 2.5.5 ([run](https://github.com/rustcommons/kernel-abi-tools/actions/runs/38072993763)).
 - [ ] NOTICE (kernel syscall tables are GPL-2.0 *source*; we ship derived
   facts, not code — record provenance) and banner to match the companions.
 - [ ] CI coverage for 6.8+ profiles (a runner image or container with
