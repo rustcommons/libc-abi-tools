@@ -6,7 +6,10 @@ rust-version = "1.90"
 description = "Linux kernel ABI data and seccomp profiles that simulate older kernels when testing Rust binaries"
 repository = "https://github.com/rustcommons/linux-abi-tools"
 license = "MIT"
-publish = false
+readme = "README.md"
+keywords = ["seccomp", "linux", "kernel", "syscall", "compatibility"]
+categories = ["development-tools::testing", "os::linux-apis"]
+include = ["src/**", "data/**", "Cargo.toml", "README.md", "LICENSE", "NOTICE"]
 
 [lib]
 name = "kernel_abi_tools"
@@ -21,4 +24,4 @@ name = "syscall-probe"
 path = "src/bin/syscall-probe.rs"
 
 [dependencies]
-linux-targets = { path = "../linux-targets" }
+linux-targets = { path = "../linux-targets", version = "0.1.0" }

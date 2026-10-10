@@ -1,0 +1,21 @@
+[package]
+name = "linux-abi-tools"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+description = "Target older Linux systems from Rust: glibc ABI data, kernel syscall simulation, and distribution presets in one dependency"
+repository = "https://github.com/rustcommons/linux-abi-tools"
+license = "MIT"
+readme = "README.md"
+keywords = ["glibc", "linux", "abi", "seccomp", "compatibility"]
+categories = ["development-tools::build-utils", "os::linux-apis"]
+include = ["src/**", "Cargo.toml", "README.md", "LICENSE"]
+
+[lib]
+name = "linux_abi_tools"
+path = "src/lib.rs"
+
+[dependencies]
+kernel-abi-tools = { path = "../kernel-abi-tools", version = "0.1.0" }
+libc-abi-tools = { path = "../..", version = "0.1.0" }
+linux-targets = { path = "../linux-targets", version = "0.1.0" }

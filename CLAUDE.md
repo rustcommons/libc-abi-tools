@@ -12,9 +12,12 @@ workspace of rustcommons' ABI tools for targeting older Linux systems from Rust:
 | `libc-abi-tools` | repository root | Rust port of the glibc parts of [Zig's libc ABI tools](https://codeberg.org/ziglang/libc-abi-tools); the first backend is glibc, other libc implementations are future work |
 | `kernel-abi-tools` | `crates/kernel-abi-tools` | Linux kernel syscall and `madvise` data and seccomp profiles that simulate older kernels |
 | `linux-targets` | `crates/linux-targets` | Distribution presets (glibc and kernel floors, image) and target selection rules |
+| `linux-abi-tools` | `crates/linux-abi-tools` | Re-exports the three crates above; no code of its own |
 
-The companion Cargo integration is `rustcommons/cargo-libc`. `cargo` in the
-root acts on `libc-abi-tools` alone unless given `--workspace` or `-p`.
+The companion Cargo integration is `rustcommons/cargo-libc`, which depends on
+the published crates. `cargo` in the root acts on `libc-abi-tools` alone unless
+given `--workspace` or `-p`. [docs/WORKFLOWS.md](docs/WORKFLOWS.md) describes
+every workflow and its cargo-libc mapping; keep it in step with changes.
 
 ## Scope and implementation: libc-abi-tools
 
@@ -42,6 +45,10 @@ root acts on `libc-abi-tools` alone unless given `--workspace` or `-p`.
 - Profiles simulate syscall availability and `madvise` advice only. Other
   flags, behavior, and vendor backports must be documented as planned until
   implemented and validated.
+- Two runners apply the simulation: the local runner (in-process classic-BPF
+  filter from `filter::program`, host userland, no root) and the container
+  runner (OCI profile, image userland). The BPF filter and the JSON profile
+  must make the same decisions; `filter` tests check both against the data.
 
 ## Scope and implementation: linux-targets
 
@@ -54,7 +61,11 @@ root acts on `libc-abi-tools` alone unless given `--workspace` or `-p`.
 
 ## Shared rules
 
-- Every crate stays std-only; `kernel-abi-tools` may depend on `linux-targets`.
+- Every crate stays std-only; `kernel-abi-tools` may depend on `linux-targets`,
+  and `linux-abi-tools` depends on the other three.
+- Releases go to crates.io only (see [docs/RELEASING.md](docs/RELEASING.md)).
+  Keep each manifest's `include` list minimal; the GPL-2.0 glibc ABI lists in
+  `data/` are not part of any published crate.
 - Ask about unresolved product decisions; do not invent compatibility claims.
 
 ## Validation
@@ -65,11 +76,12 @@ add `--workspace` (or `-p kernel-abi-tools -p linux-targets`) when the other
 crates change.
 Use pinned upstream fixtures to validate the glibc port. Document which
 architectures/releases and which stages have actually been tested.
-Kernel profile changes also require `crates/kernel-abi-tools/scripts/self-test.sh`
-on Linux with a container runtime (crun with libseccomp 2.6+, e.g. from
-`scripts/install-crun.sh`, covers every profile). Packaging changes require
-`scripts/package-release.sh` and `kernel-seccomp verify-bundle`; never publish a
-release without the user's go-ahead. Distinguish host simulation from actual
+Kernel profile or filter changes also require
+`crates/kernel-abi-tools/scripts/self-test.sh` on Linux, both with `local`
+(no root needed) and with a container runtime (crun with libseccomp 2.6+, e.g.
+from `scripts/install-crun.sh`, covers every profile). Packaging changes
+require `cargo package --workspace --locked`; never publish to crates.io
+without the user's go-ahead. Distinguish host simulation from actual
 oldest-target runtime qualification on a real kernel.
 
 ## Git conventions

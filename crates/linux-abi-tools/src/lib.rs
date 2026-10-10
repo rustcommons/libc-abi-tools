@@ -1,0 +1,25 @@
+//! One dependency for the rustcommons Linux ABI tools.
+//!
+//! | Module | Crate | Purpose |
+//! | --- | --- | --- |
+//! | [`targets`] | `linux-targets` | Distribution presets and `--distro`/`--glibc`/`--kernel`/`--target` selection |
+//! | [`libc`] | `libc-abi-tools` | glibc ABI metadata, stub generation, and providers |
+//! | [`kernel`] | `kernel-abi-tools` | Kernel syscall data and seccomp simulation (local filter or container) |
+//!
+//! Each crate can also be used on its own; this crate only re-exports them
+//! so that their versions move together.
+
+pub use kernel_abi_tools as kernel;
+pub use libc_abi_tools as libc;
+pub use linux_targets as targets;
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn crates_share_one_release_type() {
+        // kernel-abi-tools re-exports linux-targets' types; a version skew
+        // between the two would make these distinct types.
+        let k: crate::kernel::KernelVersion = crate::targets::Release::parse("4.12").unwrap();
+        assert_eq!(k.to_string(), "4.12");
+    }
+}

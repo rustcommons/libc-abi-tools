@@ -14,5 +14,14 @@ name = "libc-abi-tools"
 version = "0.1.0"
 
 [[package]]
+name = "linux-abi-tools"
+version = "0.1.0"
+dependencies = [
+ "kernel-abi-tools",
+ "libc-abi-tools",
+ "linux-targets",
+]
+
+[[package]]
 name = "linux-targets"
 version = "0.1.0"

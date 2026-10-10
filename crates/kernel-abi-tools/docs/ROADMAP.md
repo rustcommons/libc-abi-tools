@@ -80,8 +80,8 @@ generated with `kernel-seccomp profile --kernel X.Y`.
   `crates/kernel-abi-tools`, history kept by subtree merge. Distribution
   presets moved to the new `crates/linux-targets`, which also owns the
   `--distro`/`--glibc`/`--kernel`/`--target` selection rules. Workflows are
-  `kernel-abi-tools.yml` and `kernel-abi-tools-release.yml`; release tags
-  are `kernel-abi-tools-vX.Y.Z`.
+  `kernel-abi-tools.yml` and (until the crates.io-only decision, section 5)
+  `kernel-abi-tools-release.yml`.
 - [ ] An SLES 12 SP5 userland run of an application built with cargo-libc
   (needs cargo-libc changes; deferred).
 
@@ -99,42 +99,45 @@ generated with `kernel-seccomp profile --kernel X.Y`.
 
 ## 4. Integration with cargo-libc (crate dependency)
 
-Planned model: cargo-libc depends on `kernel-abi-tools` and `linux-targets`
-from this repository (git dependency pinned to a commit; `cargo vendor` for
-offline use). Data is compiled in; no bundle or descriptor is needed.
+Decided 2026-10-10: cargo-libc depends on the **published** crates
+(`linux-abi-tools`, or the individual crates); crates.io does not accept git
+dependencies. Data is compiled in. Users choose a local seccomp filter or a
+container. See [WORKFLOWS.md](../../../docs/WORKFLOWS.md).
 
 - [x] **Shared target selection:** `linux_targets::Selection::resolve`
   implements the agreed rules; a missing kernel floor means host kernel, and
   output says so (`Selection::describe`).
-- [x] **Library runner:** `kernel_abi_tools::container::run`.
-- [ ] **Decision pending:** in-process seccomp filter (apply the filter and
-  `exec` on the host, so `--kernel` without `--distro` needs no container and
-  no runtime name resolution).
+- [x] **Container runner:** `kernel_abi_tools::container::run`.
+- [x] **Local runner:** `kernel_abi_tools::local::run` sets `no_new_privs`,
+  installs a classic-BPF filter from `filter::program` and executes the
+  program. No container and no root. The filter is checked against the data for
+  every syscall number and advice value of every profile (unit tests), and all
+  47 profiles pass `syscall-probe` on a 6.18 host as an unprivileged user.
+- [x] **Runner choice:** `Runner::choose` and `kernel-seccomp run --runner
+  local|container`. The default is the container when an image is known,
+  otherwise local.
 - [ ] **cargo-libc side:** depend on the crates; add `--distro`/`--glibc`/
-  `--kernel`/`--target`; a runner helper binary that calls the library.
+  `--kernel`/`--target` and `--runner`; a runner helper binary that calls the
+  library.
 - [ ] **ELF check:** fail when `NT_GNU_ABI_TAG` exceeds the kernel floor, or
   when `DT_RELR` is present for a glibc older than 2.36.
 - [ ] **Source scan:** report `libc::syscall`/`SYS_*` use and newer `MADV_*`/`MAP_*`
   constants in vendored dependencies against the kernel floor.
-- [ ] **Runtime trace:** optional `strace -f -Z` capture inside the container to
-  list every failing syscall during a test run.
+- [ ] **Runtime trace:** optional `strace -f -Z` capture to list every failing
+  syscall during a test run (container or local).
 
 ## 5. Releases and offline distribution
 
+Decided 2026-10-10: **crates.io only**, as part of the workspace release
+([RELEASING.md](../../../docs/RELEASING.md)). The standalone bundle (static
+binaries, `kernel-abi-provider-v1` descriptor, `verify-bundle`, the tag
+release workflow) was removed before anything was published. The profile
+format keeps the `kernel-abi-provider-v1` name.
+
 - [x] Data and profiles compiled in; no network at run time.
-- [x] Release bundle: static musl `kernel-seccomp`/`syscall-probe`, profiles,
-  data, scripts, docs, `kernel-abi-provider-v1` descriptor, SHA-256 inventory;
-  reproducible from the commit (`scripts/package-release.sh`).
-- [x] Offline verification: `kernel-seccomp verify-bundle` (std-only SHA-256).
-- [x] Release workflow: dry run on demand, publish on tags. First dry run
-  verified all 47 profiles from the bundle and published nothing (run
-  38075624314 in the former kernel-abi-tools repository).
-- [x] Reproducibility: commit `aa2aa13` built on the hosted runner and locally
-  (WSL2, same Rust 1.99.0) produced the identical archive
-  (`13505d22…14129`).
-- [x] Disconnected-network procedure, including `podman save`/`load` of images
-  ([RELEASE.md](RELEASE.md)).
-- [ ] **Decision pending:** keep publishing standalone bundles, or deliver
-  only through cargo-libc. Nothing has been published.
-- [ ] Publisher authentication (signatures or internal mirror trust chain);
-  checksums are integrity only.
+- [x] `cargo package --workspace` verifies the four crates together.
+- [x] Disconnected-network procedure (`cargo vendor`, `podman save`/`load`,
+  pinned static crun) in RELEASING.md.
+- [ ] First crates.io publication (needs the maintainer's go-ahead).
+- [ ] Publisher authentication beyond crates.io checksums (for example an
+  internal mirror trust chain).

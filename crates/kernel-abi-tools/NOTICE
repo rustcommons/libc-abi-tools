@@ -14,21 +14,12 @@ files of the Linux kernel at every release tag v3.3 through v7.2:
   arch/x86/entry/syscalls/syscall_64.tbl (arch/x86/syscalls/ before v4.2)
   include/uapi/asm-generic/mman-common.h (include/asm-generic/ before v3.7)
 
-No Linux kernel source code is included in this repository or its release
-bundles. Credit to the Linux kernel contributors for the source of this data.
+No Linux kernel source code is included in this repository or the published
+crate. Credit to the Linux kernel contributors for the source of this data.
 The Linux kernel is licensed under GPL-2.0; its UAPI headers carry the
 Linux-syscall-note exception.
 
-../linux-targets/data/distros.tsv (copied to data/distros.tsv in release bundles)
+../linux-targets/data/distros.tsv (compiled into the linux-targets crate)
 lists distribution releases and the container images used to
 read their glibc versions. Distribution names are trademarks of their owners.
 No distribution software or container image is included or redistributed.
-
-STATICALLY LINKED COMPONENTS IN RELEASE BINARIES
-
-The bin/ executables in release bundles are built for
-x86_64-unknown-linux-musl and statically link:
-
-  - The Rust standard library, licensed MIT OR Apache-2.0
-    (https://github.com/rust-lang/rust).
-  - musl libc, licensed MIT (https://musl.libc.org/).

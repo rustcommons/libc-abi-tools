@@ -11,6 +11,13 @@ interfaces and which kernel syscalls a selected target provides. Formerly
 | `libc-abi-tools` | repository root | glibc ABI metadata, stub generation, providers (described below) |
 | [`kernel-abi-tools`](crates/kernel-abi-tools/README.md) | `crates/kernel-abi-tools` | Kernel syscall/`madvise` data and seccomp profiles that simulate older kernels |
 | [`linux-targets`](crates/linux-targets/README.md) | `crates/linux-targets` | Distribution presets (glibc and kernel floors, image) and target selection rules |
+| [`linux-abi-tools`](crates/linux-abi-tools/README.md) | `crates/linux-abi-tools` | One dependency that re-exports the three crates above |
+
+[Workflows](docs/WORKFLOWS.md) explains which tool answers which question:
+building against an older glibc, inspecting a binary, and running it under an
+older kernel with a local seccomp filter (no root) or in a container. It also
+shows how each maps onto cargo-libc. The crates are published to crates.io
+only; see [Releasing](docs/RELEASING.md).
 
 Each crate is std-only. `cargo` in the root acts on `libc-abi-tools` unless
 given `--workspace` or `-p`.

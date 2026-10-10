@@ -18,11 +18,23 @@ commands, and CI are unchanged. Added members:
 - `crates/linux-targets`: distribution presets (glibc and kernel floors,
   image) and the `--distro`/`--glibc`/`--kernel`/`--target` selection rules.
 
-Planned: cargo-libc depends on these crates directly (git dependency pinned to
-a commit). Pending decisions: an in-process seccomp filter, and whether
-kernel-abi-tools keeps publishing standalone bundles. Whether the libc side
-should consume `linux-targets` presets (e.g. to map a distro to its qualified
-provider) is not yet decided.
+Decided the same day:
+
+- **Four crates on crates.io only:** `linux-targets`, `kernel-abi-tools`,
+  `libc-abi-tools`, and the `linux-abi-tools` crate (`crates/linux-abi-tools`)
+  that re-exports the other three. cargo-libc depends on the published crates,
+  because crates.io does not accept git dependencies. The kernel standalone
+  bundle and its tag release workflow were removed before anything was
+  published. See [RELEASING.md](RELEASING.md).
+- **Local or container runner:** kernel simulation runs on the host under a
+  seccomp filter built in-process (no container, no root) or in a container
+  under the equivalent profile, chosen with `--runner local|container`.
+
+[WORKFLOWS.md](WORKFLOWS.md) documents every workflow and how each maps onto
+cargo-libc. Still open: how crates.io users obtain the glibc ABI lists that
+the published `libc-abi-tools` leaves out (tied to the release-sourcing
+decision below), and whether the libc side should consume `linux-targets`
+presets (e.g. to map a distro to its qualified provider).
 
 ## Team handoff (2026-10-10)
 

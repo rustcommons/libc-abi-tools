@@ -6,6 +6,9 @@ rust-version = "1.90"
 description = "Linux target selection: distribution presets with glibc and kernel floors"
 repository = "https://github.com/rustcommons/linux-abi-tools"
 license = "MIT"
-publish = false
+readme = "README.md"
+keywords = ["linux", "glibc", "kernel", "distribution", "target"]
+categories = ["development-tools::build-utils", "os::linux-apis"]
+include = ["src/**", "data/**", "Cargo.toml", "README.md", "LICENSE"]
 
 [dependencies]
