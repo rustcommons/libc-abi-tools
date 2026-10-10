@@ -17,7 +17,7 @@ on:
 permissions:
   contents: read
 env:
-  CRATES: -p kernel-abi-tools -p linux-targets
+  CRATES: -p kernel-abi-tools -p linux-targets -p linux-abi-tools
 jobs:
   rust:
     strategy:
@@ -51,30 +51,29 @@ jobs:
         with:
           targets: x86_64-unknown-linux-musl
       - run: shellcheck -S warning scripts/*.sh
-      - name: Package and verify the release bundle
+      - name: Build the static musl probe and the generator
         run: |
-          bash scripts/package-release.sh "$RUNNER_TEMP/dist"
-          mkdir "$RUNNER_TEMP/bundle"
-          tar -xzf "$RUNNER_TEMP"/dist/*.tar.gz -C "$RUNNER_TEMP/bundle"
-          echo "BUNDLE=$(ls -d "$RUNNER_TEMP"/bundle/kernel-abi-tools-*)" >> "$GITHUB_ENV"
-      - run: '"$BUNDLE/bin/kernel-seccomp" verify-bundle "$BUNDLE"'
+          cargo build --release --locked --offline --target x86_64-unknown-linux-musl -p kernel-abi-tools --bin syscall-probe
+          cargo build --release --locked --offline -p kernel-abi-tools --bin kernel-seccomp
+          echo "PROBE=$GITHUB_WORKSPACE/target/x86_64-unknown-linux-musl/release/syscall-probe" >> "$GITHUB_ENV"
+      - name: Self-test every profile with the local filter (host userland, no root)
+        run: >-
+          bash scripts/self-test.sh "$PROBE" local
+          $(cd profiles/kernel && ls | sed 's/^linux-//; s/\.json$//' | sort -V)
+          $(cd profiles/distro && ls | sed 's/\.json$//')
       - name: Static crun (libseccomp that names every syscall)
         run: bash scripts/install-crun.sh "$RUNNER_TEMP/crun"
-      - name: Self-test every profile from the bundle in SLES 12 SP5 userland
+      - name: Self-test every profile in SLES 12 SP5 userland
         env:
           KERNEL_ABI_ENGINE_ARGS: --runtime ${{ runner.temp }}/crun
         run: >-
-          bash "$BUNDLE/scripts/self-test.sh" "$BUNDLE/bin/syscall-probe"
+          bash scripts/self-test.sh "$PROBE"
           registry.suse.com/suse/sles12sp5:latest
-          $(cd "$BUNDLE/profiles/kernel" && ls | sed 's/^linux-//; s/\.json$//' | sort -V)
+          $(cd profiles/kernel && ls | sed 's/^linux-//; s/\.json$//' | sort -V)
           sles-12-sp5 rhel-7 ubuntu-24.04
-      - uses: actions/upload-artifact@v4
-        with:
-          name: kernel-abi-tools-bundle
-          path: ${{ runner.temp }}/dist/
   msrv:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.90.0
-      - run: cargo check -p kernel-abi-tools -p linux-targets --all-targets --locked --offline
+      - run: cargo check -p kernel-abi-tools -p linux-targets -p linux-abi-tools --all-targets --locked --offline

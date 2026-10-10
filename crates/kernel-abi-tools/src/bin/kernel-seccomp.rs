@@ -1,20 +1,19 @@
 //! Generates seccomp profiles that simulate an older Linux kernel, and runs
-//! programs in a container under them.
+//! programs under them: on the host with an in-process filter, or in a
+//! container.
 //!
 //! kernel-seccomp profile  (--kernel X.Y | --distro ID) [--output FILE]
 //! kernel-seccomp missing  (--kernel X.Y | --distro ID)
-//! kernel-seccomp run      (--kernel X.Y | --distro ID) [--image IMAGE] -- PROGRAM [ARGS...]
+//! kernel-seccomp run      (--kernel X.Y | --distro ID) [--runner local|container]
+//!                         [--image IMAGE] -- PROGRAM [ARGS...]
 //! kernel-seccomp distros
 //! kernel-seccomp generate DIR
-//! kernel-seccomp descriptor --commit SHA
-//! kernel-seccomp verify-bundle DIR
 //! kernel-seccomp version
 
-use kernel_abi_tools::bundle::{verify_bundle, Descriptor};
 use kernel_abi_tools::container::{self, Engine};
 use kernel_abi_tools::{
-    distro, distros, madvise_advice, missing_syscalls, seccomp_profile, syscalls, table_ceiling,
-    table_floor, KernelVersion, Target, GENERIC_KERNELS, PROVIDER_FORMAT,
+    distro, distros, local, madvise_advice, missing_syscalls, seccomp_profile, syscalls,
+    table_ceiling, table_floor, KernelVersion, Runner, Target, GENERIC_KERNELS, PROVIDER_FORMAT,
 };
 use std::path::Path;
 use std::process::ExitCode;
@@ -24,14 +23,17 @@ const USAGE: &str = "\
 usage:
   kernel-seccomp profile (--kernel X.Y | --distro ID) [--output FILE]
   kernel-seccomp missing (--kernel X.Y | --distro ID)
-  kernel-seccomp run (--kernel X.Y | --distro ID) [--image IMAGE] -- PROGRAM [ARGS...]
+  kernel-seccomp run (--kernel X.Y | --distro ID) [--runner local|container]
+                     [--image IMAGE] -- PROGRAM [ARGS...]
   kernel-seccomp distros
   kernel-seccomp generate DIR
-  kernel-seccomp descriptor --commit SHA
-  kernel-seccomp verify-bundle DIR
   kernel-seccomp version
 
-run environment:
+run: the default runner is the container when an image is known (--image, or
+the --distro preset's image) and the local filter otherwise. The local runner
+needs no container runtime and no root, but keeps the host userland.
+
+container runner environment:
   CONTAINER_ENGINE        podman (default) or docker
   KERNEL_ABI_ENGINE_ARGS  engine options placed before `run`, e.g. --runtime crun
   KERNEL_ABI_RUN_ARGS     options added to `run`, e.g. --network none";
@@ -107,40 +109,14 @@ fn dispatch(args: &[String]) -> Result<ExitCode, String> {
             println!("madvise-values\t{}", madvise_advice().len());
             println!("distros\t{}", distros().len());
         }
-        "descriptor" => {
-            let commit = flag(rest, "--commit").ok_or("descriptor needs --commit SHA")?;
-            let descriptor = Descriptor {
-                version: env!("CARGO_PKG_VERSION").to_string(),
-                arch: "x86_64".to_string(),
-                commit,
-                kernel_seccomp: "bin/kernel-seccomp".into(),
-                syscall_probe: "bin/syscall-probe".into(),
-                profiles: "profiles".into(),
-                distros: "data/distros.tsv".into(),
-                inventory: "SHA256SUMS".into(),
-            };
-            print!("{}", descriptor.render());
-        }
-        "verify-bundle" => {
-            let dir = Path::new(rest.first().ok_or(USAGE)?);
-            let report = verify_bundle(dir)?;
-            println!(
-                "verified kernel-abi-tools {} ({}, commit {}): {} files match {}",
-                report.descriptor.version,
-                report.descriptor.arch,
-                report.descriptor.commit,
-                report.files_verified,
-                report.descriptor.inventory.display()
-            );
-        }
         "-h" | "--help" | "help" => println!("{USAGE}"),
         other => return Err(format!("unknown command {other:?}\n{USAGE}")),
     }
     Ok(ExitCode::SUCCESS)
 }
 
-/// `run` subcommand: parses the selection and delegates to
-/// [`container::run`], which documents mounts and environment.
+/// `run` subcommand: parses the selection and delegates to [`local::run`]
+/// or [`container::run`], which document what each runner provides.
 fn run(args: &[String]) -> Result<ExitCode, String> {
     let split = args.iter().position(|a| a == "--");
     let (opts, program) = match split {
@@ -151,12 +127,34 @@ fn run(args: &[String]) -> Result<ExitCode, String> {
         .split_first()
         .ok_or(format!("run needs a program after `--`\n{USAGE}"))?;
     let target = select_target(opts)?;
-    let image = match (flag(opts, "--image"), flag(opts, "--distro")) {
-        (Some(image), _) => image,
-        (None, Some(id)) => distro(&id).map(|d| d.image.to_string()).unwrap_or_default(),
-        (None, None) => return Err("--image is required with --kernel".to_string()),
+    let requested = flag(opts, "--runner")
+        .map(|r| Runner::parse(&r))
+        .transpose()?;
+    let explicit_image = flag(opts, "--image");
+    let preset_image = flag(opts, "--distro")
+        .and_then(|id| distro(&id))
+        .map(|d| d.image.to_string());
+    let image = match requested {
+        // A preset's image is a default; the local runner simply ignores it.
+        Some(Runner::Local) => explicit_image,
+        _ => explicit_image.or(preset_image),
     };
-    let code = container::run(&Engine::from_env(), &target, &image, program, program_args)?;
+    let code = match Runner::choose(requested, image.as_deref())? {
+        Runner::Local => {
+            eprintln!(
+                "kernel-seccomp: simulating {} with a local filter; userland (libc) is the host's",
+                target.label
+            );
+            local::run(&target, program, program_args)?
+        }
+        Runner::Container => container::run(
+            &Engine::from_env(),
+            &target,
+            image.as_deref().unwrap_or_default(),
+            program,
+            program_args,
+        )?,
+    };
     Ok(ExitCode::from(code.clamp(0, 255) as u8))
 }
 

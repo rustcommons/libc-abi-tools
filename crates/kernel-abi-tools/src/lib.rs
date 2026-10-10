@@ -2,12 +2,17 @@
 //! kernel answer like a selected older kernel: `ENOSYS` for every syscall it
 //! lacks, and `EINVAL` for `madvise` advice values it does not know.
 //!
+//! Two runners apply the simulation (see [`Runner`]): [`local`] installs a
+//! BPF filter built by [`filter`] and runs the program on the host, and
+//! [`container`] runs it in an image under the equivalent OCI profile.
+//!
 //! The profiles are a testing aid, not a security boundary: everything the
 //! simulated kernel has is allowed. Other newer flags on old syscalls and
 //! behavior changes are not modelled yet; see the roadmap.
 
-pub mod bundle;
 pub mod container;
+pub mod filter;
+pub mod local;
 
 pub use linux_targets::{distro, distros, Distro, KernelVersion};
 
@@ -18,7 +23,7 @@ const MADVISE_DATA: &str = include_str!("../data/linux/madvise-x86_64.tsv");
 pub const ENOSYS: i32 = 38;
 /// `EINVAL` on Linux (all architectures).
 pub const EINVAL: i32 = 22;
-/// Version of the profile format and provider descriptor this crate emits.
+/// Version of the profile format this crate emits (named in each profile).
 pub const PROVIDER_FORMAT: &str = "kernel-abi-provider-v1";
 
 /// Kernel releases shipped as generic profiles. Chosen to cover the kernels
@@ -27,6 +32,49 @@ pub const GENERIC_KERNELS: &[&str] = &[
     "3.10", "3.16", "4.4", "4.9", "4.12", "4.14", "4.15", "4.18", "4.19", "5.3", "5.4", "5.10",
     "5.14", "5.15", "6.1", "6.4", "6.6", "6.8", "6.12",
 ];
+
+/// How a program runs under a simulated kernel.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Runner {
+    /// Host userland under an in-process seccomp filter ([`local::run`]).
+    /// Needs Linux, but no container runtime and no root.
+    Local,
+    /// A container image's userland under the OCI profile
+    /// ([`container::run`]). Needs podman or docker.
+    Container,
+}
+
+impl Runner {
+    /// Parses `local` or `container`.
+    pub fn parse(s: &str) -> Result<Self, String> {
+        match s {
+            "local" => Ok(Runner::Local),
+            "container" => Ok(Runner::Container),
+            _ => Err(format!(
+                "unknown runner {s:?} (expected local or container)"
+            )),
+        }
+    }
+
+    /// Applies the selection rules: a requested runner wins; otherwise a known
+    /// image (from `--image` or a distribution preset) means the container,
+    /// and no image means the local filter. The container needs an image, and
+    /// the local runner cannot use one.
+    pub fn choose(requested: Option<Runner>, image: Option<&str>) -> Result<Self, String> {
+        let image = image.filter(|i| !i.is_empty());
+        match (requested, image) {
+            (Some(Runner::Local), Some(i)) => Err(format!(
+                "the local runner uses the host userland; drop the image {i:?} or use the container runner"
+            )),
+            (Some(Runner::Container), None) => {
+                Err("the container runner needs an image (--image or --distro)".to_string())
+            }
+            (Some(r), _) => Ok(r),
+            (None, Some(_)) => Ok(Runner::Container),
+            (None, None) => Ok(Runner::Local),
+        }
+    }
+}
 
 /// One x86_64 syscall and the first mainline release whose table lists it.
 #[derive(Clone, Debug)]
@@ -336,6 +384,19 @@ mod tests {
             "\"action\": \"SCMP_ACT_ALLOW\", \
              \"args\": [{ \"index\": 2, \"value\": 4294967295, \"valueTwo\": 8,"
         ));
+    }
+
+    #[test]
+    fn runner_selection_rules() {
+        use Runner::*;
+        assert_eq!(Runner::choose(None, None), Ok(Local));
+        assert_eq!(Runner::choose(None, Some("img")), Ok(Container));
+        assert_eq!(Runner::choose(None, Some("")), Ok(Local));
+        assert_eq!(Runner::choose(Some(Local), None), Ok(Local));
+        assert_eq!(Runner::choose(Some(Container), Some("img")), Ok(Container));
+        assert!(Runner::choose(Some(Local), Some("img")).is_err());
+        assert!(Runner::choose(Some(Container), None).is_err());
+        assert!(Runner::parse("docker").is_err());
     }
 
     #[test]

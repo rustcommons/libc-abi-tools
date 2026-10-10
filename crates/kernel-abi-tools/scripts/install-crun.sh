@@ -3,8 +3,8 @@
 # Static crun carries a libseccomp new enough to name every syscall in the
 # data, so all profiles can be verified on hosts whose own runtime cannot
 # (e.g. Ubuntu 24.04: runc/crun with libseccomp 2.5.5). Not redistributed in
-# release bundles; on a disconnected network, carry this file across with the
-# bundle and verify the same checksum.
+# the crate; on a disconnected network, carry this file across and verify the
+# same checksum.
 #
 #   install-crun.sh DEST_FILE
 #   then: KERNEL_ABI_ENGINE_ARGS="--runtime DEST_FILE"
