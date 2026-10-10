@@ -87,5 +87,9 @@ imported deliberately with `scripts/import-glibc-elf-profile.py` after independe
 readelf/snapshot qualification; existing profiles are never silently replaced.
 Reference regeneration checks exact membership and hashes for every profile.
 
-Hosted CI is configured for all three provider releases under Clang 21 and 24;
-qualification of the newly added 2.18 jobs is pending.
+Both new 2.18 jobs in the [hosted provider matrix](https://github.com/rustcommons/libc-abi-tools/actions/runs/38066726167)
+passed under Rust 1.99.0 and Clang 21/24 on 2026-10-10 at producer commit
+`75945c278187899c537af636fdc311a07e27132f`, with pinned consumer commit
+`edfca5b9f9fb811069f302e8d2d5ef2f99f7fd33`. All six jobs passed, including
+both existing provider releases. Actual distribution/kernel qualification,
+native dependency adapters, and authenticated SDK packaging remain open.

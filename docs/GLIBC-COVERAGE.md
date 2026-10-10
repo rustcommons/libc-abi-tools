@@ -2,7 +2,7 @@
 
 Coverage recorded on 2026-10-10. The target is **x86_64 Linux, ELF64 little-endian,
 dynamically linked applications**. The experimental providers currently select
-glibc **2.17, 2.18 or 2.22** (2.18 locally validated; hosted qualification pending).
+glibc **2.17, 2.18 or 2.22**, each with local and hosted provider qualification.
 Having a snapshot for a version does not establish a provider
 or qualify its runtime.
 
@@ -71,6 +71,8 @@ qualified builder. Snapshot/reference and Rust host checks at commit `c3faf20`
 [passed](https://github.com/rustcommons/libc-abi-tools/actions/runs/38064818450).
 The [expanded provider run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38064818474)
 also passed all four 2.17/2.22 Clang 21/24 jobs, including the exhaustive suite.
+The [three-provider qualification](https://github.com/rustcommons/libc-abi-tools/actions/runs/38066726167)
+passed all six 2.17/2.18/2.22 Clang 21/24 jobs at `75945c2`.
 The earlier
 [provider run](https://github.com/rustcommons/libc-abi-tools/actions/runs/38061222447)
 passed all four jobs, before exhaustive per-interface relocation tests were added.
@@ -88,7 +90,9 @@ embedded search paths, and runtime resolution inside the selected real tree.
 
 All 15 cases passed locally across the three profiles with GCC 13.3 and Clang 18.
 The five additional 2.18 cases passed with Clang 18, bringing local coverage to
-20 profile/library cases; the new 2.18 Clang 21/24 hosted jobs are pending.
+20 profile/library cases. Both new 2.18 Clang 21/24 jobs in the
+[expanded matrix](https://github.com/rustcommons/libc-abi-tools/actions/runs/38066726167)
+passed as well.
 The fixture was checked for the expected versioned export and no dependencies;
 the final audit also records plugin and real runtime library hashes. Hosted jobs
 compile these tests with their selected Clang 21/24. Logs, executable/plugin

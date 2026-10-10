@@ -62,7 +62,7 @@ tag; source/NEWS references and behavioral tests must record those separately.
 | --- | --- | --- |
 | Public ABI membership/kind/object or TLS size | 28 pinned x86_64 snapshot labels, 2.17–2.44; eight libraries; 4671 distinct library/symbol/version tuples | Other libraries, architectures, and earlier releases are not collected |
 | Native defaults, FUNC/IFUNC, binding, visibility, storage/alignment/ranges | 11673 observations from CentOS prebuilt 2.17 and GNU source-built 2.17/2.18/2.22 | Input-specific observations; no inferred defaults for other releases |
-| Provider/link/runtime qualification | Existing 2.17/2.22 providers and locally validated 2.18 provider | Metadata coverage does not qualify every snapshot as a build/runtime target; 2.18 hosted qualification pending |
+| Provider/link/runtime qualification | Locally and hosted-qualified 2.17/2.18/2.22 experimental providers | Metadata coverage does not qualify every snapshot or distribution as a build/runtime target |
 | Early history | Official archive/diff candidates referring back to 1.00; 71 upstream tag candidates before 2.17 | Unverified release classification and target applicability; normalized symbol sets not collected |
 
 [PROVENANCE.json](../data/glibc-history/PROVENANCE.json) records the pinned Zig ABI

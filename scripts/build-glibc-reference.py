@@ -92,7 +92,7 @@ def generate(binary):
     previous = {(r["library"], r["symbol"]): r for r in defaults if r["profile"] == old_profile and r["default"] == "yes"}
     current = {(r["library"], r["symbol"]): r for r in defaults if r["profile"] == new_profile and r["default"] == "yes"}
     table += ["## Observed default-version changes", "",
-              "GNU source-build evidence compares 2.17 with 2.22; intervening defaults are not measured.", "",
+              "This comparison uses GNU source builds 2.17 and 2.22. Other measured profiles appear in the interface tables; unmeasured defaults remain unknown.", "",
               "| Library | Symbol | Previous default | New default | Older interface in 2.22 |",
               "| --- | --- | --- | --- | --- |"]
     for key in sorted(previous.keys() & current.keys()):
@@ -169,7 +169,7 @@ def generate(binary):
     writer.writerow(["from_profile", "to_profile", "library", "interface", "property", "before", "after"])
     writer.writerows(native_rows)
     native_md = ["# Measured native interface differences", "",
-                 "GNU source builds: 2.17 versus 2.22, x86_64, eight libraries. Intervening native properties are unknown.",
+                 "GNU source builds: 2.17 versus 2.22, x86_64, eight libraries. Other measured profiles appear in the interface reference; unmeasured releases remain unknown.",
                  "Default changes, native FUNC/IFUNC type, binding, visibility, object/TLS size, and declared section alignment are measured.",
                  "Alignment is a conservative section-placement observation, not proof of required language-level alignment.",
                  "Function byte size, address, and section/group numbers are recorded in the evidence but are not ABI or behavioral change claims.",

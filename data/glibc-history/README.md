@@ -21,5 +21,12 @@ tags and patches. Unknown hashes, historical interfaces, and target applicabilit
 are explicit gaps. Refreshing this inventory is a deliberate source-collection task,
 not an automatic network step in reference regeneration.
 
+After independently qualifying a new real input tree against readelf and the
+pinned snapshot, import it deliberately with `scripts/import-glibc-elf-profile.py`.
+The importer checks input and metadata hashes and complete public membership,
+preserves existing profiles, and refuses a duplicate profile name. Regenerate
+the interface reference afterward. The GNU 2.18 profile was added this way;
+native evidence now covers four profiles and 11673 public numeric observations.
+
 Build `libc-abi`, then run `scripts/build-glibc-reference.py --binary PATH` to
 regenerate the matrices and Markdown. Use `--check` to verify pinned outputs.

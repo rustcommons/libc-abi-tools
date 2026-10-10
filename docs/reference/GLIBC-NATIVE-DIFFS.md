@@ -1,6 +1,6 @@
 # Measured native interface differences
 
-GNU source builds: 2.17 versus 2.22, x86_64, eight libraries. Intervening native properties are unknown.
+GNU source builds: 2.17 versus 2.22, x86_64, eight libraries. Other measured profiles appear in the interface reference; unmeasured releases remain unknown.
 Default changes, native FUNC/IFUNC type, binding, visibility, object/TLS size, and declared section alignment are measured.
 Alignment is a conservative section-placement observation, not proof of required language-level alignment.
 Function byte size, address, and section/group numbers are recorded in the evidence but are not ABI or behavioral change claims.

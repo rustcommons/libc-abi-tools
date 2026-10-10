@@ -246,3 +246,48 @@ reintroduction, and kind/size-change regressions. The interface reference covers
 4671 tuples and 8752 native observations; historical candidates before 2.17 are
 inventoried rather than normalized or runtime-qualified. Exhaustive generated
 per-interface link probes and behavioral/header history remain planned.
+
+## Exhaustive linking, library behavior, and GNU 2.18 extension
+
+The subsequent [exhaustive suite](https://github.com/rustcommons/libc-abi-tools/actions/runs/38064818474)
+passed all four existing Clang 21/24 provider jobs. The five dedicated library
+[behavior suites](https://github.com/rustcommons/libc-abi-tools/actions/runs/38065649690)
+then passed all four jobs as well. These supersede the earlier planned status
+of exhaustive link probes; complete behavioral/header history remains open.
+
+The new [GNU 2.18 profile](GLIBC-2.18.md) passed a no-patch source build, native
+reader/readelf comparison, and exact snapshot reconciliation for all eight DSOs.
+Full stub auditing and isolated strong relocation tests passed 2921 accepted
+interfaces, 1750 rejected interfaces, and 2711 measured ordinary defaults.
+The five real-library behavior cases passed under Clang 18.1.3. Rust 1.99.0
+allocation, threads/TLS destruction, unwinding, historical data, compatibility
+interfaces, and Cargo host build/proc-macro separation passed with GNU binutils
+2.42. The Cargo program's highest direct numeric GLIBC import tag was 2.18;
+the matching real 2.18 loader and DSOs actually executed it successfully.
+
+The new pthread default-attribute fixture imports both GLIBC_2.18 APIs, changes
+and restores the stack-size default, and checks the round trip under 2.18 and
+2.22. Both 2.17 input routes reject the names at the linker. All four real input
+profiles were rechecked through the full shared suite and Cargo integration;
+memfd_create still fails at the target linker and mismatched release requests
+fail before building. Generated stubs were never used as runtime implementations.
+
+Native evidence now contains 11673 public numeric observations across four
+profiles. `scripts/import-glibc-elf-profile.py` verifies complete matrix
+membership, input/metadata/archive/package/patch hashes, and unresolved ABI
+differences before adding a profile. Its duplicate-profile guard was exercised:
+reimporting 2.18 failed and both committed evidence files remained unchanged.
+Changed metadata, input/package hashes, and incomplete-library fixtures were
+also rejected before writing; both evidence files remained unchanged in each case.
+Generated references regenerate byte-identically. Both repositories passed
+formatting, all-target tests (29 producer / 42 consumer), and clippy with warnings
+denied. Distribution/kernel/native-dependency and SDK qualification remain open.
+
+Producer commit `75945c278187899c537af636fdc311a07e27132f` pins consumer commit
+`edfca5b9f9fb811069f302e8d2d5ef2f99f7fd33`. The expanded six-job
+[hosted provider matrix](https://github.com/rustcommons/libc-abi-tools/actions/runs/38066726167)
+passed all six Clang 21/24 and 2.17/2.18/2.22 jobs. The producer's
+[host/reference/snapshot CI](https://github.com/rustcommons/libc-abi-tools/actions/runs/38066726169)
+and [companion CI](https://github.com/rustcommons/cargo-libc/actions/runs/38066613985)
+also passed, including Windows/Linux Rust 1.99, Rust 1.90 minimum checks,
+all 28 snapshots, regenerated tables, and conventional companion sysroot smoke tests.

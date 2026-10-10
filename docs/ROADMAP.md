@@ -180,7 +180,7 @@ glibc 2.17 provider/runtime qualification remains a separate gate.
 | Snapshot label | Snapshot CI configured | Remaining real input / provider / runtime setup |
 | --- | --- | --- |
 | 2.17 | Yes | Both input routes and Cargo tested locally; hosted Clang 21/24 passed; old distro/kernel qualification pending |
-| 2.18 | Yes | Pinned GNU source inputs, eight libraries, Cargo, exhaustive links, and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
+| 2.18 | Yes | Pinned GNU source inputs, eight libraries, Cargo, exhaustive links, and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
 | 2.19 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.20 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.21 | Yes | Pin inputs; generate provider; add runtime job |
@@ -227,6 +227,13 @@ The [2.22 provider](GLIBC-2.22.md) uses a generic source-built GNU runtime.
 Distribution qualification and authenticated SDK packaging remain separate gates.
 
 ## Additional provider implementation plan
+
+The [GNU 2.18 provider](GLIBC-2.18.md) now passes all eight-library native/stub
+audits, exhaustive accepted/rejected/default linking, Cargo host/target checks,
+real-library behavior, and pthread GLIBC_2.18 boundaries. All six hosted
+Clang 21/24 provider jobs passed at `75945c2` with pinned consumer `edfca5b`.
+The historical reference now includes four native profiles. Establish 2.19 next;
+distribution/kernel and SDK qualification remain separate gates.
 
 Follow [GLIBC-PROVIDER-PLAN.md](GLIBC-PROVIDER-PLAN.md) for the ordered rollout:
 fill 2.18–2.21 first, then 2.23–2.33, qualify the 2.34 library merger, and

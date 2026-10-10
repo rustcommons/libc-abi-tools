@@ -14,7 +14,7 @@ See [the history and test design](../GLIBC-HISTORY.md), [machine matrix](../../d
 
 ## Observed default-version changes
 
-GNU source-build evidence compares 2.17 with 2.22; intervening defaults are not measured.
+This comparison uses GNU source builds 2.17 and 2.22. Other measured profiles appear in the interface tables; unmeasured defaults remain unknown.
 
 | Library | Symbol | Previous default | New default | Older interface in 2.22 |
 | --- | --- | --- | --- | --- |
