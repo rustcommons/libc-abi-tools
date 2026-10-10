@@ -19,7 +19,8 @@ for route in "${routes[@]}"; do
         "$gcc_startup" "$work/compiler-runtime" "$descriptor"
     artifact="$work/cargo-$route/x86_64-unknown-linux-gnu/debug/glibc-hello"
     export CARGO_LIBC_PROVIDER_LINK_MAP="$work/logs/provider-$route-link.map"
-    "$CARGO_TARGET_DIR/debug/cargo-libc" build --provider "$descriptor" --glibc "$release" \
+    # Qualify the suffix API; Cargo must still report the ordinary target path.
+    "$CARGO_TARGET_DIR/debug/cargo-libc" build --provider "$descriptor" --target "x86_64-unknown-linux-gnu.$release" \
         --cc "$clang" --ld /usr/bin/ld.bfd --artifact "$artifact" -- \
         --manifest-path "$companion/examples/hello/Cargo.toml" --target-dir "$work/cargo-$route" \
         --locked --offline 2>&1 | tee "$work/logs/provider-$route-build.txt"
@@ -36,14 +37,21 @@ for route in "${routes[@]}"; do
     # A different requested release must be rejected, never silently downgraded.
     other=2.22
     if [ "$release" = 2.22 ]; then other=2.17; fi
-    if "$CARGO_TARGET_DIR/debug/cargo-libc" doctor --provider "$descriptor" --glibc "$other" \
+    if "$CARGO_TARGET_DIR/debug/cargo-libc" doctor --provider "$descriptor" --target "x86_64-unknown-linux-gnu.$other" \
         --cc "$clang" > "$work/logs/provider-$route-negative.txt" 2>&1; then
         echo 'Unexpected acceptance of mismatched provider version' >&2; exit 1
     fi
+    grep -F 'provider targets glibc' "$work/logs/provider-$route-negative.txt"
+    if "$CARGO_TARGET_DIR/debug/cargo-libc" doctor --provider "$descriptor" \
+        --target "x86_64-unknown-linux-gnu.$release" --glibc "$other" \
+        > "$work/logs/provider-$route-conflict-negative.txt" 2>&1; then
+        echo 'Unexpected acceptance of conflicting suffix and glibc' >&2; exit 1
+    fi
+    grep -F -- '--target version conflicts with --glibc' "$work/logs/provider-$route-conflict-negative.txt"
     # This must reach the target linker and fail on the newer symbol, not on setup.
     negative_artifact="$work/cargo-negative-$route/x86_64-unknown-linux-gnu/debug/glibc-too-new"
     export CARGO_LIBC_PROVIDER_LINK_MAP="$work/logs/provider-$route-negative-link.map"
-    if "$CARGO_TARGET_DIR/debug/cargo-libc" build --provider "$descriptor" --glibc "$release" \
+    if "$CARGO_TARGET_DIR/debug/cargo-libc" build --provider "$descriptor" --target "x86_64-unknown-linux-gnu.$release" \
         --cc "$clang" --ld /usr/bin/ld.bfd --artifact "$negative_artifact" -- \
         --manifest-path "$companion/examples/too-new/Cargo.toml" \
         --target-dir "$work/cargo-negative-$route" --locked --offline \
