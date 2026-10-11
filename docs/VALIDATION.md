@@ -345,5 +345,11 @@ tier 1 scan, tier 2 local run under a Linux 3.10 filter, workflow fixtures,
 too-new memfd_create link failure. The profile was imported as
 `gnu-source-2.19`; the reference regenerated and verified. Both repositories
 passed formatting, tests, and clippy with warnings denied. Tools: Rust 1.99.0,
-Clang 18.1.3, GNU binutils 2.42, podman 5.8.2 on WSL Ubuntu 24.04. Hosted
-Clang 21/24 qualification is pending.
+Clang 18.1.3, GNU binutils 2.42, podman 5.8.2 on WSL Ubuntu 24.04.
+
+Producer `fb5d99f977a34d8f75c455b947a22f83ef57ea35` pins that consumer. The
+[provider workflow](https://github.com/rustcommons/linux-abi-tools/actions/runs/38142660054)
+passed all twelve jobs: four preparations (2.17, 2.18, 2.19, 2.22) and eight
+Rust 1.99/Clang 21 or 24 applications. The 2.19 job logs show the same 2921/1750/2711
+exhaustive results, the tier 1 scan pass, the tier 2 run, `check`, and the
+rejection tests. Main CI also passed at that commit.
