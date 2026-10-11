@@ -110,6 +110,10 @@ are committed to [history provenance](../data/glibc-history/PROVENANCE.json) and
 [the interface reference](reference/GLIBC-SYMBOLS.md), imported with
 `scripts/import-glibc-elf-profile.py`.
 
-Hosted Clang 21/24 jobs for 2.20 are configured in the provider workflow;
-hosted qualification is recorded here once they pass. Actual distribution/kernel
-qualification, native dependency adapters, and authenticated SDK packaging remain open.
+Both new 2.20 jobs in the [hosted provider matrix](https://github.com/rustcommons/linux-abi-tools/actions/runs/38144128128)
+passed under Rust 1.99.0 and Clang 21/24 on 2026-10-11 at producer commit
+`5ed1e12856f98566dfb2c61d0c64ce7922306b27`, with pinned consumer commit
+`8444108c1b83e72ef484b95f756308de34725844`. All fifteen jobs passed (five preparations
+and ten applications), including every existing provider release. Actual
+distribution/kernel qualification, native dependency adapters, and authenticated
+SDK packaging remain open.
