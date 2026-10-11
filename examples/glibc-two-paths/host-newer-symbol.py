@@ -1,27 +1,33 @@
-"""Choose a libc function that RELEASE provides but the host's glibc does not.
+"""Choose a libc function whose symbol version is newer than the host's glibc.
 
-Prints the earliest such function (by first snapshot, then name), or nothing
-when RELEASE adds no libc function beyond HOST. Used to check that the runner
-refuses a program the host's glibc cannot load.
+Prints the function with the lowest such GLIBC version that RELEASE provides
+(then by name), or nothing when RELEASE defines no version beyond HOST. A
+program using it requires a version the host's libc.so.6 cannot define, which
+is what the runner's host check must refuse. Functions merely absent from the
+host under an old version would be a symbol lookup failure instead, which the
+version check does not cover.
 """
 import csv
 import re
 import sys
 
 path, release, host = sys.argv[1:4]
+host = tuple(map(int, host.split(".")[:2]))
 with open(path, encoding="utf-8") as stream:
     reader = csv.DictReader(stream, delimiter="\t")
-    labels = [f for f in reader.fieldnames if re.fullmatch(r"2\.[0-9]+", f)]
-    if release not in labels:
+    if release not in reader.fieldnames:
         raise SystemExit("Unknown release evidence")
     matrix = list(reader)
-host = tuple(map(int, host.split(".")[:2]))
-older = [label for label in labels if tuple(map(int, label.split("."))) <= host]
-if not older:
-    raise SystemExit("Host glibc predates the matrix; cannot choose a symbol")
-known = {r["symbol"] for r in matrix if r[older[-1]] != "absent"}
+
+
+def number(version):
+    match = re.fullmatch(r"GLIBC_([0-9]+)\.([0-9]+)(?:\.([0-9]+))?", version)
+    return tuple(int(part or 0) for part in match.groups()) if match else None
+
+
 candidates = sorted(
-    (labels.index(r["first_observed_snapshot"]), r["symbol"]) for r in matrix
-    if r["library"] == "c" and r[release] == "F" and r["symbol"] not in known)
+    (number(r["version"]), r["symbol"]) for r in matrix
+    if r["library"] == "c" and r[release] == "F" and number(r["version"])
+    and number(r["version"])[:2] > host)
 if candidates:
     print(candidates[0][1])
