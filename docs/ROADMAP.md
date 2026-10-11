@@ -353,7 +353,7 @@ passing the same qualification:
 
 | Mode | Default | How |
 | --- | --- | --- |
-| `source` | Yes | Ship glibc source; compile the startup and nonshared objects locally with Clang (like Zig) |
+| `source` | Yes | Ship glibc source; compile the startup and nonshared objects locally with the host's GCC (Zig's approach, but GCC: Clang cannot compile these sources faithfully) |
 | `prebuilt` | No | Ship the exact CI-built, qualified objects |
 | `container` | No | Run the pinned container build locally (podman or docker) |
 
@@ -378,8 +378,12 @@ All 28 releases deduplicate to about 2.6 MiB compressed, so two small data crate
   [REPLAY.md](https://github.com/rustcommons/glibc-provider/blob/main/docs/REPLAY.md)).
   Result: host GCC 13 reproduces all 28 releases. Clang 18 cannot for 2.17–2.42,
   because it ignores attributes glibc applies after a definition, which would export
-  hidden symbols. Decision needed: compile `source` mode with the host's GCC.
-- [ ] Repeat the replay with other GCC versions (12, 14, 15) and Clang versions in CI.
+  hidden symbols.
+- [x] Decide the `source` mode compiler (2026-10-11): the host's GCC, with the builder's
+  recorded defaults made explicit. Reasons in
+  [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md#why-source-mode-compiles-with-gcc-not-clang).
+- [ ] Repeat the replay with other GCC versions (12, 14, 15) in CI; do not offer `source`
+  mode with a GCC version whose result differs.
 - [ ] Build the deduplicated content store and per-release manifests (path, SHA-256,
   size, origin, license); publish `glibc-provider-sources` and
   `glibc-provider-binaries` from a qualified commit.

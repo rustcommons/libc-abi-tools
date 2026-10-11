@@ -26,7 +26,9 @@ to 2.6 MiB, because consecutive releases share almost every header and many obje
 ### Mode 2: `source` (the default)
 
 Like Zig: ship glibc **source**, not binaries, and compile the startup and
-nonshared objects on the user's machine with Clang the first time a release is used.
+nonshared objects on the user's machine the first time a release is used. Unlike
+Zig, compile them with the **host's GCC**: Clang cannot compile these glibc sources
+faithfully ([why](#why-source-mode-compiles-with-gcc-not-clang)).
 
 - **Shipped:**
   - each release's installed headers;
@@ -36,17 +38,87 @@ nonshared objects on the user's machine with Clang the first time a release is u
   - the generated configuration headers those files need;
   - the exact compile commands, captured from our pinned container builds.
 - **Generated locally:** the link stubs, from the ABI data, as today.
+- **Also shipped:** the builder compiler's recorded defaults (its predefined macros).
+  Recorded commands leave defaults such as position-independent code implicit, and
+  the local compile makes them explicit; it also turns off the host compiler's own
+  distribution defaults (stack protector, CET, `_FORTIFY_SOURCE`, stack-clash
+  protection).
 - **Why it is the default:** no container engine, no binaries from us, and no
   network once the crates are fetched. Shipping source satisfies glibc's
   source obligation directly.
-- **Risk:** glibc officially builds with GCC. These few files must be shown to
-  compile correctly with Clang for every release (Zig does this, but we must prove
-  it ourselves). The fallback for a release or file where that fails is a captured
-  GCC command for users who have GCC.
-- **Qualification:** for every release, compare the locally compiled objects with
-  the container-built ones: same symbols, versions, sections and relocations. Then
-  run the full application, exhaustive and Cargo suites against the result, as for
-  container-built providers.
+- **Needs:** the host's GCC, which Rust on Linux already uses to link, and GNU binutils.
+- **Qualification:**
+  - for every release, compare the locally compiled objects with the container-built
+    ones: symbols, visibility, sections and references (`glibc-provider-replay`);
+  - then run the full application, exhaustive and Cargo suites against the result,
+    as for container-built providers.
+
+### Why `source` mode compiles with GCC, not Clang
+
+Decided 2026-10-11, from the replay qualification in
+[glibc-provider's REPLAY.md](https://github.com/rustcommons/glibc-provider/blob/main/docs/REPLAY.md).
+
+The design first planned to compile with Clang, as Zig does. Rebuilding every
+release's startup and nonshared objects from the recorded sources, and comparing each
+object with the container build, gave:
+
+| Compiler | Objects (28 releases) | Byte-identical | Equivalent | Reviewed difference | Wrong | Failed to build |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GCC 13.3 (host) | 491 | 374 | 112 | 5 | 0 | 0 |
+| Clang 18.1.3 | 507 | 136 | 104 | 0 | 49 | 218 |
+
+**What goes wrong with Clang:**
+
+1. **Late attributes are ignored.**
+   - glibc's internal headers give some functions an inline body. For example,
+     `include/sys/stat.h` defines `extern __inline__ int __stat (...)`, and
+     similarly `__mknod` and others.
+   - The source file then adds attributes to the same function: `stat.c` marks
+     `__stat` `attribute_hidden`, and makes `stat` a weak hidden alias with
+     `weak_hidden_alias (__stat, stat)`.
+   - GCC applies attributes declared after a definition; Clang ignores them,
+     warning only "attribute declaration must precede definition".
+   - **Result:** `stat`, `fstat`, `lstat`, `mknod` and their `__` forms come out
+     global and visible instead of hidden. The weak `stat` becomes a strong
+     definition.
+   - **Consequences:** a program or shared library linked with them would export
+     these symbols, and a program defining its own `stat` could fail with a
+     duplicate definition.
+   - **Scope:** the same pattern appears in other internal headers
+     (`include/stdlib.h`, `libc_hidden_proto` declarations). It affects 2–14
+     objects in every release from 2.17 to 2.42, including `crt1.o`'s parts in
+     recent releases.
+2. **Linker warnings are emitted wrongly.** glibc's `link_warning` puts a warning
+   message in a section named `.gnu.warning.SYMBOL` and appends `"\n\t#"` to the
+   name, which comments out the flags GCC writes after it. Clang uses the name
+   literally, producing an allocated section with a malformed name. The text would
+   then be loaded into programs, and the intended link-time warning lost.
+3. **Smaller differences.**
+   - Clang places the `_IO_stdin_used` constant in `.rodata` instead of the mergeable
+     `.rodata.cst4`.
+   - Its code reaches some hidden symbols through the GOT.
+
+   These alone would be acceptable; points 1 and 2 are not.
+
+Making Clang "work" by turning the warning off would silently produce objects with
+the wrong symbol visibility, so the replay treats it as an error. Only 2.43 and 2.44
+compile fully with Clang, and even there `_IO_stdin_used` differs.
+
+**Why GCC is the right choice:**
+
+- **glibc supports only GCC.** These sources rely on GCC's attribute and
+  section semantics.
+- **Every user already has GCC.** Rust on Linux links through the system C compiler,
+  and providers already take `crtbegin.o`/`crtend.o` from the host GCC.
+- **The qualification passes.** With the builder's recorded defaults made explicit,
+  the host GCC reproduces every release: 2.37–2.44 byte for byte, and older releases
+  equivalent, differing only in instruction selection and relocation encodings.
+  - The five reviewed differences are 2.21–2.25's `warning-nop.oS`. Its source
+    defines a link-warning alias only for GCC older than 5, and nothing built with a
+    modern compiler can reference it.
+
+**Still to qualify:** other GCC versions (12, 14, 15) in CI. A compiler version
+whose result differs is reported, and `source` mode is not offered with it.
 
 ### Mode 1: `prebuilt`
 

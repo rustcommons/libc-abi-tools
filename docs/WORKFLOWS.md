@@ -409,7 +409,9 @@ Design: [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md). The user runs
      1. Read the release's headers, startup and nonshared sources, generated
         configuration headers and recorded compile commands from
         `glibc-provider-sources`, and check their hashes.
-     2. Compile `crt1.o`, `crti.o`, `crtn.o` and `libc_nonshared.a` with Clang.
+     2. Compile `crt1.o`, `crti.o`, `crtn.o` and `libc_nonshared.a` with the host's GCC,
+        making the builder's recorded defaults explicit. Clang cannot compile these glibc
+        sources faithfully ([why](PROVIDER-DELIVERY.md#why-source-mode-compiles-with-gcc-not-clang)).
      3. Generate the stubs from the ABI data.
    - **`prebuilt`:**
      1. Read the CI-built objects from `glibc-provider-binaries` and require their
