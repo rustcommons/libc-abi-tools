@@ -373,8 +373,13 @@ All 28 releases deduplicate to about 2.6 MiB compressed, so two small data crate
   configuration headers and compile commands for `crt1.o`, `crti.o`, `crtn.o` and
   every `libc_nonshared.a` member, per release (2026-10-11, all 28 releases, in
   [glibc-provider](https://github.com/rustcommons/glibc-provider) `7f46d0a`).
-- [ ] Show that Clang compiles those files correctly for every release; record any
-  release or file that needs GCC.
+- [x] Show that Clang compiles those files correctly for every release; record any
+  release or file that needs GCC (2026-10-11, glibc-provider `fa62794`,
+  [REPLAY.md](https://github.com/rustcommons/glibc-provider/blob/main/docs/REPLAY.md)).
+  Result: host GCC 13 reproduces all 28 releases. Clang 18 cannot for 2.17–2.42,
+  because it ignores attributes glibc applies after a definition, which would export
+  hidden symbols. Decision needed: compile `source` mode with the host's GCC.
+- [ ] Repeat the replay with other GCC versions (12, 14, 15) and Clang versions in CI.
 - [ ] Build the deduplicated content store and per-release manifests (path, SHA-256,
   size, origin, license); publish `glibc-provider-sources` and
   `glibc-provider-binaries` from a qualified commit.

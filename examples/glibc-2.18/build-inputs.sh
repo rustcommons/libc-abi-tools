@@ -14,6 +14,8 @@ EOF
 yum --disablerepo='*' --enablerepo=experiment -y install gcc make glibc-devel kernel-headers tar xz gawk > logs/packages.log 2>&1
 rpm -qa | sort > logs/packages.txt
 gcc --version > logs/builder-gcc.txt
+# Predefined macros record defaults such as PIE that build commands leave implicit.
+echo | gcc -dM -E - | sort > logs/builder-defaults.txt
 cp -L /usr/lib64/libgcc_s.so.1 prebuilt/usr/lib64/libgcc_s.so.1
 tar -xf glibc-2.18.tar.xz
 # 2.18 already has the upstream freestanding syscall-header fix. No source patch.

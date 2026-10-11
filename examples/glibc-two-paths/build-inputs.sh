@@ -14,6 +14,8 @@ EOF
 yum --disablerepo='*' --enablerepo=experiment -y install gcc make glibc-devel kernel-headers tar xz gawk > logs/packages.log 2>&1
 rpm -qa | sort > logs/packages.txt
 gcc --version > logs/builder-gcc.txt
+# Predefined macros record defaults such as PIE that build commands leave implicit.
+echo | gcc -dM -E - | sort > logs/builder-defaults.txt
 cp -a /usr/include/. prebuilt/usr/include/
 cp -a /usr/lib64/. prebuilt/usr/lib64/
 cp -a /lib64/. prebuilt/lib64/

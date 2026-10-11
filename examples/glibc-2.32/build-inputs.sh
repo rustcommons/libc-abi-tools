@@ -13,6 +13,8 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     gcc make gawk bison python3 xz-utils linux-libc-dev libc6-dev >> logs/packages.log 2>&1
 dpkg-query -W -f '${Package} ${Version} ${Architecture}\n' | sort > logs/packages.txt
 gcc --version > logs/builder-gcc.txt
+# Predefined macros record defaults such as PIE that build commands leave implicit.
+echo | gcc -dM -E - | sort > logs/builder-defaults.txt
 cp -L /lib/x86_64-linux-gnu/libgcc_s.so.1 prebuilt/usr/lib64/libgcc_s.so.1
 tar -xf glibc-2.32.tar.xz
 # 2.32 already has the upstream freestanding syscall-header fix (added in 2.18). No source patch.
