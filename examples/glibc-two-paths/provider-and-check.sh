@@ -34,6 +34,25 @@ for route in "${routes[@]}"; do
         --bin glibc-hello --locked --offline 2>&1 | tee "$work/logs/provider-$route-run.txt"
     grep -F 'Kernel simulation: Linux 3.10 with the local seccomp filter' "$work/logs/provider-$route-run.txt"
     grep -F 'target executable ran; thread result = 42' "$work/logs/provider-$route-run.txt"
+    # F03: check the same workspace with this provider; nothing may be linked.
+    check_dir="$work/cargo-check-$route"
+    "$CARGO_TARGET_DIR/debug/cargo-libc" check --provider "$descriptor" --target "x86_64-unknown-linux-gnu.$release" \
+        --cc "$clang" --ld /usr/bin/ld.bfd -- \
+        --manifest-path "$companion/examples/hello/Cargo.toml" --target-dir "$check_dir" \
+        --workspace --all-targets --locked --offline 2>&1 | tee "$work/logs/provider-$route-check.txt"
+    grep -F 'Nothing was linked' "$work/logs/provider-$route-check.txt"
+    if [ -e "$check_dir/x86_64-unknown-linux-gnu/debug/glibc-hello" ]; then
+        echo "check linked an executable for $route" >&2
+        exit 1
+    fi
+    if "$CARGO_TARGET_DIR/debug/cargo-libc" check --provider "$descriptor" \
+        --target "x86_64-unknown-linux-gnu.$release" --glibc 2.99 --cc "$clang" --ld /usr/bin/ld.bfd -- \
+        --manifest-path "$companion/examples/hello/Cargo.toml" --target-dir "$check_dir" \
+        --locked --offline > "$work/logs/provider-$route-check-conflict.txt" 2>&1; then
+        echo "check accepted a --glibc that conflicts with the --target suffix" >&2
+        exit 1
+    fi
+    grep -F -- '--target version conflicts with --glibc' "$work/logs/provider-$route-check-conflict.txt"
     "$work/$route/lib64/ld-linux-x86-64.so.2" \
         --library-path "$work/compiler-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
         "$artifact" | tee "$work/logs/provider-$route-runtime.txt"
