@@ -344,6 +344,92 @@ fill 2.18–2.21 first, then 2.23–2.33, qualify the 2.34 library merger, and
 extend subsequent releases individually. Each provider must pass the same
 input, ABI, relocation, Cargo, real runtime, and hosted CI gates.
 
+## Provider delivery
+
+Next major work, designed in [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md); not
+started. Goal: `cargo libc build --target x86_64-unknown-linux-gnu.2.28` works
+with no provider flags. Three modes, all producing the same provider layout and
+passing the same qualification:
+
+| Mode | Default | How |
+| --- | --- | --- |
+| `source` | Yes | Ship glibc source; compile the startup and nonshared objects locally with Clang (like Zig) |
+| `prebuilt` | No | Ship the exact CI-built, qualified objects |
+| `container` | No | Run the pinned container build locally (podman or docker) |
+
+All 28 releases deduplicate to about 2.6 MiB compressed, so two small data crates
+(sources, binaries) replace any per-release crates.
+
+- [ ] Decide crate names and versioning for the data crates.
+- [ ] Decide the corresponding-source arrangement for `prebuilt` (hosted archives,
+  written offer, or source crates), with legal review, before publishing it.
+- [ ] Decide the compiler runtime: generated `libgcc_s` stub, shipped CI-built
+  `libgcc_s`, and/or compiler-rt `crtbegin`/`crtend` instead of host GCC.
+- [ ] Capture, in the container builds, the exact source files, generated
+  configuration headers and compile commands for `crt1.o`, `crti.o`, `crtn.o` and
+  every `libc_nonshared.a` member, per release.
+- [ ] Show that Clang compiles those files correctly for every release; record any
+  release or file that needs GCC.
+- [ ] Build the deduplicated content store and per-release manifests (path, SHA-256,
+  size, origin, license); publish `glibc-provider-sources` and
+  `glibc-provider-binaries` from a qualified commit.
+- [ ] Add the `provider` module to `libc-abi-tools` (features `provider-sources`
+  default, `provider-binaries` optional), the cache layout, and the `libc-abi
+  provider` commands.
+- [ ] Add automatic preparation, `--provider-mode`, and `cargo libc provider
+  prepare|list|path|verify|export|import|remove` to cargo-libc; keep `--provider
+  FILE` and `--sysroot` working.
+- [ ] Qualify every release in every mode in hosted CI (byte comparisons, object
+  equivalence, full suites); list passing modes per release in PROVIDERS.md.
+- [ ] Document the three modes for users, including offline and air-gapped use, and
+  when to choose each.
+
+## Long-term: source-built builder toolchains
+
+Not planned for the next releases; heavy engineering. Today the `container` mode
+and CI build glibc inside vendor images: a digest-pinned CentOS 7 image with
+packages from the CentOS vault (2.17–2.25), Debian 9 with archive.debian.org
+(2.26–2.36), and Debian 12 with a fixed snapshot.debian.org date (2.37–2.44). Each
+builder's compiler, binutils, make, bison, Python, kernel UAPI headers and
+`libgcc_s` therefore come from a vendor's binary packages. Those archives can
+disappear, and their binaries cannot be audited back to source.
+
+The goal is to build those toolchains ourselves from pinned upstream sources, and to
+use them to build every provider.
+
+- **Seed.** Start from a minimal, pinned, auditable seed rather than a full
+  distribution. Candidates: a full-source bootstrap such as live-bootstrap or
+  GNU Guix's bootstrap, or a small pinned image whose only role is to compile the
+  first stage. Record the seed's identity, and its own provenance where available.
+- **Era-matched toolchains.** From the seed, build:
+  - GNU binutils, GCC (C only, plus libgcc), make, bison, gawk and Python from
+    signed upstream releases;
+  - Linux UAPI headers from kernel.org tags.
+
+  The versions must be equivalent to what each glibc era needs today: GCC 4.8-era
+  for 2.17–2.25, GCC 6-era for 2.26–2.36, and GCC 12-era for 2.37–2.44 (binutils
+  new enough for 2.37's AVX-512 code).
+- **Images from Containerfiles.** Produce each builder image from a committed
+  Containerfile and recorded inputs. Publish the image digest, the build log and a
+  manifest of every input (URL, checksum, signature, license).
+- **Reproducibility.** Build every toolchain and provider twice, on different
+  hosts, and require identical outputs. Investigate and document every difference.
+  Optionally, cross-check the compiler with diverse double-compiling.
+- **Equivalence.** For each release, the new builders must yield providers whose
+  ABI profiles, stubs and headers match today's vendor-built providers, and they
+  must pass every gate (exhaustive links, applications, Cargo, hosted CI).
+  Explain and record any difference, for example in startup-object code.
+- **Our own `libgcc_s`.** The compiler runtime in each provider then also comes from
+  our GCC build, with its source and license recorded.
+- **Costs to expect:**
+  - toolchain builds take hours, so they need caching and separate CI workflows;
+  - old GCC and binutils need fixes to build with newer seeds;
+  - a matrix of toolchain eras to maintain;
+  - substantial CI storage.
+- **Exit criterion.** No provider, CI job or `container` mode depends on a
+  vendor image or archive. The vendor-built path stays only as a comparison until
+  then.
+
 ## Future release: distribution-specific providers
 
 Not started; planned for a release after 0.2.0, once the current generic providers
