@@ -71,5 +71,5 @@ tests (2.43 and 2.44 have no later release, so they use a name absent from every
 Images are pinned by digest and apt verifies the signed Release files. Each provider uses
 its builder's real `libgcc_s.so.1`, whose GLIBC requirement is below the release it serves.
 
-Local counts (WSL Ubuntu 24.04, Clang 18.1.3; hosted for 2.17, 2.18 and 2.22); hosted
-Clang 21/24 qualification with consumer cargo-libc `bfe04693f6685770b47c9346e32de556a8029f4e` is pending.
+Hosted run: [38158161339](https://github.com/rustcommons/linux-abi-tools/actions/runs/38158161339) at producer `ae68bf63f5ddde7fc7852e76eab83ad2c1beb2c0` with
+consumer cargo-libc `bfe04693f6685770b47c9346e32de556a8029f4e`, Rust 1.99.0 and Clang 21/24.

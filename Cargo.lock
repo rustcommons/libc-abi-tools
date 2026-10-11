@@ -10,21 +10,21 @@ checksum = "f25a3e79840da5cfb915292689f0b269fd941de4e87517c17d0199acde662196"
 
 [[package]]
 name = "kernel-abi-tools"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "linux-targets",
 ]
 
 [[package]]
 name = "libc-abi-tools"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "glibc-abilists",
 ]
 
 [[package]]
 name = "linux-abi-scan"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "kernel-abi-tools",
  "linux-targets",
@@ -32,7 +32,7 @@ dependencies = [
 
 [[package]]
 name = "linux-abi-tools"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "kernel-abi-tools",
  "libc-abi-tools",
@@ -42,4 +42,4 @@ dependencies = [
 
 [[package]]
 name = "linux-targets"
-version = "0.1.0"
+version = "0.2.0"

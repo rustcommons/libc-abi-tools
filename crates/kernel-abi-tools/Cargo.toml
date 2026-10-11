@@ -1,6 +1,6 @@
 [package]
 name = "kernel-abi-tools"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.90"
 description = "Linux kernel ABI data and seccomp profiles that simulate older kernels when testing Rust binaries"
@@ -24,4 +24,4 @@ name = "syscall-probe"
 path = "src/bin/syscall-probe.rs"
 
 [dependencies]
-linux-targets = { path = "../linux-targets", version = "0.1.0" }
+linux-targets = { path = "../linux-targets", version = "0.2.0" }

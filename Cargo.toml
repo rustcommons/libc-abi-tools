@@ -1,6 +1,6 @@
 [package]
 name = "libc-abi-tools"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.90"
 description = "Rust tools for libc ABI metadata, starting with glibc"
@@ -10,7 +10,7 @@ readme = "README.md"
 keywords = ["glibc", "abi", "linker", "symbols", "compatibility"]
 categories = ["development-tools::build-utils"]
 # glibc's ABI lists come from the glibc-abilists crate (see [features]).
-include = ["src/**", "Cargo.toml", "README.md", "LICENSE", "LICENSES/**", "NOTICE.md"]
+include = ["/src/**", "/Cargo.toml", "/README.md", "/LICENSE", "/LICENSES/**", "/NOTICE.md"]
 
 [lib]
 name = "libc_abi_tools"

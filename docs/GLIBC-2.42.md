@@ -82,6 +82,6 @@ cargo-libc `bfe04693f6685770b47c9346e32de556a8029f4e`. The measured profile `gnu
 committed to [history provenance](../data/glibc-history/PROVENANCE.json) and
 [the interface reference](reference/GLIBC-SYMBOLS.md).
 
-Hosted Clang 21/24 jobs for 2.42 are configured in the provider workflow;
-hosted qualification is recorded here once they pass. Distribution/kernel
+Both Clang 21/24 jobs for 2.42 passed in the [complete 84-job hosted run](https://github.com/rustcommons/linux-abi-tools/actions/runs/38158161339) at
+producer `ae68bf63f5ddde7fc7852e76eab83ad2c1beb2c0` with consumer `bfe04693f6685770b47c9346e32de556a8029f4e` on 2026-10-11. Distribution/kernel
 qualification, native dependency adapters, and authenticated SDK packaging remain open.

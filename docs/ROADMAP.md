@@ -23,7 +23,8 @@ Decided the same day:
 - **Crates on crates.io only:** `linux-targets`, `kernel-abi-tools`,
   `linux-abi-scan` (added the same day), `libc-abi-tools`, and the
   `linux-abi-tools` crate (`crates/linux-abi-tools`) that re-exports the
-  others; all published as 0.1.0 on 2026-10-11, after `glibc-abilists` 0.1.0.
+  others; all published as 0.1.0 on 2026-10-11, after `glibc-abilists` 0.1.0,
+  and as 0.2.0 (providers for every release 2.17 through 2.44) the same day.
   cargo-libc depends on the published crates,
   because crates.io does not accept git dependencies. The kernel standalone
   bundle and its tag release workflow were removed before anything was
@@ -69,10 +70,11 @@ Providers 2.23–2.29 passed all 39 hosted jobs at
 27caf3dbf9b7b5b018763629d3a3d2ebba377123 with consumer cargo-libc
 a259c167741c6b1d31eaa3b7c664df8faff3b7a7
 ([run](https://github.com/rustcommons/linux-abi-tools/actions/runs/38155189880)).
-Providers 2.30–2.44 pass locally with consumer cargo-libc
-bfe04693f6685770b47c9346e32de556a8029f4e, completing every release in the ABI
-lists ([provider index](PROVIDERS.md)); their hosted jobs are configured, and
-release 0.2.0 follows hosted qualification. Historical research and the symbol matrix remain
+Every release in the ABI lists, 2.17 through 2.44, now has a provider: producer
+ae68bf63f5ddde7fc7852e76eab83ad2c1beb2c0 with consumer cargo-libc
+bfe04693f6685770b47c9346e32de556a8029f4e passed [all 84 provider jobs](https://github.com/rustcommons/linux-abi-tools/actions/runs/38158161339)
+on 2026-10-11 ([provider index](PROVIDERS.md)). Release 0.2.0 ships them; see
+[RELEASING.md](RELEASING.md). Historical research and the symbol matrix remain
 separate from provider/runtime qualification. Public authenticated SDK releases
 and additional platform/distribution/kernel qualification remain unfinished.
 
@@ -269,21 +271,21 @@ glibc 2.17 provider/runtime qualification remains a separate gate.
 | 2.27 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
 | 2.28 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
 | 2.29 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
-| 2.30 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
-| 2.31 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
-| 2.32 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
-| 2.33 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
-| 2.34 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
-| 2.35 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
-| 2.36 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
-| 2.37 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
-| 2.38 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
-| 2.39 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
-| 2.40 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
-| 2.41 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
-| 2.42 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
-| 2.43 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
-| 2.44 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
+| 2.30 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
+| 2.31 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
+| 2.32 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
+| 2.33 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
+| 2.34 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
+| 2.35 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
+| 2.36 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
+| 2.37 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
+| 2.38 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
+| 2.39 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
+| 2.40 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
+| 2.41 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
+| 2.42 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
+| 2.43 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
+| 2.44 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
 
 The last two rows track vendored labels without asserting upstream availability.
 Runtime jobs must fail on incompatible inputs, newer symbols, host shared-library
@@ -330,11 +332,10 @@ All fifteen hosted jobs passed at `5ed1e12` with pinned consumer `8444108`.
 The [GNU 2.21 provider](GLIBC-2.21.md) passes the same suite locally, with a new
 fixture for its one measured default change (`sigvec` became compatibility-only).
 All eighteen hosted jobs passed at `85b69c8` with pinned consumer `16a464e`.
-Providers 2.23–2.29 passed all 39 hosted jobs at `27caf3d`; 2.30–2.44 pass the same suite
-locally (Debian 9 builder for 2.26–2.36, Debian 12 for 2.37–2.44) with hosted jobs
-configured. Every release in the ABI lists has a provider ([index](PROVIDERS.md)); the
-historical reference includes 29 native profiles. Next: complete hosted qualification and
-release 0.2.0;
+Providers 2.23–2.29 passed all 39 hosted jobs at `27caf3d`; 2.30–2.44 (Debian 9 builder for 2.26–2.36,
+Debian 12 for 2.37–2.44) passed all 84 hosted jobs at `ae68bf6`. Every release in the ABI
+lists has a provider ([index](PROVIDERS.md)); the historical reference includes 29 native
+profiles, and release 0.2.0 ships them;
 distribution/kernel and SDK qualification remain separate gates.
 
 Follow [GLIBC-PROVIDER-PLAN.md](GLIBC-PROVIDER-PLAN.md) for the ordered rollout:

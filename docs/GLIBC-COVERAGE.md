@@ -2,8 +2,8 @@
 
 Coverage recorded on 2026-10-10. The target is **x86_64 Linux, ELF64 little-endian,
 dynamically linked applications**. The experimental providers currently select
-glibc **2.17 through 2.44**, every release in the pinned ABI lists. 2.17–2.29 have local and
-hosted provider qualification; 2.30–2.44 pass locally and their hosted jobs are configured.
+glibc **2.17 through 2.44**, every release in the pinned ABI lists, each with local and hosted
+provider qualification.
 Having a snapshot for a version does not establish a provider
 or qualify its runtime.
 
@@ -83,6 +83,8 @@ The [five-provider qualification](https://github.com/rustcommons/linux-abi-tools
 passed all five preparations and ten 2.17–2.22 Clang 21/24 jobs at `5ed1e12`.
 The [six-provider qualification](https://github.com/rustcommons/linux-abi-tools/actions/runs/38147732823)
 passed all six preparations and twelve Clang 21/24 jobs for every release 2.17–2.22 at `85b69c8`.
+The [complete qualification](https://github.com/rustcommons/linux-abi-tools/actions/runs/38158161339) passed all 28 preparations and 56 Clang 21/24
+application jobs, 2.17 through 2.44, at `ae68bf6`.
 The earlier
 [provider run](https://github.com/rustcommons/linux-abi-tools/actions/runs/38061222447)
 passed all four jobs, before exhaustive per-interface relocation tests were added.

@@ -1,6 +1,6 @@
 [package]
 name = "linux-abi-scan"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.90"
 description = "Static inspection of built Linux executables against a target's glibc and kernel floors (tier 1 of linux-abi-tools' testing tiers)"
@@ -20,5 +20,5 @@ name = "linux-abi-scan"
 path = "src/bin/linux-abi-scan.rs"
 
 [dependencies]
-kernel-abi-tools = { path = "../kernel-abi-tools", version = "0.1.0" }
-linux-targets = { path = "../linux-targets", version = "0.1.0" }
+kernel-abi-tools = { path = "../kernel-abi-tools", version = "0.2.0" }
+linux-targets = { path = "../linux-targets", version = "0.2.0" }

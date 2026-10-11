@@ -463,4 +463,10 @@ resolver suite accepts 2.34's `dn_expand` spelling. Every 2.34+ executable impor
 libc interface in the matrix, so their too-new tests use a name absent from every snapshot.
 
 Tools: Rust 1.99.0, Clang 18.1.3, GNU binutils 2.42, podman 5.8.2 on WSL Ubuntu 24.04.
-Hosted Clang 21/24 qualification is pending.
+
+Producer `ae68bf63f5ddde7fc7852e76eab83ad2c1beb2c0` with consumer `bfe04693f6685770b47c9346e32de556a8029f4e` passed all 84
+[hosted provider jobs](https://github.com/rustcommons/linux-abi-tools/actions/runs/38158161339) on 2026-10-11: 28 preparations
+(2.17 through 2.44, both 2.17 routes) and 56 Rust 1.99/Clang 21 or 24 applications, plus
+main CI. The hosted exhaustive counts equal the local ones for every release; the 2.34
+and 2.44 job logs show the scan, the tier 2 run, `check`, the rejection tests and the
+matrix-selected too-new failures (`__memcmpeq`, and the absent-name probe).

@@ -2,7 +2,7 @@
 
 This is an implementation order, not a list of newly supported runtimes.
 Every release from 2.17 through 2.22 has locally and hosted-qualified provider
-integration; so do 2.23–2.29, and 2.30–2.44 pass locally with hosted jobs configured. All 28
+integration, and so does every later release through 2.44: all seven stages are complete. All 28
 vendored labels have snapshot tests; that does not establish real providers.
 The complete per-label status remains in [ROADMAP.md](ROADMAP.md).
 
@@ -82,8 +82,8 @@ and focused semantic tests alongside the ABI tables as that evidence is collecte
 ## Immediate deliverables
 
 - Qualify the new exhaustive suite locally and in the four current provider jobs.
-- Complete hosted qualification of 2.30–2.44; every stage then has its providers (see the
-  [provider index](PROVIDERS.md)). The 2.34 merger needed no contract migration: the
-  placeholder libraries remain, and the eight-library descriptor describes them.
+- Every stage has its providers (see the [provider index](PROVIDERS.md)). The 2.34 merger
+  needed no contract migration: the placeholder libraries remain, and the eight-library
+  descriptor describes them. Distribution and kernel qualification remain separate.
 - Collect and normalize 2.16 history without declaring a 2.16 Rust provider.
 - Keep distribution qualification for current 2.17/2.22 inputs tracked separately.
