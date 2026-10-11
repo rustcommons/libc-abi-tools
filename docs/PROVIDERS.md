@@ -6,6 +6,8 @@ CRT objects, nonshared archives, loader, and runtime DSOs from a pinned, signatu
 GNU source build (2.17 also has a CentOS 7 package route). Each is a generic GNU build,
 not a distribution-qualified sysroot; old-distribution and kernel qualification remain
 separate. Select one with the v1 descriptor ([PROVIDER-CONTRACT.md](PROVIDER-CONTRACT.md)).
+Generic GNU builds can differ from a distribution's glibc; the measured differences, their
+consequences, and licensing considerations are in [DISTRIBUTION-DIFFERENCES.md](DISTRIBUTION-DIFFERENCES.md).
 
 The counts are the exhaustive isolated-library link checks from the hosted run:
 versioned interfaces that must link, interfaces from other releases that must not,

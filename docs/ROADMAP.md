@@ -343,6 +343,26 @@ fill 2.18–2.21 first, then 2.23–2.33, qualify the 2.34 library merger, and
 extend subsequent releases individually. Each provider must pass the same
 input, ABI, relocation, Cargo, real runtime, and hosted CI gates.
 
+## Future release: distribution-specific providers
+
+Not started; planned for a release after 0.2.0, once the current generic providers
+and their open checklist items are complete. Today every provider is a generic GNU
+build, and [DISTRIBUTION-DIFFERENCES.md](DISTRIBUTION-DIFFERENCES.md) records how
+that can differ from a distribution's glibc (measured for CentOS 7.9 and 2.17).
+
+- [ ] Choose the first inputs among redistributable sources (Debian, Ubuntu, Rocky
+  Linux, AlmaLinux, Red Hat UBI, SUSE BCI) and name them after their actual source.
+- [ ] Pin each binary and source package by version and checksum, verify the
+  distribution's signatures, and record each package's license and redistribution terms.
+- [ ] Extend the descriptor with the input identity and keep generic and distribution
+  providers for the same release distinguishable; document any schema change first.
+- [ ] Measure each input as a native profile and compare it with the generic build;
+  record every difference in DISTRIBUTION-DIFFERENCES.md.
+- [ ] Apply the same ABI, exhaustive, application, Cargo and hosted gates as the generic
+  providers; run the results in the distribution's own image.
+- [ ] Before any SDK redistribution, settle source availability (distribution source
+  packages), license notices, and trademark naming.
+
 ## Historical matrix and standardized conformance
 
 - [x] Generate the complete covered-snapshot union: 4671 interfaces across 28 labels.

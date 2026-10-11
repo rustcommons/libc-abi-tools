@@ -41,6 +41,25 @@ for route in "${routes[@]}"; do
         --bin glibc-hello --locked --offline 2>&1 | tee "$work/logs/provider-$route-run.txt"
     grep -F 'Kernel simulation: Linux 3.10 with the local seccomp filter' "$work/logs/provider-$route-run.txt"
     grep -F 'target executable ran; thread result = 42' "$work/logs/provider-$route-run.txt"
+    # The local runner uses the host's glibc: a program needing a newer one must
+    # be refused before the loader sees it (only testable for newer providers).
+    host_glibc=$(getconf GNU_LIBC_VERSION | cut -d' ' -f2)
+    host_newer=$(python3 "$example_dir/host-newer-symbol.py" "$work/elf-metadata/matrix.tsv" "$release" "$host_glibc")
+    if [ -n "$host_newer" ]; then
+        rm -rf "$work/host-newer-crate"
+        cp -r "$work/too-new-crate" "$work/host-newer-crate"
+        sed -i "s|#\[link_name = \"$too_new\"\]|#[link_name = \"$host_newer\"]|" "$work/host-newer-crate/src/main.rs"
+        grep -qF "#[link_name = \"$host_newer\"]" "$work/host-newer-crate/src/main.rs"
+        if "$CARGO_TARGET_DIR/debug/cargo-libc" run --provider "$descriptor" --target "x86_64-unknown-linux-gnu.$release" \
+            --cc "$clang" --ld /usr/bin/ld.bfd --kernel 3.10 --runner local -- \
+            --manifest-path "$work/host-newer-crate/Cargo.toml" --target-dir "$work/cargo-host-newer-$route" \
+            --locked --offline > "$work/logs/provider-$route-host-glibc-negative.txt" 2>&1; then
+            echo "the local runner started a program that needs $host_newer beyond host glibc $host_glibc" >&2
+            exit 1
+        fi
+        grep -F "the host's libraries lack libc.so.6 GLIBC_" "$work/logs/provider-$route-host-glibc-negative.txt"
+        grep -F "so the loader would refuse it" "$work/logs/provider-$route-host-glibc-negative.txt"
+    fi
     # F03: check the same workspace with this provider; nothing may be linked.
     check_dir="$work/cargo-check-$route"
     "$CARGO_TARGET_DIR/debug/cargo-libc" check --provider "$descriptor" --target "x86_64-unknown-linux-gnu.$release" \

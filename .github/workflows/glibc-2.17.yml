@@ -7,7 +7,7 @@ on:
       companion_ref:
         description: cargo-libc integration branch or tested commit
         required: false
-        default: bfe04693f6685770b47c9346e32de556a8029f4e
+        default: b809806500415b2053e26b4dedc55847fe5fb054
 permissions:
   contents: read
 jobs:
@@ -83,7 +83,7 @@ jobs:
         with:
           repository: rustcommons/cargo-libc
           path: cargo-libc
-          ref: ${{ inputs.companion_ref || 'bfe04693f6685770b47c9346e32de556a8029f4e' }}
+          ref: ${{ inputs.companion_ref || 'b809806500415b2053e26b4dedc55847fe5fb054' }}
       - uses: dtolnay/rust-toolchain@1.99.0
       - name: Install application tools
         env:
