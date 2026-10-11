@@ -1,0 +1,15 @@
+release = "2.41"
+target = "x86_64-unknown-linux-gnu"
+runtime_source = "GNU glibc source build; not a distribution-qualified sysroot"
+source_url = "https://ftp.gnu.org/gnu/glibc/glibc-2.41.tar.xz"
+source_sha256 = "a5a26b22f545d6b7d7b3dd828e11e428f24f4fac43c934fb071b6a7d0828e901"
+# Checksum pins retrieved bytes. On 2026-10-11 the detached .sig verified with gpgv against
+# https://ftp.gnu.org/gnu/gnu-keyring.gpg (RSA key DC2B16215ED5412A, Andreas K. Huettel).
+builder_image = "docker.io/library/debian@sha256:bc49dc1918ee1a47a93e65b5e4676e8680fb754b133197b92ca52bfe6731d5f0"
+bootstrap_repository = "http://snapshot.debian.org/archive/debian/20260901T000000Z bookworm main (signed Release; Valid-Until not enforced)"
+bootstrap_gcc = "12.2.0-14+deb12u1"
+bootstrap_binutils = "2.40-2"
+bootstrap_kernel_headers = "linux-libc-dev 6.1.176-1"
+compiler_runtime = "Real Debian 12 GCC 12.2 libgcc_s.so.1 (requires GLIBC_2.35 at most)"
+configuration = "--prefix=/usr --libdir=/usr/lib64 --disable-werror --enable-kernel=3.2"
+source_patches = "none"

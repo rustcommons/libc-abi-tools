@@ -162,16 +162,22 @@ for route in ROUTES:
     require(imported == set(expected_default), "Unversioned fmemopen did not bind to the measured default")
     manifest["executables"][route]["fmemopen_default"] = expected_default[0]
     manifest["executables"][route]["fmemopen_default_sha256"] = digest(work / ("fmemopen-default-" + route))
-    pthread_rows = [r for r in rows(work / "elf-metadata/matrix.tsv")
-                    if r["library"] == "pthread" and r["version"] == "GLIBC_2.18"
-                    and r["symbol"] in ("pthread_getattr_default_np", "pthread_setattr_default_np")]
+    # glibc 2.34 moved both interfaces, unchanged in version, from libpthread into libc.
+    candidates = [r for r in rows(work / "elf-metadata/matrix.tsv")
+                  if r["library"] in ("pthread", "c") and r["version"] == "GLIBC_2.18"
+                  and r["symbol"] in ("pthread_getattr_default_np", "pthread_setattr_default_np")]
+    pthread_rows = ([r for r in candidates if r[RELEASE] != "absent"]
+                    or [r for r in candidates if r["library"] == "pthread"])
     require(len(pthread_rows) == 2, "Missing pthread boundary evidence")
     pthread_accept = all(r[RELEASE] == "F" for r in pthread_rows)
     require(pthread_accept or all(r[RELEASE] == "absent" for r in pthread_rows), "Inconsistent pthread boundary")
     if pthread_accept:
         imported = (work / "logs" / ("full-" + route + "-pthread-default-executable.txt")).read_text()
         for row in pthread_rows:
-            require(row["symbol"] + "@GLIBC_2.18" in imported, "Missing pthread boundary import")
+            defaults = [r["version"] for r in rows(work / "elf-metadata" / (route + "-" + row["library"] + ".tsv"))
+                        if r["symbol"] == row["symbol"] and r["default"] == "yes"]
+            require(len(defaults) == 1, "Missing measured pthread boundary default")
+            require(row["symbol"] + "@" + defaults[0] in imported, "pthread boundary did not bind to its measured default")
         require((work / "logs" / ("full-" + route + "-pthread-default-run.txt")).read_text().strip() ==
                 "glibc 2.18 pthread defaults work!", "pthread defaults runtime failed")
         manifest["executables"][route]["pthread_defaults_sha256"] = digest(work / ("pthread-default-full-" + route))

@@ -1,0 +1,15 @@
+release = "2.33"
+target = "x86_64-unknown-linux-gnu"
+runtime_source = "GNU glibc source build; not a distribution-qualified sysroot"
+source_url = "https://ftp.gnu.org/gnu/glibc/glibc-2.33.tar.xz"
+source_sha256 = "2e2556000e105dbd57f0b6b2a32ff2cf173bde4f0d85dffccfd8b7e51a0677ff"
+# Checksum pins retrieved bytes. On 2026-10-11 the detached .sig verified with gpgv against
+# https://ftp.gnu.org/gnu/gnu-keyring.gpg (RSA key 16792B4EA25340F8, Carlos O'Donell).
+builder_image = "docker.io/library/debian@sha256:16ee3e11da473f6565ef94a715f1a38b3079e0664913be78869c336a71cb6085"
+bootstrap_repository = "http://archive.debian.org/debian stretch main (signed Release; Valid-Until not enforced)"
+bootstrap_gcc = "6.3.0-18+deb9u1"
+bootstrap_binutils = "2.28-5"
+bootstrap_kernel_headers = "linux-libc-dev 4.9.228-1"
+compiler_runtime = "Real Debian 9 GCC 6.3 libgcc_s.so.1 (requires GLIBC_2.14 at most)"
+configuration = "--prefix=/usr --libdir=/usr/lib64 --disable-werror --enable-kernel=3.2"
+source_patches = "none"

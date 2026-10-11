@@ -11,8 +11,10 @@ sonames = {"m": "libm.so.6", "dl": "libdl.so.2", "rt": "librt.so.1",
            "util": "libutil.so.1", "resolv": "libresolv.so.2"}
 required = {"m": {"sin", "cos", "sqrt", "pow"}, "dl": {"dlopen", "dlsym", "dlvsym", "dlclose"},
             "rt": {"clock_gettime", "clock_getres", "timer_create", "timer_delete"},
-            # These target headers map the public dn_expand spelling to __dn_expand.
-            "util": {"openpty"}, "resolv": {"ns_initparse", "ns_parserr", "__dn_expand"}}
+            "util": {"openpty"}, "resolv": {"ns_initparse", "ns_parserr"}}
+# Headers before 2.34 map the public dn_expand spelling to __dn_expand; 2.34
+# moved dn_expand into libc under its own name. Either spelling must be imported.
+alternatives = {"resolv": {"__dn_expand", "dn_expand"}}
 ceiling = tuple(map(int, RELEASE.split("."))) + (0,)
 report = {"release": RELEASE, "scope": "selected real library behavior", "cases": []}
 
@@ -33,7 +35,8 @@ for route in ROUTES:
         text = pathlib.Path(str(prefix) + "-elf.txt").read_text()
         imported = {line.split()[7].split("@")[0] for line in text.splitlines()
                     if " UND " in line and len(line.split()) >= 8}
-        require(required[library] <= imported, "Missing expected imports: " + library)
+        require(required[library] <= imported and (library not in alternatives
+                or alternatives[library] & imported), "Missing expected imports: " + library)
         require("[" + soname + "]" in text and "(RPATH)" not in text and "(RUNPATH)" not in text,
                 "Wrong dependency or search path: " + library)
         for version in re.findall(r"GLIBC_([0-9]+(?:\.[0-9]+){1,2})", text):

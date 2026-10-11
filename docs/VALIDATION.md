@@ -439,4 +439,28 @@ Changes made along the way, each tested on these releases:
   and `fetch-glibc.sh` falls back to the kernel.org GNU mirror.
 
 Tools: Rust 1.99.0, Clang 18.1.3, GNU binutils 2.42, podman 5.8.2 on WSL Ubuntu 24.04.
+
+Producer `27caf3dbf9b7b5b018763629d3a3d2ebba377123` with consumer `a259c16` passed all 39
+[hosted provider jobs](https://github.com/rustcommons/linux-abi-tools/actions/runs/38155189880)
+(13 preparations, 26 Clang 21/24 applications) and main CI on 2026-10-11.
+
+## GNU glibc 2.30 through 2.44 providers (local, 2026-10-11)
+
+All fifteen archives verified against the GNU keyring and built without patches:
+2.30–2.36 with the Debian 9 builder, and 2.37–2.44 with a digest-pinned Debian 12 builder
+(GCC 12.2, binutils 2.40, snapshot.debian.org 2026-09-01), because binutils 2.28 cannot
+assemble 2.37's AVX-512 string functions and 2.42 needs GCC 12.1. Every DSO matched GNU
+readelf and the pinned snapshot with zero differences, and every release passed the
+exhaustive suite, the applications, five behavior suites, both boundary fixtures, and
+cargo-libc `bfe04693f6685770b47c9346e32de556a8029f4e` (build, tier 1 scan, tier 2 local run, `check`, rejection
+tests). Per-release counts are in [PROVIDERS.md](PROVIDERS.md).
+
+The 2.34 merger needed no contract change: libpthread, libdl, librt and libutil remain as
+placeholder DSOs. Two fixtures became release-aware: the pthread default-attribute
+boundary expects the measured default version (`GLIBC_2.34` in libc from 2.34), and the
+resolver suite accepts 2.34's `dn_expand` spelling. Every 2.34+ executable imports
+`__libc_start_main@GLIBC_2.34` from `crt1.o`, as measured. 2.43 and 2.44 have no later
+libc interface in the matrix, so their too-new tests use a name absent from every snapshot.
+
+Tools: Rust 1.99.0, Clang 18.1.3, GNU binutils 2.42, podman 5.8.2 on WSL Ubuntu 24.04.
 Hosted Clang 21/24 qualification is pending.

@@ -14,8 +14,8 @@ cp "$example_dir/rust-linker.sh" full-rust-linker.sh
 chmod +x full-rust-linker.sh
 rustc --version > logs/full-rustc.txt
 fmemopen_expectation=$(python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" c fmemopen GLIBC_2.22)
-pthread_defaults_expectation=$(python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" pthread pthread_getattr_default_np GLIBC_2.18)
-python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" pthread pthread_setattr_default_np GLIBC_2.18 "$pthread_defaults_expectation"
+pthread_defaults_expectation=$(python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" pthread,c pthread_getattr_default_np GLIBC_2.18)
+python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" pthread,c pthread_setattr_default_np GLIBC_2.18 "$pthread_defaults_expectation"
 python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" c fmemopen GLIBC_2.2.5 accept
 too_new=$(python3 "$example_dir/too-new-symbol.py" "$work/elf-metadata/matrix.tsv" "$release")
 for route in "${routes[@]}"; do
@@ -68,8 +68,10 @@ for route in "${routes[@]}"; do
         grep -qx 'glibc 2.18 pthread defaults work!' "logs/full-$route-pthread-default-run.txt"
         readelf --wide --dyn-syms --version-info "pthread-default-full-$route" \
             > "logs/full-$route-pthread-default-executable.txt"
-        grep -q 'pthread_getattr_default_np@GLIBC_2.18' "logs/full-$route-pthread-default-executable.txt"
-        grep -q 'pthread_setattr_default_np@GLIBC_2.18' "logs/full-$route-pthread-default-executable.txt"
+        # check-full.py verifies each import against the measured default version
+        # (GLIBC_2.18 until 2.34 moved both into libc under a new GLIBC_2.34 default).
+        grep -q 'pthread_getattr_default_np@GLIBC_' "logs/full-$route-pthread-default-executable.txt"
+        grep -q 'pthread_setattr_default_np@GLIBC_' "logs/full-$route-pthread-default-executable.txt"
     else
         if "${pthread_command[@]}" > "logs/full-$route-pthread-default-negative.txt" 2>&1; then
             echo 'Unexpected acceptance of glibc 2.18 pthread default APIs' >&2; exit 1

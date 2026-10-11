@@ -12,7 +12,8 @@ pub const FORMAT: &str = "libc-abi-provider-v1";
 /// glibc releases with a qualified provider; selection is exact, without fallback.
 pub const RELEASES: &[&str] = &[
     "2.17", "2.18", "2.19", "2.20", "2.21", "2.22", "2.23", "2.24", "2.25", "2.26", "2.27", "2.28",
-    "2.29",
+    "2.29", "2.30", "2.31", "2.32", "2.33", "2.34", "2.35", "2.36", "2.37", "2.38", "2.39", "2.40",
+    "2.41", "2.42", "2.43", "2.44",
 ];
 pub const SONAMES: [&str; 8] = [
     "libc.so.6",
@@ -239,7 +240,7 @@ mod tests {
 
     #[test]
     fn nonshared_archives_follow_the_release() {
-        for (release, count) in [("2.17", 2), ("2.27", 2), ("2.28", 1)] {
+        for (release, count) in [("2.17", 2), ("2.27", 2), ("2.28", 1), ("2.44", 1)] {
             let provider = Provider::parse(&valid().replace("2.17", release)).unwrap();
             let archives = provider.nonshared_archives();
             assert_eq!(archives.len(), count);

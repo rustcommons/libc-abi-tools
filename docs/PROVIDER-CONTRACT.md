@@ -2,7 +2,7 @@
 
 Version 1 connects generated link-only DSOs to Cargo through a trusted local
 descriptor. It supports x86_64 Linux dynamically linked non-PIE Rust executables
-and exactly one glibc release from 2.17 through 2.29 (the `RELEASES` list in `src/provider.rs`). It is not an authenticated or relocatable release SDK.
+and exactly one glibc release from 2.17 through 2.44, every release in the pinned ABI lists (the `RELEASES` list in `src/provider.rs`). It is not an authenticated or relocatable release SDK.
 The six-field v1 format is unchanged; existing 2.17 descriptors remain valid.
 
 The descriptor is UTF-8, at most 16 KiB, with LF endings and a final newline.
@@ -26,7 +26,7 @@ relative symlinks inside those directories are allowed.
 
 | Directory | Required files and purpose |
 | --- | --- |
-| sysroot | Exact selected-release `usr/include/features.h`; `usr/lib64/{crt1.o,crti.o,crtn.o,libc_nonshared.a,libpthread_nonshared.a}`; real `lib64/ld-linux-x86-64.so.2` |
+| sysroot | Exact selected-release `usr/include/features.h`; `usr/lib64/{crt1.o,crti.o,crtn.o,libc_nonshared.a}`, plus `usr/lib64/libpthread_nonshared.a` before 2.28 (glibc 2.28 merged it into `libc_nonshared.a`); real `lib64/ld-linux-x86-64.so.2` |
 | stubs | Eight generated DSOs with exact SONAME filenames and `lib{name}.so` symlinks resolving to them; loader uses `libld.so` |
 | gcc-startup | Explicit GCC `crtbegin.o`/`crtend.o`, providing compiler startup support |
 | compiler-runtime | Real compatible `libgcc_s.so.1` and `libgcc_s.so`; experiment uses CentOS GCC 4.8.5's unwinder |

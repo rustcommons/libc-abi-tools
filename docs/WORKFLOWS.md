@@ -48,7 +48,7 @@ One selection drives both floors. The rules are implemented in
 
 ## 2. Build against an older glibc
 
-**Status: implemented, experimental** (glibc 2.17 through 2.29 on x86_64; see
+**Status: implemented, experimental** (glibc 2.17 through 2.44 on x86_64; see
 [PROVIDER-CONTRACT.md](PROVIDER-CONTRACT.md)).
 
 1. Produce a provider: generated link-only stub libraries plus the real startup
