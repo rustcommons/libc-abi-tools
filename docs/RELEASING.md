@@ -29,7 +29,7 @@ build of it includes glibc-abilists' LGPL-2.1-or-later data; build with
 | --- | --- | --- | --- |
 | 0.1.0 | 2026-10-11 | `glibc-abilists` | `4ffb9f698264d7d8bd834f6f2b5e03926bdc02fb` (glibc-abilists `v0.1.0`) |
 | 0.1.0 | 2026-10-11 | `linux-targets`, `kernel-abi-tools`, `linux-abi-scan`, `libc-abi-tools`, `linux-abi-tools` | `f691c048fc2b55d6c7d891ac0a8a5e03db5ccb22` (`v0.1.0`) |
-| 0.2.0 | 2026-10-11 | `linux-targets`, `kernel-abi-tools`, `linux-abi-scan`, `libc-abi-tools`, `linux-abi-tools` | Release commit (`v0.2.0`), recorded after publication |
+| 0.2.0 | 2026-10-11 | `linux-targets`, `kernel-abi-tools`, `linux-abi-scan`, `libc-abi-tools`, `linux-abi-tools` | `921cf79cc2780a88e917aa9542955a746214f6a1` (`v0.2.0`) |
 
 **0.2.0:** `libc-abi-tools` accepts provider descriptors for every glibc release in the
 pinned ABI lists, 2.17 through 2.44 (0.1.0 accepted 2.17, 2.18 and 2.22), exposes them as
