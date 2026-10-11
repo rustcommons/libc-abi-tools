@@ -180,20 +180,31 @@ delivery it additionally:
 A mode that fails for a release is reported for that release and not offered there,
 rather than silently falling back to another mode.
 
-## Open questions
+## Decisions (2026-10-11)
 
-- **Crate names**, and whether the data crates follow the workspace version or
-  their own (as glibc-abilists does).
-- **Mode 1 source arrangement** (see above).
-- **Compiler runtime:**
-  - Today, providers use a real `libgcc_s` from the builder and `crtbegin.o`/`crtend.o`
-    from the host GCC.
-  - Options:
-    - generate a link-only `libgcc_s` stub from GCC's symbol versions;
-    - ship the CI-built one under its GCC Runtime Library Exception;
-    - use Clang's compiler-rt `crtbegin`/`crtend`, which would remove the host-GCC
-      requirement.
-  - Each needs its own qualification.
+1. **Data crates:**
+   - `glibc-provider-sources` and `glibc-provider-binaries`, both free on crates.io.
+   - Versioned independently of the workspace, as glibc-abilists is: a minor version
+     when a glibc release is added, a patch for corrections.
+   - `libc-abi-tools` depends on them with `^` requirements.
+2. **Source for `prebuilt`:**
+   - `glibc-provider-binaries` depends on `glibc-provider-sources`, so the binaries
+     never travel without their source.
+   - For every shipped object, the sources crate carries every source file it was
+     compiled from (taken from the compiler's dependency output), the generated
+     configuration headers, our build scripts and configure options, and a pinned
+     reference with hash to the full GNU archive.
+   - Legal review of this arrangement comes before `prebuilt` is published. `source`
+     and `container` ship first.
+3. **Compiler runtime:**
+   - A generated link-only `libgcc_s` stub with CentOS 7's GCC 4.8.5 version set,
+     used for every release, so no GCC binary is shipped. It needs its own
+     qualification across all releases.
+   - `crtbegin.o`/`crtend.o` keep coming from the host GCC; compiler-rt stays a later
+     option.
+
+## Remaining questions
+
 - **Headers:** mode 2 needs no network but adds about 1.6 MiB of headers to every
   install. A headers-optional build is possible for pure-Rust users, whose builds
   only need `features.h` for validation.

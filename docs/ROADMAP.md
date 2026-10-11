@@ -360,11 +360,15 @@ passing the same qualification:
 All 28 releases deduplicate to about 2.6 MiB compressed, so two small data crates
 (sources, binaries) replace any per-release crates.
 
-- [ ] Decide crate names and versioning for the data crates.
-- [ ] Decide the corresponding-source arrangement for `prebuilt` (hosted archives,
-  written offer, or source crates), with legal review, before publishing it.
-- [ ] Decide the compiler runtime: generated `libgcc_s` stub, shipped CI-built
-  `libgcc_s`, and/or compiler-rt `crtbegin`/`crtend` instead of host GCC.
+- [x] Decide crate names and versioning for the data crates (2026-10-11):
+  `glibc-provider-sources` and `glibc-provider-binaries`, versioned independently.
+- [x] Decide the corresponding-source arrangement for `prebuilt` (2026-10-11): the
+  binaries crate depends on the sources crate, which carries every source file of
+  every shipped object plus build scripts and a pinned GNU archive reference.
+- [ ] Legal review of that arrangement before publishing `prebuilt`.
+- [x] Decide the compiler runtime (2026-10-11): a generated `libgcc_s` stub with
+  CentOS 7's GCC 4.8.5 version set for every release; host GCC `crtbegin`/`crtend`.
+- [ ] Generate and qualify the `libgcc_s` stub across all releases.
 - [ ] Capture, in the container builds, the exact source files, generated
   configuration headers and compile commands for `crt1.o`, `crti.o`, `crtn.o` and
   every `libc_nonshared.a` member, per release.

@@ -255,9 +255,9 @@ blob id and SHA-256.
 
 ## 8. Open decisions
 
-- **Provider delivery:** data crate names and versioning, the corresponding-source
-  arrangement for `prebuilt`, and the compiler runtime
-  (see [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md#open-questions)).
+- **Provider delivery:** crate names, the source arrangement and the compiler runtime
+  are decided ([PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md#decisions-2026-10-11));
+  legal review of the `prebuilt` source arrangement is pending.
 - **Distribution backports** remain unsourced for most presets; until sourced, a
   preset simulates its mainline base kernel.
 
