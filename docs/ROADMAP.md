@@ -20,9 +20,11 @@ commands, and CI are unchanged. Added members:
 
 Decided the same day:
 
-- **Four crates on crates.io only:** `linux-targets`, `kernel-abi-tools`,
-  `libc-abi-tools`, and the `linux-abi-tools` crate (`crates/linux-abi-tools`)
-  that re-exports the other three. cargo-libc depends on the published crates,
+- **Crates on crates.io only:** `linux-targets`, `kernel-abi-tools`,
+  `linux-abi-scan` (added the same day), `libc-abi-tools`, and the
+  `linux-abi-tools` crate (`crates/linux-abi-tools`) that re-exports the
+  others; all published as 0.1.0 on 2026-10-11, after `glibc-abilists` 0.1.0.
+  cargo-libc depends on the published crates,
   because crates.io does not accept git dependencies. The kernel standalone
   bundle and its tag release workflow were removed before anything was
   published. See [RELEASING.md](RELEASING.md).

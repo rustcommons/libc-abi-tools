@@ -20,9 +20,19 @@ README, and license/notice files are packaged. `libc-abi-tools` leaves out
 build of it includes glibc-abilists' LGPL-2.1-or-later data; build with
 `default-features = false` to leave that out.
 
-Before publishing `libc-abi-tools`, `glibc-abilists` must be on crates.io: the
-manifest's `git` source is for development, and `cargo publish` uses its
-`version` requirement.
+`glibc-abilists` must be on crates.io in the required version before
+`libc-abi-tools` is published.
+
+## Release record
+
+| Version | Date | Crates | Commit (tag) |
+| --- | --- | --- | --- |
+| 0.1.0 | 2026-10-11 | `glibc-abilists` | `4ffb9f698264d7d8bd834f6f2b5e03926bdc02fb` (glibc-abilists `v0.1.0`) |
+| 0.1.0 | 2026-10-11 | `linux-targets`, `kernel-abi-tools`, `linux-abi-scan`, `libc-abi-tools`, `linux-abi-tools` | `f691c048fc2b55d6c7d891ac0a8a5e03db5ccb22` (`v0.1.0`) |
+
+crates.io limits how many new crate names one account can publish in a short
+period; a first release of several crates may need a pause (the sixth crate
+here waited a few minutes).
 
 ## Cutting a release
 
