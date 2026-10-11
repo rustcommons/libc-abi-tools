@@ -60,10 +60,12 @@ The [glibc 2.20 provider](GLIBC-2.20.md) is qualified: producer
 5ed1e12856f98566dfb2c61d0c64ce7922306b27 with consumer cargo-libc
 8444108c1b83e72ef484b95f756308de34725844 passed
 [all fifteen provider jobs](https://github.com/rustcommons/linux-abi-tools/actions/runs/38144128128) on 2026-10-11.
-The glibc 2.21 provider rollout is in progress: it passes locally with
-cargo-libc 16a464ea88aa3b54d652583303fe6ed6c4d26e58, and its hosted jobs are
-configured ([GLIBC-2.21.md](GLIBC-2.21.md)). Stage 3 (2.23 onward) follows the
-provider implementation plan below. Historical research and the symbol matrix remain
+The [glibc 2.21 provider](GLIBC-2.21.md) is qualified, so every release from
+2.17 through 2.22 has a provider: producer
+85b69c8ad27be4ae486e6723ca0698a06ba96c92 with consumer cargo-libc
+16a464ea88aa3b54d652583303fe6ed6c4d26e58 passed
+[all eighteen provider jobs](https://github.com/rustcommons/linux-abi-tools/actions/runs/38147732823) on 2026-10-11.
+Stage 3 (2.23 onward) follows the provider implementation plan below. Historical research and the symbol matrix remain
 separate from provider/runtime qualification. Public authenticated SDK releases
 and additional platform/distribution/kernel qualification remain unfinished.
 
@@ -251,7 +253,7 @@ glibc 2.17 provider/runtime qualification remains a separate gate.
 | 2.18 | Yes | Pinned GNU source inputs, eight libraries, Cargo, exhaustive links, and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
 | 2.19 | Yes | Pinned GNU source inputs (signature checked), eight libraries, Cargo, exhaustive links, and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
 | 2.20 | Yes | Pinned GNU source inputs (signature checked), eight libraries, Cargo, exhaustive links, and real runtime tests passed locally and in Clang 21/24 hosted jobs; measured vfork/IFUNC/binding changes recorded; distro/kernel qualification pending |
-| 2.21 | Yes | Pinned GNU source inputs (signature checked), eight libraries, Cargo, exhaustive links, sigvec default-removal fixture, and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
+| 2.21 | Yes | Pinned GNU source inputs (signature checked), eight libraries, Cargo, exhaustive links, sigvec default-removal fixture, and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
 | 2.22 | Yes | Source inputs, all eight libraries, Cargo, and Clang 21/24 hosted runtime jobs passed; qualify SLES 12 SP5 |
 | 2.23 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.24 | Yes | Pin inputs; generate provider; add runtime job |
@@ -320,8 +322,8 @@ no patches; it adds no interfaces but has measured default/IFUNC/binding changes
 All fifteen hosted jobs passed at `5ed1e12` with pinned consumer `8444108`.
 The [GNU 2.21 provider](GLIBC-2.21.md) passes the same suite locally, with a new
 fixture for its one measured default change (`sigvec` became compatibility-only).
-The historical reference now includes seven native profiles. Complete 2.21
-hosted qualification, then start 2.23;
+All eighteen hosted jobs passed at `85b69c8` with pinned consumer `16a464e`.
+The historical reference now includes seven native profiles. Start 2.23 next;
 distribution/kernel and SDK qualification remain separate gates.
 
 Follow [GLIBC-PROVIDER-PLAN.md](GLIBC-PROVIDER-PLAN.md) for the ordered rollout:

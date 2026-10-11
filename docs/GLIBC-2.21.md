@@ -111,6 +111,11 @@ are committed to [history provenance](../data/glibc-history/PROVENANCE.json) and
 [the interface reference](reference/GLIBC-SYMBOLS.md), imported with
 `scripts/import-glibc-elf-profile.py`.
 
-Hosted Clang 21/24 jobs for 2.21 are configured in the provider workflow;
-hosted qualification is recorded here once they pass. Actual distribution/kernel
-qualification, native dependency adapters, and authenticated SDK packaging remain open.
+Both new 2.21 jobs in the [hosted provider matrix](https://github.com/rustcommons/linux-abi-tools/actions/runs/38147732823)
+passed under Rust 1.99.0 and Clang 21/24 on 2026-10-11 at producer commit
+`85b69c8ad27be4ae486e6723ca0698a06ba96c92`, with pinned consumer commit
+`16a464ea88aa3b54d652583303fe6ed6c4d26e58`. All eighteen jobs passed (six preparations
+and twelve applications). The retained diagnostics show the sigvec fixture
+linking and running on 2.17 (both routes), 2.18, 2.19 and 2.20, and rejected on
+2.21 and 2.22. Actual distribution/kernel qualification, native dependency
+adapters, and authenticated SDK packaging remain open.

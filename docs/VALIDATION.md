@@ -403,6 +403,13 @@ tier 1 scan, tier 2 local run under a Linux 3.10 filter, workflow fixtures,
 too-new memfd_create link failure. The profile was imported as
 `gnu-source-2.21`; the reference regenerated and verified. Both repositories
 passed formatting, tests, and clippy with warnings denied. Tools: Rust 1.99.0,
-Clang 18.1.3, GNU binutils 2.42, podman 5.8.2 on WSL Ubuntu 24.04. Hosted
-Clang 21/24 qualification, including the sigvec fixture on 2.17 (both routes),
-2.18 and 2.22, is pending.
+Clang 18.1.3, GNU binutils 2.42, podman 5.8.2 on WSL Ubuntu 24.04.
+
+Producer `85b69c8ad27be4ae486e6723ca0698a06ba96c92` pins that consumer. The
+[provider workflow](https://github.com/rustcommons/linux-abi-tools/actions/runs/38147732823)
+passed all eighteen jobs: six preparations (2.17 through 2.22) and twelve
+Rust 1.99/Clang 21 or 24 applications. The 2.21 logs show the same 2921/1750/2708
+exhaustive results, the tier 1 scan pass, the tier 2 run, `check`, and the
+rejection tests. The retained Clang 24 diagnostics show the sigvec fixture
+linking `sigvec@GLIBC_2.2.5` and running on 2.17 (prebuilt and source), 2.18,
+2.19 and 2.20, and failing to link on 2.21 and 2.22. Main CI also passed.
