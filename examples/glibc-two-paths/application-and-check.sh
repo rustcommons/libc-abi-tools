@@ -17,7 +17,7 @@ fmemopen_expectation=$(python3 "$example_dir/check-matrix.py" "$work/elf-metadat
 pthread_defaults_expectation=$(python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" pthread pthread_getattr_default_np GLIBC_2.18)
 python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" pthread pthread_setattr_default_np GLIBC_2.18 "$pthread_defaults_expectation"
 python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" c fmemopen GLIBC_2.2.5 accept
-python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" c memfd_create GLIBC_2.27 reject
+too_new=$(python3 "$example_dir/too-new-symbol.py" "$work/elf-metadata/matrix.tsv" "$release")
 for route in "${routes[@]}"; do
     root="$work/$route"
     generated="$work/full-libraries-$route"
@@ -34,7 +34,7 @@ for route in "${routes[@]}"; do
         "./rust-full-$route" > "logs/full-$route-rust-run.txt"
     grep -qx 'Rust allocation, thread/TLS, and unwinding work!' "logs/full-$route-rust-run.txt"
     for program in expanded data-views too-new fmemopen-2.22 fmemopen-default pthread-default-2.18 sigvec-default-2.21; do
-        "$compiler" -O0 -fno-builtin -fno-pie -fno-stack-protector -nostdinc \
+        "$compiler" -O0 -fno-builtin -fno-pie -fno-stack-protector -nostdinc -DTOO_NEW_SYMBOL="$too_new" \
             -isystem "$root/usr/include" -isystem "$(gcc -print-file-name=include)" \
             -c "$example_dir/$program.c" -o "$program-full-$route.o"
     done
@@ -56,9 +56,9 @@ for route in "${routes[@]}"; do
     if ld -o "too-new-full-$route" --dynamic-linker /lib64/ld-linux-x86-64.so.2 \
         "${inputs[@]}" "too-new-full-$route.o" "${libs[@]}" \
         > "logs/full-$route-negative.txt" 2>&1; then
-        echo 'Unexpected success linking memfd_create.' >&2; exit 1
+        echo "Unexpected success linking newer $too_new." >&2; exit 1
     fi
-    grep -q 'undefined reference to .*memfd_create' "logs/full-$route-negative.txt"
+    grep -q "undefined reference to .*$too_new" "logs/full-$route-negative.txt"
     pthread_command=(ld -o "pthread-default-full-$route" --dynamic-linker /lib64/ld-linux-x86-64.so.2
         "${inputs[@]}" "pthread-default-2.18-full-$route.o" -L"$generated" -lpthread "${libs[@]}")
     if [ "$pthread_defaults_expectation" = accept ]; then

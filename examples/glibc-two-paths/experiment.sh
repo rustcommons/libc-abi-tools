@@ -1,7 +1,11 @@
 # Shared release selection. Existing scripts default to both 2.17 input routes.
+# Any later release needs its own pinned inputs; there is no fallback.
 release=${ABI_GLIBC_RELEASE:-2.17}
-case "$release" in
-    2.17) routes=(prebuilt source) ;;
-    2.18|2.19|2.20|2.21|2.22) routes=(source) ;;
-    *) echo 'Experiment releases: 2.17, 2.18, 2.19, 2.20, 2.21, 2.22' >&2; exit 1 ;;
-esac
+if [ "$release" = 2.17 ]; then
+    routes=(prebuilt source)
+elif [[ "$release" =~ ^2\.[0-9]+$ ]] &&
+    grep -qx "release = \"$release\"" "$(dirname "${BASH_SOURCE[0]}")/../glibc-$release/INPUTS.toml" 2>/dev/null; then
+    routes=(source)
+else
+    echo "Experiment release must be 2.17 or have examples/glibc-$release/INPUTS.toml" >&2; exit 1
+fi

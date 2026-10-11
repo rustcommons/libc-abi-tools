@@ -1,0 +1,14 @@
+release = "2.24"
+target = "x86_64-unknown-linux-gnu"
+runtime_source = "GNU glibc source build; not a distribution-qualified sysroot"
+source_url = "https://ftp.gnu.org/gnu/glibc/glibc-2.24.tar.xz"
+source_sha256 = "99d4a3e8efd144d71488e478f62587578c0f4e1fa0b4eed47ee3d4975ebeb5d3"
+# Checksum pins retrieved bytes. On 2026-10-11 the detached .sig verified with gpgv against
+# https://ftp.gnu.org/gnu/gnu-keyring.gpg (RSA key 16792B4EA25340F8, Carlos O'Donell).
+builder_image = "docker.io/library/centos@sha256:dead07b4d8ed7e29e98de0f4504d87e8880d4347859d839686a31da35a3b532f"
+bootstrap_repository = "https://vault.centos.org/7.9.2009/os/x86_64/"
+bootstrap_gcc = "4.8.5-44.el7"
+bootstrap_kernel_headers = "3.10.0-1160.el7"
+compiler_runtime = "Real CentOS GCC 4.8.5 libgcc_s.so.1, GLIBC requirements independently inspected"
+configuration = "--prefix=/usr --libdir=/usr/lib64 --disable-werror --enable-kernel=3.2"
+source_patches = "none"

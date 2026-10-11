@@ -413,3 +413,30 @@ exhaustive results, the tier 1 scan pass, the tier 2 run, `check`, and the
 rejection tests. The retained Clang 24 diagnostics show the sigvec fixture
 linking `sigvec@GLIBC_2.2.5` and running on 2.17 (prebuilt and source), 2.18,
 2.19 and 2.20, and failing to link on 2.21 and 2.22. Main CI also passed.
+
+## GNU glibc 2.23 through 2.29 providers (local, 2026-10-11)
+
+All seven archives verified against the GNU keyring and built without patches:
+2.23–2.25 with the CentOS 7 builder, and 2.26–2.29 with a new digest-pinned Debian 9
+builder (GCC 6.3, binutils 2.28), since 2.26 needs GCC 4.9. Every DSO matched GNU
+readelf and the pinned snapshot with zero differences. Per release, the exhaustive
+suite passed (accepted / rejected / ordinary defaults / compatibility-only):
+2.23 2931/1740/2699/181, 2.24 2938/1733/2693/193, 2.25 2994/1677/2733/209,
+2.26 3143/1528/2878/213, 2.27 3594/1077/3312/223, 2.28 3674/997/3382/233,
+2.29 3682/989/3384/234. The applications, five behavior suites, both boundary
+fixtures, and cargo-libc `a259c167741c6b1d31eaa3b7c664df8faff3b7a7` (build, tier 1 scan, tier 2 local run,
+`check`, rejection tests) passed for each.
+
+Changes made along the way, each tested on these releases:
+
+- The suite now also rejects new unversioned references to every name that has only
+  compatibility versions in a library (for example `sigvec`, `bdflush`, and Sun RPC,
+  which source builds leave compatibility-only without `--enable-obsolete-rpc`).
+- Too-new link tests use a matrix-selected symbol (`too-new-symbol.py`), because
+  `memfd_create` itself exists from 2.27.
+- `libpthread_nonshared.a` is required and linked only before 2.28.
+- Experiment scripts accept any release with pinned `examples/glibc-X/INPUTS.toml`,
+  and `fetch-glibc.sh` falls back to the kernel.org GNU mirror.
+
+Tools: Rust 1.99.0, Clang 18.1.3, GNU binutils 2.42, podman 5.8.2 on WSL Ubuntu 24.04.
+Hosted Clang 21/24 qualification is pending.

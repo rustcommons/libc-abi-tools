@@ -2,7 +2,7 @@
 
 This is an implementation order, not a list of newly supported runtimes.
 Every release from 2.17 through 2.22 has locally and hosted-qualified provider
-integration; stage 2 is complete. All 28
+integration; 2.23–2.29 pass locally with hosted jobs configured. All 28
 vendored labels have snapshot tests; that does not establish real providers.
 The complete per-label status remains in [ROADMAP.md](ROADMAP.md).
 
@@ -82,6 +82,7 @@ and focused semantic tests alongside the ABI tables as that evidence is collecte
 ## Immediate deliverables
 
 - Qualify the new exhaustive suite locally and in the four current provider jobs.
-- Start stage 3 with 2.23 after the qualified [2.21 provider](GLIBC-2.21.md).
+- Complete hosted qualification of [2.23](GLIBC-2.23.md) through [2.29](GLIBC-2.29.md); 2.30 and later follow,
+  with Debian 9 (GCC 6.3) and Debian 12 (GCC 12.2) builders where the CentOS 7 compiler is too old.
 - Collect and normalize 2.16 history without declaring a 2.16 Rust provider.
 - Keep distribution qualification for current 2.17/2.22 inputs tracked separately.

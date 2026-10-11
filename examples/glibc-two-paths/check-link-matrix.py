@@ -89,7 +89,7 @@ def main():
     for tool in ("as", "ld", "readelf"):
         report["tools"][tool] = subprocess.check_output([tool, "--version"], env=environment, text=True).splitlines()[0]
     for route in ROUTES:
-        counts = {"accept": 0, "reject": 0, "default": 0, "tls": 0}
+        counts = {"accept": 0, "reject": 0, "default": 0, "compat_only": 0, "tls": 0}
         details = []
         generated = work / ("full-libraries-" + route)
         directory = output / route
@@ -132,6 +132,19 @@ def main():
                             "kind": kind, "expectation": "accept" if accepted else "reject",
                             "diagnostic": diagnostic})
         for library in LIBRARIES:
+            measured = [row for row in rows(work / "elf-metadata" / (route + "-" + library + ".tsv"))
+                        if re.fullmatch(r"GLIBC_[0-9]+(?:\.[0-9]+){1,2}", row["version"])
+                        and row["visibility"] in ("DEFAULT", "PROTECTED")]
+            # A public name with only compatibility versions in this library
+            # serves old binaries; a new unversioned reference must not link.
+            defaults = {row["symbol"] for row in measured if row["default"] == "yes"}
+            for symbol in sorted({row["symbol"] for row in measured} - defaults):
+                kind = next("T:" + row["size"] if row["type"] == "TLS" else "F"
+                            for row in measured if row["symbol"] == symbol)
+                diagnostic = probe(library, symbol, None, kind, False)
+                counts["compat_only"] += 1
+                details.append({"library": library, "symbol": symbol, "expectation": "compat-only",
+                                "diagnostic": diagnostic})
             # Defaults come from the actual measured input, never the largest
             # numeric namespace in the historical union.
             for row in rows(work / "elf-metadata" / (route + "-" + library + ".tsv")):

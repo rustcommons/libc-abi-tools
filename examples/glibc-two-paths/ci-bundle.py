@@ -73,8 +73,11 @@ def pack(work, archive):
     for route in ROUTES:
         root = work / route
         add(route + "/usr/include", root)
-        for filename in ("crt1.o", "crti.o", "crtn.o", "libc_nonshared.a", "libpthread_nonshared.a"):
+        for filename in ("crt1.o", "crti.o", "crtn.o", "libc_nonshared.a"):
             add(route + "/usr/lib64/" + filename, root)
+        # glibc 2.28 merged libpthread_nonshared.a into libc_nonshared.a.
+        if tuple(map(int, RELEASE.split("."))) < (2, 28):
+            add(route + "/usr/lib64/libpthread_nonshared.a", root)
         for soname in SONAMES:
             add(route + "/lib64/" + soname, root)
         # openpty/grantpt can perform NSS group lookup. These real modules are

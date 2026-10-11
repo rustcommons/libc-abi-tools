@@ -192,7 +192,10 @@ for route in ROUTES:
         diagnostic = (work / "logs" / ("full-" + route + "-sigvec-default-negative.txt")).read_text()
         require("undefined reference" in diagnostic and "sigvec" in diagnostic,
                 "Compatibility-only sigvec was not rejected for new references")
-    if RELEASE == "2.22":
+    fmemopen_rows = [r for r in rows(work / "elf-metadata/matrix.tsv")
+                     if r["library"] == "c" and r["symbol"] == "fmemopen" and r["version"] == "GLIBC_2.22"]
+    require(len(fmemopen_rows) == 1, "Missing fmemopen boundary evidence")
+    if fmemopen_rows[0][RELEASE] != "absent":
         versions = (work / "logs" / ("full-" + route + "-fmemopen-executable.txt")).read_text()
         require("fmemopen@GLIBC_2.22" in versions and "fmemopen@GLIBC_2.2.5" in versions,
                 "Both fmemopen interfaces must be imported")

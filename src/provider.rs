@@ -9,6 +9,11 @@ use std::{
 };
 
 pub const FORMAT: &str = "libc-abi-provider-v1";
+/// glibc releases with a qualified provider; selection is exact, without fallback.
+pub const RELEASES: &[&str] = &[
+    "2.17", "2.18", "2.19", "2.20", "2.21", "2.22", "2.23", "2.24", "2.25", "2.26", "2.27", "2.28",
+    "2.29",
+];
 pub const SONAMES: [&str; 8] = [
     "libc.so.6",
     "libm.so.6",
@@ -68,15 +73,12 @@ impl Provider {
         }
         if fields.len() != 6
             || fields.get("target") != Some(&"x86_64-unknown-linux-gnu")
-            || !matches!(
-                fields.get("glibc"),
-                Some(&"2.17" | &"2.18" | &"2.19" | &"2.20" | &"2.21" | &"2.22")
-            )
+            || !fields.get("glibc").is_some_and(|v| RELEASES.contains(v))
         {
-            return Err(
-                "provider v1 requires exactly six fields, x86_64 Linux and glibc 2.17, 2.18, 2.19, 2.20, 2.21 or 2.22"
-                    .into(),
-            );
+            return Err(format!(
+                "provider v1 requires exactly six fields, x86_64 Linux and glibc {}",
+                RELEASES.join(", ")
+            ));
         }
         let path = |key| {
             let path = PathBuf::from(fields[key]);
@@ -99,6 +101,24 @@ impl Provider {
             compiler_runtime: path("compiler-runtime")?,
             descriptor: text.into(),
         })
+    }
+
+    /// Static archives linked into every executable, relative to the sysroot.
+    /// glibc 2.28 merged libpthread_nonshared.a into libc_nonshared.a.
+    pub fn nonshared_archives(&self) -> &'static [&'static str] {
+        let merged = Version {
+            major: 2,
+            minor: 28,
+            patch: 0,
+        };
+        if self.release < merged {
+            &[
+                "usr/lib64/libc_nonshared.a",
+                "usr/lib64/libpthread_nonshared.a",
+            ]
+        } else {
+            &["usr/lib64/libc_nonshared.a"]
+        }
     }
 
     pub fn validate_selection(&self, requested: Version) -> Result<(), String> {
@@ -130,11 +150,10 @@ impl Provider {
                     "usr/lib64/crt1.o",
                     "usr/lib64/crti.o",
                     "usr/lib64/crtn.o",
-                    "usr/lib64/libc_nonshared.a",
-                    "usr/lib64/libpthread_nonshared.a",
                     "lib64/ld-linux-x86-64.so.2",
                 ][..],
             ),
+            (&self.sysroot, self.nonshared_archives()),
             (&self.gcc_startup, &["crtbegin.o", "crtend.o"][..]),
             (
                 &self.compiler_runtime,
@@ -204,7 +223,7 @@ mod tests {
         let text = valid();
         assert!(Provider::parse(&text).is_ok());
         for bad in [
-            text.replace("2.17", "2.23"),
+            text.replace("2.17", "2.16"),
             text.replace(FORMAT, "libc-abi-provider-v2"),
             format!("{text}glibc\t2.17\n"),
             text.replace("stubs\t", "unknown\t"),
@@ -219,16 +238,24 @@ mod tests {
     }
 
     #[test]
+    fn nonshared_archives_follow_the_release() {
+        for (release, count) in [("2.17", 2), ("2.27", 2), ("2.28", 1)] {
+            let provider = Provider::parse(&valid().replace("2.17", release)).unwrap();
+            let archives = provider.nonshared_archives();
+            assert_eq!(archives.len(), count);
+            assert_eq!(archives[0], "usr/lib64/libc_nonshared.a");
+        }
+    }
+
+    #[test]
     fn selects_each_supported_release_without_fallback() {
-        for release in ["2.17", "2.18", "2.19", "2.20", "2.21", "2.22"] {
+        for &release in RELEASES {
             let provider = Provider::parse(&valid().replace("2.17", release)).unwrap();
             assert_eq!(provider.release, release.parse().unwrap());
             assert!(provider
                 .validate_selection(release.parse().unwrap())
                 .is_ok());
-            for other in [
-                "2.17", "2.18", "2.19", "2.20", "2.21", "2.22", "2.23", "2.22.1",
-            ] {
+            for other in RELEASES.iter().copied().chain(["2.16", "2.22.1", "2.45"]) {
                 if other != release {
                     assert!(provider.validate_selection(other.parse().unwrap()).is_err());
                 }

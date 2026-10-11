@@ -84,7 +84,7 @@ release for this goal must go beyond collecting and inspecting metadata.
 
 **Current checkpoint:** milestone 1 is implemented and tested. Exact-release ABI
 snapshots, source collection, attribution, and a pinned upstream are in place.
-Beyond the tested 2.17–2.22 providers, compact consolidation, authenticated SDK packaging, and additional releases
+Beyond the tested 2.17–2.29 providers, compact consolidation, authenticated SDK packaging, and additional releases
 are not implemented. Native ELF evidence now drives all 2915 pinned public numeric
 GLIBC 2.17 definitions across eight generated libraries, using both real input
 sources. C data-version/copy-relocation tests and Rust allocation/thread/TLS
@@ -255,13 +255,13 @@ glibc 2.17 provider/runtime qualification remains a separate gate.
 | 2.20 | Yes | Pinned GNU source inputs (signature checked), eight libraries, Cargo, exhaustive links, and real runtime tests passed locally and in Clang 21/24 hosted jobs; measured vfork/IFUNC/binding changes recorded; distro/kernel qualification pending |
 | 2.21 | Yes | Pinned GNU source inputs (signature checked), eight libraries, Cargo, exhaustive links, sigvec default-removal fixture, and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
 | 2.22 | Yes | Source inputs, all eight libraries, Cargo, and Clang 21/24 hosted runtime jobs passed; qualify SLES 12 SP5 |
-| 2.23 | Yes | Pin inputs; generate provider; add runtime job |
-| 2.24 | Yes | Pin inputs; generate provider; add runtime job |
-| 2.25 | Yes | Pin inputs; generate provider; add runtime job |
-| 2.26 | Yes | Pin inputs; generate provider; add runtime job |
-| 2.27 | Yes | Pin inputs; generate provider; add runtime job |
-| 2.28 | Yes | Pin inputs; generate provider; add runtime job |
-| 2.29 | Yes | Pin inputs; generate provider; add runtime job |
+| 2.23 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
+| 2.24 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
+| 2.25 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
+| 2.26 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
+| 2.27 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
+| 2.28 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
+| 2.29 | Yes | Pinned signed GNU source inputs, eight libraries, Cargo, exhaustive links (including compatibility-only rejection), and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
 | 2.30 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.31 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.32 | Yes | Pin inputs; generate provider; add runtime job |
@@ -323,7 +323,9 @@ All fifteen hosted jobs passed at `5ed1e12` with pinned consumer `8444108`.
 The [GNU 2.21 provider](GLIBC-2.21.md) passes the same suite locally, with a new
 fixture for its one measured default change (`sigvec` became compatibility-only).
 All eighteen hosted jobs passed at `85b69c8` with pinned consumer `16a464e`.
-The historical reference now includes seven native profiles. Start 2.23 next;
+Providers 2.23–2.29 pass the same suite locally (Debian 9 builder from 2.26),
+with hosted jobs configured. The historical reference now includes fourteen native
+profiles. Continue with 2.30;
 distribution/kernel and SDK qualification remain separate gates.
 
 Follow [GLIBC-PROVIDER-PLAN.md](GLIBC-PROVIDER-PLAN.md) for the ordered rollout:
@@ -335,7 +337,7 @@ input, ABI, relocation, Cargo, real runtime, and hosted CI gates.
 
 - [x] Generate the complete covered-snapshot union: 4671 interfaces across 28 labels.
 - [x] Document all adjacent membership/kind/size differences and measured native changes.
-- [x] Preserve 20436 native observations with input provenance and default/compatibility flags, including the GNU 2.18 through 2.21 profiles.
+- [x] Preserve 43392 native observations with input provenance and default/compatibility flags, including the GNU 2.18 through 2.29 profiles.
 - [x] Publish generated Markdown interface tables and machine-readable matrices.
 - [x] Inventory early official archives/patches referring to 1.00 and 71 upstream tag candidates.
 - [x] Model unknown evidence separately from known absence; avoid guessing introduction/defaults.

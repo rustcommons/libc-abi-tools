@@ -9,7 +9,14 @@ clang=$(realpath "${3:?Supply explicit Clang executable}")
 unset LD_PRELOAD LD_AUDIT LD_LIBRARY_PATH RUSTFLAGS CARGO_ENCODED_RUSTFLAGS
 export CARGO_TARGET_DIR="$work/provider-tools"
 mkdir -p "$work/logs"
-python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" c memfd_create GLIBC_2.27 reject
+too_new=$(python3 "$example_dir/too-new-symbol.py" "$work/elf-metadata/matrix.tsv" "$release")
+# The companion's too-new crate names memfd_create; bind it to this release's newer symbol.
+rm -rf "$work/too-new-crate"
+mkdir -p "$work/too-new-crate"
+cp -r "$companion/examples/too-new/Cargo.toml" "$companion/examples/too-new/Cargo.lock" \
+    "$companion/examples/too-new/src" "$work/too-new-crate/"
+sed -i "s|^    fn memfd_create(|    #[link_name = \"$too_new\"]\n    fn memfd_create(|" "$work/too-new-crate/src/main.rs"
+grep -qF "#[link_name = \"$too_new\"]" "$work/too-new-crate/src/main.rs"
 gcc_startup=$(dirname "$(gcc -print-file-name=crtbegin.o)")
 cargo fetch --manifest-path "$companion/Cargo.toml" --locked
 cargo build --manifest-path "$companion/Cargo.toml" --bins --locked --offline
@@ -126,11 +133,11 @@ for route in "${routes[@]}"; do
     export CARGO_LIBC_PROVIDER_LINK_MAP="$work/logs/provider-$route-negative-link.map"
     if "$CARGO_TARGET_DIR/debug/cargo-libc" build --provider "$descriptor" --target "x86_64-unknown-linux-gnu.$release" \
         --cc "$clang" --ld /usr/bin/ld.bfd --artifact "$negative_artifact" -- \
-        --manifest-path "$companion/examples/too-new/Cargo.toml" \
+        --manifest-path "$work/too-new-crate/Cargo.toml" \
         --target-dir "$work/cargo-negative-$route" --locked --offline \
         > "$work/logs/provider-$route-newer-symbol-negative.txt" 2>&1; then
-        echo 'Cargo unexpectedly linked memfd_create' >&2; exit 1
+        echo "Cargo unexpectedly linked newer $too_new" >&2; exit 1
     fi
-    grep -E 'undefined reference.*memfd_create|undefined symbol: memfd_create' \
+    grep -E "undefined reference.*$too_new|undefined symbol: $too_new" \
         "$work/logs/provider-$route-newer-symbol-negative.txt"
 done
