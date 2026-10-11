@@ -369,9 +369,10 @@ All 28 releases deduplicate to about 2.6 MiB compressed, so two small data crate
 - [x] Decide the compiler runtime (2026-10-11): a generated `libgcc_s` stub with
   CentOS 7's GCC 4.8.5 version set for every release; host GCC `crtbegin`/`crtend`.
 - [ ] Generate and qualify the `libgcc_s` stub across all releases.
-- [ ] Capture, in the container builds, the exact source files, generated
+- [x] Capture, in the container builds, the exact source files, generated
   configuration headers and compile commands for `crt1.o`, `crti.o`, `crtn.o` and
-  every `libc_nonshared.a` member, per release.
+  every `libc_nonshared.a` member, per release (2026-10-11, all 28 releases, in
+  [glibc-provider](https://github.com/rustcommons/glibc-provider) `7f46d0a`).
 - [ ] Show that Clang compiles those files correctly for every release; record any
   release or file that needs GCC.
 - [ ] Build the deduplicated content store and per-release manifests (path, SHA-256,
