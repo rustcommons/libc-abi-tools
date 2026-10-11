@@ -187,7 +187,7 @@ cargo-libc cannot pin a commit of this repository. Offline builds use
 | `cargo libc inspect` | `linux_abi_scan::scan` on the bytes it already read, with `ScanTarget::from_selection`; `--strict` maps to `Report::exit_code(true)` | Implemented (cargo-libc 0a500d4db5339f4819990090e1533783e920a9d7); floors resolved with `Selection::resolve` |
 | `cargo libc build` (after linking) | With `--distro`/`--kernel`, the same scan on the selected `--artifact`; `--strict` | Implemented (cargo-libc 2936c476d960b1cc9c860bd9396bb7cd5411f83f) |
 | `cargo libc test` / `run` with `--runner local\|container` | Sets Cargo's target runner to the `libc-runner` helper (also for doctests, with the target flags given to rustdoc). The helper refuses a binary that needs a newer glibc, then calls `Runner::choose` and `local::run` or `container::run` | Implemented (cargo-libc 2936c476d960b1cc9c860bd9396bb7cd5411f83f); local runner checked in its Linux smoke test and in this repository's glibc 2.17/2.18/2.22 provider integration |
-| `cargo libc doctor` | Reports runner availability: seccomp support, container engine, crun/libseccomp version | Planned |
+| `cargo libc doctor` | With `--distro`/`--kernel`: runs `/bin/sh` under `local::run` and `true` under `container::run` in the selected image; prints the engine and runtime versions; exit 2 when the runner `test` would choose fails | Implemented (cargo-libc, 2026-10-11) |
 
 A typical flow (`build` and `test` take the same `--provider`, or `--sysroot` and `--gcc-runtime`, inputs):
 
