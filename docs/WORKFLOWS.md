@@ -189,7 +189,7 @@ cargo-libc cannot pin a commit of this repository. Offline builds use
 | `cargo libc test` / `run` with `--runner local\|container` | Sets Cargo's target runner to the `libc-runner` helper (also for doctests, with the target flags given to rustdoc). The helper refuses a binary that needs a newer glibc, then calls `Runner::choose` and `local::run` or `container::run` | Implemented (cargo-libc 2936c476d960b1cc9c860bd9396bb7cd5411f83f); local runner checked in its Linux smoke test and in this repository's glibc 2.17/2.18/2.22 provider integration |
 | `cargo libc doctor` | Reports runner availability: seccomp support, container engine, crun/libseccomp version | Planned |
 
-A typical flow (each command also takes the same `--provider` or `--sysroot`/`--gcc-runtime` inputs):
+A typical flow (`build` and `test` take the same `--provider`, or `--sysroot` and `--gcc-runtime`, inputs):
 
 ```sh
 cargo libc build --distro sles-12-sp5 --provider provider.txt --artifact ... -- --release

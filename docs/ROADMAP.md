@@ -44,9 +44,11 @@ its qualified provider).
 
 Versioned targets (F01) and normal Cargo flags/workspace fixtures (F02) are
 qualified for glibc 2.17/2.18/2.22, including both 2.17 routes, with Rust 1.99
-and Clang 21/24. Latest qualified producer code is c442310; CI pins consumer
-6b072609e1eafd27904ee3102bb40d2374f63270.
-[All nine jobs passed](https://github.com/rustcommons/linux-abi-tools/actions/runs/38077381465).
+and Clang 21/24. CI pins consumer cargo-libc
+2936c476d960b1cc9c860bd9396bb7cd5411f83f, which also checks every provider
+build with the tier 1 scan and runs it under a Linux 3.10 local seccomp filter
+(tier 2) on 2026-10-11:
+[all nine jobs passed](https://github.com/rustcommons/linux-abi-tools/actions/runs/38102256776).
 
 Next coordinator task is F03, cargo libc check; its checklist is in the
 [companion roadmap](https://github.com/rustcommons/cargo-libc/blob/main/docs/ROADMAP.md).
