@@ -183,7 +183,7 @@ cargo-libc cannot pin a commit of this repository. Offline builds use
 | --- | --- | --- |
 | `--distro`, `--glibc`, `--kernel`, `--target triple.X` on every command | `Selection::resolve`; print `Selection::describe` so "kernel not simulated" is visible | Implemented on `build`, `test`, `run`, and `inspect` (`inspect` names the glibc option `--max-glibc`); `doctor` takes `--glibc`/`--target` only |
 | `cargo libc build` | Provider for the glibc floor | Implemented (provider supplied by the user) |
-| `cargo libc check` (F03) | Same selection and target configuration, no link | Next coordinator task |
+| `cargo libc check` (F03) | Same selection and target configuration, no link | Implemented (cargo-libc 772548dbc95b515dfb224702fdbb85b62f48a751); checked with every glibc provider in CI |
 | `cargo libc inspect` | `linux_abi_scan::scan` on the bytes it already read, with `ScanTarget::from_selection`; `--strict` maps to `Report::exit_code(true)` | Implemented (cargo-libc 0a500d4db5339f4819990090e1533783e920a9d7); floors resolved with `Selection::resolve` |
 | `cargo libc build` (after linking) | With `--distro`/`--kernel`, the same scan on the selected `--artifact`; `--strict` | Implemented (cargo-libc 2936c476d960b1cc9c860bd9396bb7cd5411f83f) |
 | `cargo libc test` / `run` with `--runner local\|container` | Sets Cargo's target runner to the `libc-runner` helper (also for doctests, with the target flags given to rustdoc). The helper refuses a binary that needs a newer glibc, then calls `Runner::choose` and `local::run` or `container::run` | Implemented (cargo-libc 2936c476d960b1cc9c860bd9396bb7cd5411f83f); local runner checked in its Linux smoke test and in this repository's glibc 2.17/2.18/2.22 provider integration |

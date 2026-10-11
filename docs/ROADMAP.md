@@ -45,12 +45,12 @@ its qualified provider).
 Versioned targets (F01) and normal Cargo flags/workspace fixtures (F02) are
 qualified for glibc 2.17/2.18/2.22, including both 2.17 routes, with Rust 1.99
 and Clang 21/24. CI pins consumer cargo-libc
-2936c476d960b1cc9c860bd9396bb7cd5411f83f, which also checks every provider
-build with the tier 1 scan and runs it under a Linux 3.10 local seccomp filter
-(tier 2) on 2026-10-11:
-[all nine jobs passed](https://github.com/rustcommons/linux-abi-tools/actions/runs/38102256776).
-
-Next coordinator task is F03, cargo libc check; its checklist is in the
+772548dbc95b515dfb224702fdbb85b62f48a751, which also checks every provider
+build with the tier 1 scan, runs it under a Linux 3.10 local seccomp filter
+(tier 2), and runs `cargo libc check` (F03) on the hello workspace for every
+provider route, including rejection of a conflicting `--glibc`. On 2026-10-11
+[all nine jobs passed](https://github.com/rustcommons/linux-abi-tools/actions/runs/38104336231).
+F03 is complete; see the
 [companion roadmap](https://github.com/rustcommons/cargo-libc/blob/main/docs/ROADMAP.md).
 The next independent provider rollout is glibc 2.19, following the provider
 implementation plan below. Historical research and the symbol matrix remain
