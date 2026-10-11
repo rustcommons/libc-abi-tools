@@ -26,8 +26,8 @@ After independently qualifying a new real input tree against readelf and the
 pinned snapshot, import it deliberately with `scripts/import-glibc-elf-profile.py`.
 The importer checks input and metadata hashes and complete public membership,
 preserves existing profiles, and refuses a duplicate profile name. Regenerate
-the interface reference afterward. The GNU 2.18, 2.19 and 2.20 profiles were
-added this way; native evidence now covers six profiles and 17515 public numeric
+the interface reference afterward. The GNU 2.18 through 2.21 profiles were
+added this way; native evidence now covers seven profiles and 20436 public numeric
 observations.
 
 Build `libc-abi`, then run `scripts/build-glibc-reference.py --binary PATH` to

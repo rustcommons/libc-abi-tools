@@ -33,7 +33,7 @@ for route in "${routes[@]}"; do
     "$root/lib64/ld-linux-x86-64.so.2" --library-path "$work/compiler-runtime:$root/lib64:$root/usr/lib64" \
         "./rust-full-$route" > "logs/full-$route-rust-run.txt"
     grep -qx 'Rust allocation, thread/TLS, and unwinding work!' "logs/full-$route-rust-run.txt"
-    for program in expanded data-views too-new fmemopen-2.22 fmemopen-default pthread-default-2.18; do
+    for program in expanded data-views too-new fmemopen-2.22 fmemopen-default pthread-default-2.18 sigvec-default-2.21; do
         "$compiler" -O0 -fno-builtin -fno-pie -fno-stack-protector -nostdinc \
             -isystem "$root/usr/include" -isystem "$(gcc -print-file-name=include)" \
             -c "$example_dir/$program.c" -o "$program-full-$route.o"
@@ -76,6 +76,25 @@ for route in "${routes[@]}"; do
         fi
         grep -q 'undefined reference to .*pthread_getattr_default_np' "logs/full-$route-pthread-default-negative.txt"
         grep -q 'undefined reference to .*pthread_setattr_default_np' "logs/full-$route-pthread-default-negative.txt"
+    fi
+    # sigvec stays exported, but 2.21 made it compatibility-only: follow the measured default.
+    sigvec_expectation=$(python3 -c 'import csv,sys
+rows=[r for r in csv.DictReader(open(sys.argv[1]),delimiter="\t") if r["symbol"]=="sigvec" and r["version"]=="GLIBC_2.2.5"]
+assert len(rows)==1, "missing sigvec evidence"
+print("accept" if rows[0]["default"]=="yes" else "reject")' "$work/elf-metadata/$route-c.tsv")
+    sigvec_command=(ld -o "sigvec-default-full-$route" --dynamic-linker /lib64/ld-linux-x86-64.so.2
+        "${inputs[@]}" "sigvec-default-2.21-full-$route.o" "${libs[@]}")
+    if [ "$sigvec_expectation" = accept ]; then
+        "${sigvec_command[@]}"
+        "$root/lib64/ld-linux-x86-64.so.2" --library-path "$root/lib64:$root/usr/lib64"             "./sigvec-default-full-$route" > "logs/full-$route-sigvec-default-run.txt"
+        grep -qx 'Default sigvec interface works!' "logs/full-$route-sigvec-default-run.txt"
+        readelf --wide --dyn-syms --version-info "sigvec-default-full-$route"             > "logs/full-$route-sigvec-default-executable.txt"
+        grep -q 'sigvec@GLIBC_2.2.5' "logs/full-$route-sigvec-default-executable.txt"
+    else
+        if "${sigvec_command[@]}" > "logs/full-$route-sigvec-default-negative.txt" 2>&1; then
+            echo "$release unexpectedly linked a new reference to compatibility-only sigvec" >&2; exit 1
+        fi
+        grep -q 'undefined reference to .sigvec' "logs/full-$route-sigvec-default-negative.txt"
     fi
     ld -o "fmemopen-default-$route" --dynamic-linker /lib64/ld-linux-x86-64.so.2 \
         "${inputs[@]}" "fmemopen-default-full-$route.o" "${libs[@]}"

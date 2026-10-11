@@ -60,8 +60,10 @@ The [glibc 2.20 provider](GLIBC-2.20.md) is qualified: producer
 5ed1e12856f98566dfb2c61d0c64ce7922306b27 with consumer cargo-libc
 8444108c1b83e72ef484b95f756308de34725844 passed
 [all fifteen provider jobs](https://github.com/rustcommons/linux-abi-tools/actions/runs/38144128128) on 2026-10-11.
-The next independent provider rollout is glibc 2.21, following the provider
-implementation plan below. Historical research and the symbol matrix remain
+The glibc 2.21 provider rollout is in progress: it passes locally with
+cargo-libc 16a464ea88aa3b54d652583303fe6ed6c4d26e58, and its hosted jobs are
+configured ([GLIBC-2.21.md](GLIBC-2.21.md)). Stage 3 (2.23 onward) follows the
+provider implementation plan below. Historical research and the symbol matrix remain
 separate from provider/runtime qualification. Public authenticated SDK releases
 and additional platform/distribution/kernel qualification remain unfinished.
 
@@ -80,7 +82,7 @@ release for this goal must go beyond collecting and inspecting metadata.
 
 **Current checkpoint:** milestone 1 is implemented and tested. Exact-release ABI
 snapshots, source collection, attribution, and a pinned upstream are in place.
-Beyond the tested 2.17/2.18/2.19/2.20/2.22 providers, compact consolidation, authenticated SDK packaging, and additional releases
+Beyond the tested 2.17–2.22 providers, compact consolidation, authenticated SDK packaging, and additional releases
 are not implemented. Native ELF evidence now drives all 2915 pinned public numeric
 GLIBC 2.17 definitions across eight generated libraries, using both real input
 sources. C data-version/copy-relocation tests and Rust allocation/thread/TLS
@@ -249,7 +251,7 @@ glibc 2.17 provider/runtime qualification remains a separate gate.
 | 2.18 | Yes | Pinned GNU source inputs, eight libraries, Cargo, exhaustive links, and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
 | 2.19 | Yes | Pinned GNU source inputs (signature checked), eight libraries, Cargo, exhaustive links, and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
 | 2.20 | Yes | Pinned GNU source inputs (signature checked), eight libraries, Cargo, exhaustive links, and real runtime tests passed locally and in Clang 21/24 hosted jobs; measured vfork/IFUNC/binding changes recorded; distro/kernel qualification pending |
-| 2.21 | Yes | Pin inputs; generate provider; add runtime job |
+| 2.21 | Yes | Pinned GNU source inputs (signature checked), eight libraries, Cargo, exhaustive links, sigvec default-removal fixture, and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
 | 2.22 | Yes | Source inputs, all eight libraries, Cargo, and Clang 21/24 hosted runtime jobs passed; qualify SLES 12 SP5 |
 | 2.23 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.24 | Yes | Pin inputs; generate provider; add runtime job |
@@ -316,7 +318,10 @@ All twelve hosted jobs passed at `fb5d99f` with pinned consumer `2a6d0e5`.
 The [GNU 2.20 provider](GLIBC-2.20.md) passes the same suite locally, also with
 no patches; it adds no interfaces but has measured default/IFUNC/binding changes.
 All fifteen hosted jobs passed at `5ed1e12` with pinned consumer `8444108`.
-The historical reference now includes six native profiles. Establish 2.21 next;
+The [GNU 2.21 provider](GLIBC-2.21.md) passes the same suite locally, with a new
+fixture for its one measured default change (`sigvec` became compatibility-only).
+The historical reference now includes seven native profiles. Complete 2.21
+hosted qualification, then start 2.23;
 distribution/kernel and SDK qualification remain separate gates.
 
 Follow [GLIBC-PROVIDER-PLAN.md](GLIBC-PROVIDER-PLAN.md) for the ordered rollout:
@@ -328,7 +333,7 @@ input, ABI, relocation, Cargo, real runtime, and hosted CI gates.
 
 - [x] Generate the complete covered-snapshot union: 4671 interfaces across 28 labels.
 - [x] Document all adjacent membership/kind/size differences and measured native changes.
-- [x] Preserve 17515 native observations with input provenance and default/compatibility flags, including the GNU 2.18, 2.19 and 2.20 profiles.
+- [x] Preserve 20436 native observations with input provenance and default/compatibility flags, including the GNU 2.18 through 2.21 profiles.
 - [x] Publish generated Markdown interface tables and machine-readable matrices.
 - [x] Inventory early official archives/patches referring to 1.00 and 71 upstream tag candidates.
 - [x] Model unknown evidence separately from known absence; avoid guessing introduction/defaults.

@@ -2,7 +2,7 @@
 
 Version 1 connects generated link-only DSOs to Cargo through a trusted local
 descriptor. It supports x86_64 Linux dynamically linked non-PIE Rust executables
-and exactly glibc 2.17, 2.18, 2.19, 2.20 or 2.22. It is not an authenticated or relocatable release SDK.
+and exactly one glibc release from 2.17 through 2.22. It is not an authenticated or relocatable release SDK.
 The six-field v1 format is unchanged; existing 2.17 descriptors remain valid.
 
 The descriptor is UTF-8, at most 16 KiB, with LF endings and a final newline.

@@ -382,3 +382,27 @@ passed all fifteen jobs: five preparations (2.17, 2.18, 2.19, 2.20, 2.22) and te
 Rust 1.99/Clang 21 or 24 applications. The 2.20 job logs show the same 2921/1750/2709
 exhaustive results, the tier 1 scan pass, the tier 2 run, `check`, and the
 rejection tests. Main CI also passed at that commit.
+
+## GNU glibc 2.21 provider (local, 2026-10-11)
+
+The pinned GNU 2.21 archive (SHA-256 `aeeb3624…23b8`, detached signature verified
+with the GNU keyring) built unchanged with the 2.18 CentOS 7 builder, GCC 4.8.5,
+and the same configuration. All eight DSOs matched GNU readelf and the pinned
+snapshot with zero differences: 2921 public definitions, as in 2.18–2.20.
+Preparation passed the export/storage audit and the exhaustive suite (2921
+accepted, 1750 rejected, 2708 ordinary defaults). The one fewer default than 2.20
+is libc's `sigvec`, which 2.21 keeps only as a compatibility symbol (2.21 NEWS).
+The new `sigvec-default-2.21.c` fixture follows each provider's measured default:
+it was rejected at link time for 2.21 and linked, bound to `sigvec@GLIBC_2.2.5`,
+and delivered a signal under the real 2.19 and 2.20 runtimes. The applications also
+passed allocation, thread/TLS, unwinding, data views, the 2.18 pthread
+default-attribute fixture (accepted), the fmemopen 2.22 rejection, and five
+behavior suites. cargo-libc `16a464ea88aa3b54d652583303fe6ed6c4d26e58` passed the provider build,
+tier 1 scan, tier 2 local run under a Linux 3.10 filter, workflow fixtures,
+`check`, mismatched-release and conflicting `--glibc` rejection, and the
+too-new memfd_create link failure. The profile was imported as
+`gnu-source-2.21`; the reference regenerated and verified. Both repositories
+passed formatting, tests, and clippy with warnings denied. Tools: Rust 1.99.0,
+Clang 18.1.3, GNU binutils 2.42, podman 5.8.2 on WSL Ubuntu 24.04. Hosted
+Clang 21/24 qualification, including the sigvec fixture on 2.17 (both routes),
+2.18 and 2.22, is pending.

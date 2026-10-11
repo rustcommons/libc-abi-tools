@@ -179,6 +179,19 @@ for route in ROUTES:
         diagnostic = (work / "logs" / ("full-" + route + "-pthread-default-negative.txt")).read_text()
         for row in pthread_rows:
             require("undefined reference" in diagnostic and row["symbol"] in diagnostic, "Wrong pthread boundary rejection")
+    sigvec = [r for r in rows(work / "elf-metadata" / (route + "-c.tsv"))
+              if r["symbol"] == "sigvec" and r["version"] == "GLIBC_2.2.5"]
+    require(len(sigvec) == 1, "Missing sigvec default evidence")
+    if sigvec[0]["default"] == "yes":
+        require("sigvec@GLIBC_2.2.5" in (work / "logs" / ("full-" + route + "-sigvec-default-executable.txt")).read_text(),
+                "Unversioned sigvec did not bind to its measured default")
+        require((work / "logs" / ("full-" + route + "-sigvec-default-run.txt")).read_text().strip() ==
+                "Default sigvec interface works!", "sigvec runtime failed")
+        manifest["executables"][route]["sigvec_default_sha256"] = digest(work / ("sigvec-default-full-" + route))
+    else:
+        diagnostic = (work / "logs" / ("full-" + route + "-sigvec-default-negative.txt")).read_text()
+        require("undefined reference" in diagnostic and "sigvec" in diagnostic,
+                "Compatibility-only sigvec was not rejected for new references")
     if RELEASE == "2.22":
         versions = (work / "logs" / ("full-" + route + "-fmemopen-executable.txt")).read_text()
         require("fmemopen@GLIBC_2.22" in versions and "fmemopen@GLIBC_2.2.5" in versions,

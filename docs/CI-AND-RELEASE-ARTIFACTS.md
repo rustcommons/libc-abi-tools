@@ -12,11 +12,11 @@ not a GNU ld versus LLD comparison.
 | Stage | Matrix | Responsibilities |
 | --- | --- | --- |
 | Main host CI | Rust 1.99 Windows/Linux; Rust 1.90 minimum; 28 snapshot labels; reference/integrity gate | Formatting, Rust unit tests/clippy, snapshot checksums/determinism, generated reference, original CI-bundle extraction fixtures |
-| Provider preparation | glibc 2.17, 2.18, 2.19, 2.20, 2.22: five jobs | Build pinned real inputs, collect native ELF/readelf evidence, generate eight stub DSOs, audit exports/storage/defaults, run exhaustive accepted/rejected/default relocation probes, package verified inputs |
-| Application integration | Each provider under Clang 21 and 24: ten jobs | Restore prepared inputs, compile/run Rust allocation/thread/TLS/unwind and C boundary/data programs, run five library behavior suites, regenerate local descriptors, build/run Cargo host-unit and target examples, audit versions/paths and newer-symbol rejection |
+| Provider preparation | glibc 2.17 through 2.22: six jobs | Build pinned real inputs, collect native ELF/readelf evidence, generate eight stub DSOs, audit exports/storage/defaults, run exhaustive accepted/rejected/default relocation probes, package verified inputs |
+| Application integration | Each provider under Clang 21 and 24: twelve jobs | Restore prepared inputs, compile/run Rust allocation/thread/TLS/unwind and C boundary/data programs, run five library behavior suites, regenerate local descriptors, build/run Cargo host-unit and target examples, audit versions/paths and newer-symbol rejection |
 
 Applications wait for the preparation stage to succeed. The 2.17 bundle preserves
-both prebuilt and GNU source routes; 2.18/2.19/2.20/2.22 preserve the GNU source route.
+both prebuilt and GNU source routes; 2.18–2.22 preserve the GNU source route.
 Historical glibc itself retains the pinned qualified historical builder, while
 modern tools build applications. Companion unit tests are covered by the pinned
 consumer's own CI, rather than repeated in every application job.
