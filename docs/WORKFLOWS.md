@@ -17,6 +17,31 @@ Shipping a Rust program to an older Linux system raises three separate questions
 The `linux-abi-tools` crate re-exports all four (`linux_abi_tools::{libc,
 kernel, targets, scan}`).
 
+## Workflow catalog
+
+Every workflow, who runs it, and its status. **Implemented** means tested as
+described in the linked section; **planned** and **long-term** rows are designs.
+
+| Workflow | Who runs it | Status | Section |
+| --- | --- | --- | --- |
+| Collect glibc's ABI lists from signed release tags | Maintainers (glibc-abilists) | Implemented | [9.1](#91-glibc-abi-lists) |
+| Derive kernel syscall and `madvise` data from Linux release tags | Maintainers | Implemented | [9.2](#92-kernel-data) |
+| Build, audit, and qualify a glibc provider for one release | Maintainers and CI | Implemented, 2.17–2.44 | [9.3](#93-provider-pipeline) |
+| Record measured evidence and regenerate the reference | Maintainers | Implemented | [9.4](#94-evidence-and-reference) |
+| Hosted qualification of every provider | CI | Implemented (84 jobs) | [9.5](#95-hosted-qualification) |
+| Release the crates | Maintainers | Implemented (0.1.0, 0.2.0) | [9.6](#96-release) |
+| Choose a target (glibc and kernel floors) | Users | Implemented | [1](#1-choose-a-target) |
+| Build against an older glibc with a provider | Users | Implemented (provider supplied by the user) | [2](#2-build-against-an-older-glibc) |
+| Type-check without linking (`cargo libc check`) | Users | Implemented | [6](#6-how-this-translates-into-cargo-libc) |
+| Inspect a built binary (tier 1) | Users | Implemented | [3](#3-inspect-a-built-binary-tier-1) |
+| Run or test under an older kernel (tier 2) | Users | Implemented | [4](#4-run-under-an-older-kernel) |
+| Check runners and inputs (`cargo libc doctor`) | Users | Implemented | [6](#6-how-this-translates-into-cargo-libc) |
+| Use the libraries directly | Developers | Implemented | [5](#5-use-the-libraries-directly) |
+| Obtain a provider automatically (`source`, `prebuilt`, `container`) | Users | Planned | [10.1](#101-provider-delivery) |
+| Distribution-specific providers | Maintainers and users | Planned, later release | [10.2](#102-distribution-specific-providers) |
+| Build the builder toolchains from source | Maintainers and CI | Long-term | [10.3](#103-source-built-builder-toolchains) |
+| Qualify on a real target host (tier 3) | Users | Outside these tools; required for any compatibility claim | [Testing tiers](#testing-tiers) |
+
 ### Testing tiers
 
 Checks get more reliable, and more expensive, from tier to tier:
@@ -53,13 +78,15 @@ One selection drives both floors. The rules are implemented in
 
 1. Produce a provider: generated link-only stub libraries plus the real startup
    objects, `libc_nonshared.a`, headers, and compiler runtime, described by a
-   `libc-abi-provider-v1` descriptor.
+   `libc-abi-provider-v1` descriptor. Today this is the
+   [provider pipeline](#93-provider-pipeline); planned automatic delivery is in
+   [10.1](#101-provider-delivery).
 2. Build: `cargo libc build --target x86_64-unknown-linux-gnu.2.22 --provider
    provider.txt --artifact ... -- --release`.
 
 The stubs are used only for linking and never deployed. The provider is still
-supplied by the user; how released providers are sourced, authenticated, and
-distributed is an open decision (see [ROADMAP.md](ROADMAP.md)).
+supplied by the user; [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md) designs how
+users will obtain one without that step.
 
 ## 3. Inspect a built binary (tier 1)
 
@@ -228,7 +255,202 @@ blob id and SHA-256.
 
 ## 8. Open decisions
 
-- **Release sourcing** for startup objects, `libc_nonshared.a`, headers, and
-  the compiler runtime, which ABI lists cannot supply (see [ROADMAP.md](ROADMAP.md)).
+- **Provider delivery:** data crate names and versioning, the corresponding-source
+  arrangement for `prebuilt`, and the compiler runtime
+  (see [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md#open-questions)).
 - **Distribution backports** remain unsourced for most presets; until sourced, a
   preset simulates its mainline base kernel.
+
+## 9. Producing the data and providers
+
+### 9.1 glibc ABI lists
+
+Repository [glibc-abilists](https://github.com/rustcommons/glibc-abilists); its
+collector is MIT and not published.
+
+1. Clone glibc's repository without file contents (`git clone --bare --filter=blob:none`).
+2. For each release tag in `upstream.toml`'s range (2.17–2.44), require the tag object
+   to agree between sourceware and the GitHub mirror.
+3. Verify the tag's signature against the release managers' keys in `keys/`, merged
+   from every source. 2.30's key is unpublished, which is recorded as an exception.
+4. Select the x86_64 `*.abilist` files by the rule in `upstream.toml`, and record each
+   file's path, git blob id, SHA-256, size, and the release's license evidence.
+5. Write `data/` and `src/generated.rs`; `--check` regenerates and compares instead.
+6. Publish the crate. `libc-abi-tools` compiles the lists in (feature
+   `bundled-glibc-data`).
+
+### 9.2 Kernel data
+
+`crates/kernel-abi-tools/scripts`, run online only when refreshing:
+
+1. `fetch-syscall-tables.sh`: for each mainline Linux tag, download the x86_64 syscall
+   table and the generic `mman` header.
+2. `build-syscall-data.sh` and `build-madvise-data.sh`: derive the first release of every
+   64-bit syscall and `madvise` advice value into the committed TSV data. The 3.3
+   floor is reported as the floor, not as the true origin.
+3. Build: the data is compiled in, and the seccomp profiles (OCI JSON and classic BPF)
+   are generated from it; unit tests check both against the data.
+4. `self-test.sh` with `syscall-probe`: run every profile with the local runner and in
+   a container (crun with libseccomp 2.6+).
+
+### 9.3 Provider pipeline
+
+One release at a time, in `examples/` (`glibc-two-paths/` holds the shared scripts
+and 2.17's two routes; `glibc-X/` holds each later release's pinned inputs). Step
+by step:
+
+1. **Pin the inputs:** `examples/glibc-X/INPUTS.toml` records:
+   - the GNU archive URL and SHA-256, and its signature check;
+   - the digest-pinned builder image and the signed package archive;
+   - the configure options and any source patch.
+
+   Builders:
+   - CentOS 7 for 2.17–2.25;
+   - Debian 9 for 2.26–2.36;
+   - Debian 12 for 2.37–2.44.
+2. **Fetch the source:** `fetch-glibc.sh` downloads from ftp.gnu.org, falling back to
+   the kernel.org GNU mirror, and requires the pinned SHA-256.
+3. **Build glibc from source in the builder:** `run.sh` starts the pinned image and
+   `build-inputs.sh` inside it:
+   - installs the signature-checked packages and records them;
+   - copies the builder's real `libgcc_s.so.1`;
+   - configures (`--prefix=/usr --libdir=/usr/lib64 --disable-werror --enable-kernel=3.2`),
+     builds, and installs into an isolated `source/` tree;
+   - copies the kernel UAPI headers.
+
+   2.17 also has a `prebuilt` route made of CentOS 7 packages, and a one-line
+   source adjustment for its freestanding header build.
+4. **Audit the real libraries:** `elf-and-check.sh`:
+   - reads each of the eight real DSOs with `libc-abi glibc elf` and compares the result
+     with GNU `readelf`;
+   - compares every public versioned definition with the pinned ABI list
+     (`libc-abi glibc snapshot`), requiring zero differences;
+   - writes the release's matrix and a manifest of input hashes.
+5. **Generate and audit the stubs:** `prepare-and-check.sh`:
+   - generates the eight link-only DSOs from the measured metadata;
+   - checks the exact exported set, default and compatibility versions, types,
+     binding, visibility, object sizes, alignment, shared storage, SONAME and
+     absence of dependencies (`check-full.py --abi-only`).
+6. **Exhaustive linking:** `check-link-matrix.py`, against each isolated stub library.
+   - Every interface present in the release links.
+   - Every absent interface fails.
+   - Every measured default binds to its version.
+   - Every compatibility-only name rejects a new unversioned reference.
+   - A synthetic TLS fixture covers TLS relocations.
+7. **Package for CI** (CI only): `ci-bundle.py pack` writes a checksummed inventory
+   for the application jobs; `unpack` verifies it on each runner.
+8. **Applications on the real runtime:** `application-and-check.sh` and
+   `behavior-and-check.sh`.
+   - **Rust program:** allocation, threads and TLS destructors, and unwinding.
+   - **C programs:** both `memcpy` versions, copy-relocated historical data views,
+     `fmemopen` versions and default, the pthread default-attribute boundary, and the
+     `sigvec` default removal.
+   - **Too-new link test:** a matrix-chosen symbol (`too-new-symbol.py`) must fail to
+     link.
+   - **Five library behavior suites:** libm, libdl, librt, libutil and libresolv.
+
+   Everything runs under the release's real loader. Runtime dependency paths and
+   loaded modules are audited (`check-full.py --application-only`,
+   `check-behavior.py`).
+9. **Cargo integration:** `provider-and-check.sh` exports a v1 descriptor
+   (`provider_glibc` example) and uses cargo-libc for:
+   - `build` with the versioned target and the tier 1 scan;
+   - `run` under a Linux 3.10 local filter;
+   - the host-glibc refusal (for providers newer than the host);
+   - `check`;
+   - conflicting `--glibc` and mismatched-release rejection;
+   - workspace, feature, profile and cached-build fixtures;
+   - the matrix-chosen too-new Cargo link failure.
+
+   Link maps and runtime paths are audited (`check-provider.py`).
+
+### 9.4 Evidence and reference
+
+1. `scripts/import-glibc-elf-profile.py` adds the release's measured profile to
+   `data/glibc-history/` after rechecking hashes, membership and differences, and
+   refuses to replace an existing profile.
+2. `scripts/build-glibc-reference.py` regenerates the matrices and the Markdown
+   interface reference; `--check` verifies it.
+3. The release's `docs/GLIBC-X.md` and the [provider index](PROVIDERS.md) record the
+   inputs, results, measured changes from the previous release and hosted runs.
+
+### 9.5 Hosted qualification
+
+`.github/workflows/glibc-2.17.yml`, on every push:
+- one **preparation** job per release runs steps 2–7;
+- two **application** jobs per release, one per Clang (21 and 24), run steps 8–9 with
+  Rust 1.99 and the pinned cargo-libc commit;
+- diagnostics are kept as artifacts.
+
+Main CI covers formatting, tests, clippy (Windows and Linux), the minimum Rust
+version, the ABI lists and the reference check.
+
+### 9.6 Release
+
+[RELEASING.md](RELEASING.md):
+1. Set one version across the five crates.
+2. Run the full validation and `cargo package --workspace --locked`.
+3. Publish in dependency order from a commit with green CI.
+4. Tag `vX.Y.Z` and record the release.
+
+glibc-abilists releases from its own repository first.
+
+## 10. Planned workflows
+
+### 10.1 Provider delivery
+
+Design: [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md). The user runs
+`cargo libc build --target x86_64-unknown-linux-gnu.2.28`; with no provider given:
+
+1. **Resolve** the release and target, and look for a cached provider whose content
+   hash matches.
+2. **Prepare** one in the selected mode, if none is cached:
+   - **`source` (default):**
+     1. Read the release's headers, startup and nonshared sources, generated
+        configuration headers and recorded compile commands from
+        `glibc-provider-sources`, and check their hashes.
+     2. Compile `crt1.o`, `crti.o`, `crtn.o` and `libc_nonshared.a` with Clang.
+     3. Generate the stubs from the ABI data.
+   - **`prebuilt`:**
+     1. Read the CI-built objects from `glibc-provider-binaries` and require their
+        recorded SHA-256 and CI run.
+     2. Take the headers from the sources crate.
+     3. Generate the stubs.
+   - **`container`:** run the [provider pipeline](#93-provider-pipeline) steps 1–5
+     locally with podman or docker.
+3. **Assemble** the provider layout (sysroot, stubs, compiler runtime), write the
+   descriptor and `manifest.json`, and audit the stubs as in step 5 of 9.3.
+4. **Cache** it under `$CARGO_HOME/libc-providers/...`, then build as in
+   [section 2](#2-build-against-an-older-glibc).
+
+`cargo libc provider prepare|list|path|verify|export|import|remove` (and
+`libc-abi provider ...`) expose the same steps. CI qualifies every release in every
+mode before publishing the data crates:
+- stubs and headers byte-identical across modes;
+- `prebuilt` byte-identical to the qualified container build;
+- `source` objects equivalent in symbols, sections and relocations;
+- full suites against each mode's provider.
+
+### 10.2 Distribution-specific providers
+
+Later release ([roadmap](ROADMAP.md#future-release-distribution-specific-providers)).
+
+1. Pin a redistributable distribution's binary and source packages, with checksums,
+   signatures, licenses and terms.
+2. Extract the same provider parts from them instead of building GNU glibc.
+3. Measure the profile and compare it with the generic build, recording every
+   difference in [DISTRIBUTION-DIFFERENCES.md](DISTRIBUTION-DIFFERENCES.md).
+4. Run steps 4–9 of the provider pipeline, plus a run in the distribution's own image.
+5. Publish with the input's identity in the descriptor.
+
+### 10.3 Source-built builder toolchains
+
+Long-term ([roadmap](ROADMAP.md#long-term-source-built-builder-toolchains)).
+
+1. Start from a minimal auditable seed.
+2. Build era-matched binutils, GCC (with libgcc), make, bison, gawk and Python from
+   signed upstream sources, and the UAPI headers from kernel.org.
+3. Produce the builder images from committed Containerfiles, recording every input.
+4. Build twice on different hosts, and require identical results.
+5. Use these images in step 3 of the provider pipeline, and show the providers match
+   today's vendor-built ones.
