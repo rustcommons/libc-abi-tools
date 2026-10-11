@@ -24,7 +24,7 @@ Checks get more reliable, and more expensive, from tier to tier:
 | Tier | How | Reliability | Tool |
 | --- | --- | --- | --- |
 | 1. Inspect | Read the built ELF files; nothing runs | Exact for symbols, versions, ELF notes; heuristic for syscalls in code | `linux-abi-scan`, `cargo libc inspect` |
-| 2. Simulate | Run the tests under a seccomp filter (host userland) or in a container (target userland) | Catches what executes; syscall availability and `madvise` only | `kernel-seccomp run`, `cargo libc test` (planned) |
+| 2. Simulate | Run the tests under a seccomp filter (host userland) or in a container (target userland) | Catches what executes; syscall availability and `madvise` only | `kernel-seccomp run`, `cargo libc test`/`run` |
 | 3. Qualify | Run on a real host at the target's minimums, e.g. a SLES 12 SP5 VM | The only qualification | Your target environment |
 
 Tier 1 is documented as the least reliable: it reports what a file *could*
@@ -181,21 +181,21 @@ cargo-libc cannot pin a commit of this repository. Offline builds use
 
 | cargo-libc | Calls | Status |
 | --- | --- | --- |
-| `--distro`, `--glibc`, `--kernel`, `--target triple.X` on every command | `Selection::resolve`; print `Selection::describe` so "kernel not simulated" is visible | `--glibc` and versioned `--target` implemented; `--distro`/`--kernel` planned |
+| `--distro`, `--glibc`, `--kernel`, `--target triple.X` on every command | `Selection::resolve`; print `Selection::describe` so "kernel not simulated" is visible | Implemented on `build`, `test`, `run`, and `inspect` (`inspect` names the glibc option `--max-glibc`); `doctor` takes `--glibc`/`--target` only |
 | `cargo libc build` | Provider for the glibc floor | Implemented (provider supplied by the user) |
 | `cargo libc check` (F03) | Same selection and target configuration, no link | Next coordinator task |
 | `cargo libc inspect` | `linux_abi_scan::scan` on the bytes it already read, with `ScanTarget::from_selection`; `--strict` maps to `Report::exit_code(true)` | Implemented (cargo-libc 0a500d4db5339f4819990090e1533783e920a9d7); floors resolved with `Selection::resolve` |
-| `cargo libc build` (after linking) | Optionally run the same scan on every built executable | Planned |
-| `cargo libc test` / `run` with `--runner local\|container` | Sets Cargo's target runner to a cargo-libc helper binary. That helper calls `Runner::choose`, then `local::run` or `container::run` | Planned; the library side is implemented |
+| `cargo libc build` (after linking) | With `--distro`/`--kernel`, the same scan on the selected `--artifact`; `--strict` | Implemented (cargo-libc 2936c476d960b1cc9c860bd9396bb7cd5411f83f) |
+| `cargo libc test` / `run` with `--runner local\|container` | Sets Cargo's target runner to the `libc-runner` helper (also for doctests, with the target flags given to rustdoc). The helper refuses a binary that needs a newer glibc, then calls `Runner::choose` and `local::run` or `container::run` | Implemented (cargo-libc 2936c476d960b1cc9c860bd9396bb7cd5411f83f); local runner checked in its Linux smoke test and in this repository's glibc 2.17/2.18/2.22 provider integration |
 | `cargo libc doctor` | Reports runner availability: seccomp support, container engine, crun/libseccomp version | Planned |
 
-A typical flow once implemented:
+A typical flow (each command also takes the same `--provider` or `--sysroot`/`--gcc-runtime` inputs):
 
 ```sh
 cargo libc build --distro sles-12-sp5 --provider provider.txt --artifact ... -- --release
 cargo libc inspect target/.../app --distro sles-12-sp5          # glibc + kernel floors
-cargo libc test  --distro sles-12-sp5 --runner local            # fast: kernel only
-cargo libc test  --distro sles-12-sp5                           # container: real userland
+cargo libc test  --distro sles-12-sp5 --provider provider.txt --runner local   # fast: kernel only
+cargo libc test  --distro sles-12-sp5 --provider provider.txt                  # container: image userland
 ```
 
 The runner helper follows the existing `libc-linker` pattern: a sibling

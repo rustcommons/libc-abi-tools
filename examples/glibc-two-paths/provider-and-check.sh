@@ -11,6 +11,7 @@ export CARGO_TARGET_DIR="$work/provider-tools"
 mkdir -p "$work/logs"
 python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" c memfd_create GLIBC_2.27 reject
 gcc_startup=$(dirname "$(gcc -print-file-name=crtbegin.o)")
+cargo fetch --manifest-path "$companion/Cargo.toml" --locked
 cargo build --manifest-path "$companion/Cargo.toml" --bins --locked --offline
 for route in "${routes[@]}"; do
     descriptor="$work/provider-$route-v1-$$.txt"
@@ -21,9 +22,18 @@ for route in "${routes[@]}"; do
     export CARGO_LIBC_PROVIDER_LINK_MAP="$work/logs/provider-$route-link.map"
     # Qualify the suffix API; Cargo must still report the ordinary target path.
     "$CARGO_TARGET_DIR/debug/cargo-libc" build --provider "$descriptor" --target "x86_64-unknown-linux-gnu.$release" \
-        --cc "$clang" --ld /usr/bin/ld.bfd --artifact "$artifact" -- \
+        --cc "$clang" --ld /usr/bin/ld.bfd --kernel 3.10 --artifact "$artifact" -- \
         --manifest-path "$companion/examples/hello/Cargo.toml" --target-dir "$work/cargo-$route" \
         --locked --offline 2>&1 | tee "$work/logs/provider-$route-build.txt"
+    # Tier 1: the scan of the provider-built executable against this glibc and Linux 3.10.
+    grep -F 'Tier 1 scan (linux-abi-scan): pass' "$work/logs/provider-$route-build.txt"
+    # Tier 2: the same executable through libc-runner under a 3.10 seccomp filter.
+    "$CARGO_TARGET_DIR/debug/cargo-libc" run --provider "$descriptor" --target "x86_64-unknown-linux-gnu.$release" \
+        --cc "$clang" --ld /usr/bin/ld.bfd --kernel 3.10 --runner local -- \
+        --manifest-path "$companion/examples/hello/Cargo.toml" --target-dir "$work/cargo-$route" \
+        --bin glibc-hello --locked --offline 2>&1 | tee "$work/logs/provider-$route-run.txt"
+    grep -F 'Kernel simulation: Linux 3.10 with the local seccomp filter' "$work/logs/provider-$route-run.txt"
+    grep -F 'target executable ran; thread result = 42' "$work/logs/provider-$route-run.txt"
     "$work/$route/lib64/ld-linux-x86-64.so.2" \
         --library-path "$work/compiler-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
         "$artifact" | tee "$work/logs/provider-$route-runtime.txt"
