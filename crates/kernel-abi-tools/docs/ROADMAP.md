@@ -116,9 +116,10 @@ container. See [WORKFLOWS.md](../../../docs/WORKFLOWS.md).
 - [x] **Runner choice:** `Runner::choose` and `kernel-seccomp run --runner
   local|container`. The default is the container when an image is known,
   otherwise local.
-- [ ] **cargo-libc side:** depend on the crates; add `--distro`/`--glibc`/
+- [x] **cargo-libc side:** depend on the crates; add `--distro`/`--glibc`/
   `--kernel`/`--target` and `--runner`; a runner helper binary that calls the
-  library.
+  library. Done 2026-10-11: `cargo libc inspect`/`build` scan, `test`/`run`
+  through `libc-runner` (local or container), and `doctor` runner checks.
 - [x] **ELF check** and **binary scan** (2026-10-10): `crates/linux-abi-scan`
   reports `NT_GNU_ABI_TAG`, `DT_RELR`, glibc versions, imported syscall
   wrappers (exact), and constant `syscall()`/raw-syscall/`madvise` call sites
@@ -140,6 +141,7 @@ format keeps the `kernel-abi-provider-v1` name.
 - [x] `cargo package --workspace` verifies the four crates together.
 - [x] Disconnected-network procedure (`cargo vendor`, `podman save`/`load`,
   pinned static crun) in RELEASING.md.
-- [ ] First crates.io publication (needs the maintainer's go-ahead).
+- [x] First crates.io publication: 0.1.0 and 0.2.0 on 2026-10-11 (release record in
+  [RELEASING.md](../../../docs/RELEASING.md)).
 - [ ] Publisher authentication beyond crates.io checksums (for example an
   internal mirror trust chain).

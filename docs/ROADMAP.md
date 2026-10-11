@@ -211,14 +211,15 @@ extends to glibc's beginnings without extending the supported provider floor.
 | Field | Prepared value |
 | --- | --- |
 | Tagline | Target libc versions beyond your host. |
-| Description | Rust tools for collecting and inspecting libc ABI metadata, starting with glibc. |
-| Topics | rust, libc, glibc, abi, elf, linux, toolchain, cross-compilation, zig |
+| Description | Rust tools for targeting older Linux from a newer host: glibc ABI data and link providers (2.17-2.44), kernel syscall simulation, and binary scanning |
+| Topics | rust, libc, glibc, abi, elf, linux, seccomp, toolchain, cross-compilation (Zig is credited for the idea in the README, not as a topic) |
 | README image | docs/assets/banner.svg; original editable gear and ABI diagram |
 | Badges | CI, Rust 1.90+, MIT code, separate upstream data license, prototype status |
 
-- [ ] Apply description/topics to GitHub settings; describe generation as planned.
+- [x] Apply description/topics to GitHub settings (2026-10-11).
 - [x] Observe hosted Windows/Linux CI, all snapshot jobs, and the MSRV check.
-- [ ] Decide packaging and crate publication policy; verify crate-name availability.
+- [x] Decide packaging and crate publication policy; verify crate-name availability: crates.io
+  only, one shared workspace version ([RELEASING.md](RELEASING.md)); all six crate names published.
 - [ ] Publish only after the advertised milestone passes its validation gates.
 
 Repository settings and releases remain separate from the authorized development push.
