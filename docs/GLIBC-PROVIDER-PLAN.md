@@ -1,7 +1,8 @@
 # Establishing additional glibc providers
 
 This is an implementation order, not a list of newly supported runtimes.
-2.17, 2.18 and 2.22 have locally and hosted-qualified provider integration. All 28
+2.17, 2.18 and 2.22 have locally and hosted-qualified provider integration;
+2.19 passes locally and has hosted jobs configured, pending qualification. All 28
 vendored labels have snapshot tests; that does not establish real providers.
 The complete per-label status remains in [ROADMAP.md](ROADMAP.md).
 
@@ -81,6 +82,6 @@ and focused semantic tests alongside the ABI tables as that evidence is collecte
 ## Immediate deliverables
 
 - Qualify the new exhaustive suite locally and in the four current provider jobs.
-- Establish 2.19 after the qualified [2.18 provider](GLIBC-2.18.md).
+- Complete hosted qualification of the locally validated [2.19 provider](GLIBC-2.19.md), then establish 2.20.
 - Collect and normalize 2.16 history without declaring a 2.16 Rust provider.
 - Keep distribution qualification for current 2.17/2.22 inputs tracked separately.

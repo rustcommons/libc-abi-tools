@@ -7,7 +7,7 @@ on:
       companion_ref:
         description: cargo-libc integration branch or tested commit
         required: false
-        default: 772548dbc95b515dfb224702fdbb85b62f48a751
+        default: 2a6d0e57f915c774d71b1261b6707014d2bde47e
 permissions:
   contents: read
 jobs:
@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        glibc: ['2.17', '2.18', '2.22']
+        glibc: ['2.17', '2.18', '2.19', '2.22']
     env:
       ABI_GLIBC_RELEASE: ${{ matrix.glibc }}
     steps:
@@ -71,7 +71,7 @@ jobs:
       fail-fast: false
       matrix:
         clang: [21, 24]
-        glibc: ['2.17', '2.18', '2.22']
+        glibc: ['2.17', '2.18', '2.19', '2.22']
     env:
       ABI_GLIBC_RELEASE: ${{ matrix.glibc }}
       ABI_BEHAVIOR_CC: /usr/bin/clang-${{ matrix.clang }}
@@ -83,7 +83,7 @@ jobs:
         with:
           repository: rustcommons/cargo-libc
           path: cargo-libc
-          ref: ${{ inputs.companion_ref || '772548dbc95b515dfb224702fdbb85b62f48a751' }}
+          ref: ${{ inputs.companion_ref || '2a6d0e57f915c774d71b1261b6707014d2bde47e' }}
       - uses: dtolnay/rust-toolchain@1.99.0
       - name: Install application tools
         env:

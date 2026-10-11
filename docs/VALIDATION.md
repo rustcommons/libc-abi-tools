@@ -327,3 +327,23 @@ These transfer artifacts are trusted workflow inputs, not authenticated public
 SDK releases. Version-suffixed target selection is documented as planned,
 with the current explicit provider/glibc interface retained. See
 [CI and release artifacts](CI-AND-RELEASE-ARTIFACTS.md).
+
+## GNU glibc 2.19 provider (local, 2026-10-11)
+
+The pinned GNU 2.19 archive (SHA-256 `2d3997f5…a2a2`, detached signature verified
+with the GNU keyring) built unchanged with the 2.18 CentOS 7 builder, GCC 4.8.5,
+and the same configuration. All eight DSOs matched GNU readelf and the pinned
+snapshot with zero differences: 2921 public definitions, identical in count to
+2.18, consistent with the snapshot diff recording no x86_64 changes between them.
+Preparation passed the export/storage audit and the exhaustive suite (2921
+accepted, 1750 rejected, 2711 ordinary defaults). The applications passed
+allocation, thread/TLS, unwinding, data views, the 2.18 pthread default-attribute
+fixture (accepted), the fmemopen 2.22 rejection, and five behavior suites.
+cargo-libc `2a6d0e57f915c774d71b1261b6707014d2bde47e` passed the provider build,
+tier 1 scan, tier 2 local run under a Linux 3.10 filter, workflow fixtures,
+`check`, mismatched-release and conflicting `--glibc` rejection, and the
+too-new memfd_create link failure. The profile was imported as
+`gnu-source-2.19`; the reference regenerated and verified. Both repositories
+passed formatting, tests, and clippy with warnings denied. Tools: Rust 1.99.0,
+Clang 18.1.3, GNU binutils 2.42, podman 5.8.2 on WSL Ubuntu 24.04. Hosted
+Clang 21/24 qualification is pending.

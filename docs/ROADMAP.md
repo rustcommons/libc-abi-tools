@@ -52,7 +52,9 @@ provider route, including rejection of a conflicting `--glibc`. On 2026-10-11
 [all nine jobs passed](https://github.com/rustcommons/linux-abi-tools/actions/runs/38104336231).
 F03 is complete; see the
 [companion roadmap](https://github.com/rustcommons/cargo-libc/blob/main/docs/ROADMAP.md).
-The next independent provider rollout is glibc 2.19, following the provider
+The glibc 2.19 provider rollout is in progress: it passes locally with
+cargo-libc 2a6d0e57f915c774d71b1261b6707014d2bde47e, and its hosted jobs are
+configured ([GLIBC-2.19.md](GLIBC-2.19.md)). 2.20 follows the provider
 implementation plan below. Historical research and the symbol matrix remain
 separate from provider/runtime qualification. Public authenticated SDK releases
 and additional platform/distribution/kernel qualification remain unfinished.
@@ -72,7 +74,7 @@ release for this goal must go beyond collecting and inspecting metadata.
 
 **Current checkpoint:** milestone 1 is implemented and tested. Exact-release ABI
 snapshots, source collection, attribution, and a pinned upstream are in place.
-Beyond the tested 2.17/2.18/2.22 providers, compact consolidation, authenticated SDK packaging, and additional releases
+Beyond the tested 2.17/2.18/2.19/2.22 providers, compact consolidation, authenticated SDK packaging, and additional releases
 are not implemented. Native ELF evidence now drives all 2915 pinned public numeric
 GLIBC 2.17 definitions across eight generated libraries, using both real input
 sources. C data-version/copy-relocation tests and Rust allocation/thread/TLS
@@ -239,7 +241,7 @@ glibc 2.17 provider/runtime qualification remains a separate gate.
 | --- | --- | --- |
 | 2.17 | Yes | Both input routes and Cargo tested locally; hosted Clang 21/24 passed; old distro/kernel qualification pending |
 | 2.18 | Yes | Pinned GNU source inputs, eight libraries, Cargo, exhaustive links, and real runtime tests passed locally and in Clang 21/24 hosted jobs; distro/kernel qualification pending |
-| 2.19 | Yes | Pin inputs; generate provider; add runtime job |
+| 2.19 | Yes | Pinned GNU source inputs (signature checked), eight libraries, Cargo, exhaustive links, and real runtime tests pass locally; Clang 21/24 hosted jobs configured, qualification pending |
 | 2.20 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.21 | Yes | Pin inputs; generate provider; add runtime job |
 | 2.22 | Yes | Source inputs, all eight libraries, Cargo, and Clang 21/24 hosted runtime jobs passed; qualify SLES 12 SP5 |
@@ -302,7 +304,10 @@ The [GNU 2.18 provider](GLIBC-2.18.md) now passes all eight-library native/stub
 audits, exhaustive accepted/rejected/default linking, Cargo host/target checks,
 real-library behavior, and pthread GLIBC_2.18 boundaries. All six hosted
 Clang 21/24 provider jobs passed at `75945c2` with pinned consumer `edfca5b`.
-The historical reference now includes four native profiles. Establish 2.19 next;
+The [GNU 2.19 provider](GLIBC-2.19.md) passes the same suite locally with the
+2.18 builder and no patches; it adds no versioned interfaces on x86_64.
+The historical reference now includes five native profiles. Complete 2.19
+hosted qualification, then establish 2.20;
 distribution/kernel and SDK qualification remain separate gates.
 
 Follow [GLIBC-PROVIDER-PLAN.md](GLIBC-PROVIDER-PLAN.md) for the ordered rollout:
@@ -314,7 +319,7 @@ input, ABI, relocation, Cargo, real runtime, and hosted CI gates.
 
 - [x] Generate the complete covered-snapshot union: 4671 interfaces across 28 labels.
 - [x] Document all adjacent membership/kind/size differences and measured native changes.
-- [x] Preserve 11673 native observations with input provenance and default/compatibility flags, including the new GNU 2.18 profile.
+- [x] Preserve 14594 native observations with input provenance and default/compatibility flags, including the GNU 2.18 and 2.19 profiles.
 - [x] Publish generated Markdown interface tables and machine-readable matrices.
 - [x] Inventory early official archives/patches referring to 1.00 and 71 upstream tag candidates.
 - [x] Model unknown evidence separately from known absence; avoid guessing introduction/defaults.
