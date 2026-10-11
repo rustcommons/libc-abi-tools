@@ -353,3 +353,26 @@ passed all twelve jobs: four preparations (2.17, 2.18, 2.19, 2.22) and eight
 Rust 1.99/Clang 21 or 24 applications. The 2.19 job logs show the same 2921/1750/2711
 exhaustive results, the tier 1 scan pass, the tier 2 run, `check`, and the
 rejection tests. Main CI also passed at that commit.
+
+## GNU glibc 2.20 provider (local, 2026-10-11)
+
+The pinned GNU 2.20 archive (SHA-256 `f84b6d42…6ba5`, detached signature verified
+with the GNU keyring) built unchanged with the 2.18 CentOS 7 builder, GCC 4.8.5,
+and the same configuration. All eight DSOs matched GNU readelf and the pinned
+snapshot with zero differences: 2921 public definitions, as in 2.19.
+Preparation passed the export/storage audit and the exhaustive suite (2921
+accepted, 1750 rejected, 2709 ordinary defaults). Two fewer defaults than 2.19
+come from libpthread's `vfork` and `__vfork`, which 2.20 keeps only as
+compatibility IFUNC symbols redirecting to libc's; `memset`/`__memset_chk` became
+IFUNC and three `pthread_rwlock_*` symbols became WEAK (see
+[glibc 2.20](GLIBC-2.20.md)). The applications passed allocation, thread/TLS,
+unwinding, data views, the 2.18 pthread default-attribute fixture (accepted),
+the fmemopen 2.22 rejection, and five behavior suites.
+cargo-libc `8444108c1b83e72ef484b95f756308de34725844` passed the provider build,
+tier 1 scan, tier 2 local run under a Linux 3.10 filter, workflow fixtures,
+`check`, mismatched-release and conflicting `--glibc` rejection, and the
+too-new memfd_create link failure. The profile was imported as
+`gnu-source-2.20`; the reference regenerated and verified. Both repositories
+passed formatting, tests, and clippy with warnings denied. Tools: Rust 1.99.0,
+Clang 18.1.3, GNU binutils 2.42, podman 5.8.2 on WSL Ubuntu 24.04. Hosted
+Clang 21/24 qualification is pending.

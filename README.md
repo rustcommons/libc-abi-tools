@@ -35,7 +35,7 @@ the shared preparation stage, and planned version-suffixed target selection.
 [history/conformance plan](docs/GLIBC-HISTORY.md). These references distinguish
 new defaults from retained compatibility interfaces and link to input provenance.
 
-The experimental glibc 2.17/2.18/2.19/2.22 [provider contract](docs/PROVIDER-CONTRACT.md) connects
+The experimental glibc 2.17/2.18/2.19/2.20/2.22 [provider contract](docs/PROVIDER-CONTRACT.md) connects
 all eight generated stub libraries to the companion `cargo-libc` coordinator.
 CI targets Rust 1.99.0 and Clang 21/24; the roadmap tracks each vendored version's
 remaining real input and runtime setup.
@@ -45,6 +45,9 @@ The [2.18 provider](docs/GLIBC-2.18.md) fills the first gap with pinned source
 inputs, exhaustive linking, and pthread default-attribute boundary tests.
 The [2.19 provider](docs/GLIBC-2.19.md) uses the same builder; it adds no new
 versioned interfaces on x86_64, so it reuses the existing boundary tests.
+The [2.20 provider](docs/GLIBC-2.20.md) also builds unchanged; it adds no
+interfaces but records measured default and IFUNC changes, such as libpthread's
+`vfork` becoming compatibility-only.
 
 **Target libc versions beyond your host.**
 
@@ -64,7 +67,7 @@ the **Zig contributors** for the idea and design. See [NOTICE.md](NOTICE.md) for
 complete attribution and the separate code and data licenses.
 
 The companion [cargo-libc](https://github.com/rustcommons/cargo-libc) coordinates
-Cargo builds with an existing sysroot or the experimental 2.17/2.18/2.19/2.22 providers.
+Cargo builds with an existing sysroot or the experimental 2.17/2.18/2.19/2.20/2.22 providers.
 
 ## What works today
 

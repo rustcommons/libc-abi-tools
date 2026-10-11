@@ -2,7 +2,8 @@
 
 Coverage recorded on 2026-10-10. The target is **x86_64 Linux, ELF64 little-endian,
 dynamically linked applications**. The experimental providers currently select
-glibc **2.17, 2.18, 2.19 or 2.22**, each with local and hosted provider qualification.
+glibc **2.17, 2.18, 2.19, 2.20 or 2.22**. All but 2.20 have local and hosted
+provider qualification; 2.20 passes locally and its hosted jobs are configured.
 Having a snapshot for a version does not establish a provider
 or qualify its runtime.
 
@@ -45,12 +46,12 @@ symbols between libraries; we do not project current membership backward.
 | Stage | Libraries / versions | What is checked | Limit |
 | --- | --- | --- | --- |
 | Snapshot and history | All eight libraries, all 28 vendored labels | Input checksums, parsing, deterministic export, exact membership, symbol version, function/object/TLS kind, object/TLS size, adjacent changes, generated reference consistency | Labels do not establish upstream release availability, default binding, or runtime support |
-| Native ELF evidence | All eight, 2.17 CentOS prebuilt, 2.17/2.18/2.19/2.22 GNU source | Native reader agrees with GNU readelf; public numeric GLIBC exports match the snapshot; defaults, compatibility, FUNC/IFUNC/OBJECT/TLS, binding, visibility, sizes, alignment and shared ranges are recorded | These are measured input profiles, not every distribution build |
-| Generated export audit | All eight, the five input profiles | Exact exported interface set and measured properties; preserved data sizes and overlapping/shared storage; correct SONAME; no DSO dependencies | Generated libraries contain link-only stubs, not implementations |
-| Exhaustive relocation linking | All eight, the five input profiles | Each present versioned interface links; every absent union interface individually fails against its assigned isolated DSO; successful imports are inspected; all measured ordinary defaults bind to their measured versions | Strong direct references; does not establish arbitrary dependency-closure or optional weak-import policy |
+| Native ELF evidence | All eight, 2.17 CentOS prebuilt, 2.17/2.18/2.19/2.20/2.22 GNU source | Native reader agrees with GNU readelf; public numeric GLIBC exports match the snapshot; defaults, compatibility, FUNC/IFUNC/OBJECT/TLS, binding, visibility, sizes, alignment and shared ranges are recorded | These are measured input profiles, not every distribution build |
+| Generated export audit | All eight, the six input profiles | Exact exported interface set and measured properties; preserved data sizes and overlapping/shared storage; correct SONAME; no DSO dependencies | Generated libraries contain link-only stubs, not implementations |
+| Exhaustive relocation linking | All eight, the six input profiles | Each present versioned interface links; every absent union interface individually fails against its assigned isolated DSO; successful imports are inspected; all measured ordinary defaults bind to their measured versions | Strong direct references; does not establish arbitrary dependency-closure or optional weak-import policy |
 | TLS probe machinery | Original synthetic fixture | General-dynamic TLS binding succeeds, a missing version fails, DTPMOD64/DTPOFF64 relocations are verified | Current collected union has no TLS rows; this is not exhaustive real exported-TLS coverage |
-| Cargo integration | 2.17, 2.18, 2.19 and 2.22 providers | Explicit release/descriptor selection, host build script and proc macro separation, target startup/nonshared/runtime inputs, positive program and too-new negative link, artifact imports and link-map paths | Experimental dynamic executable integration; not a published SDK or arbitrary native-dependency qualification |
-| Real execution | Five real input profiles | Selected C/Rust programs run under matching real loader/DSOs; allocation, thread/TLS destruction, unwinding, historical data, versioned/default interfaces; runtime dependency paths checked | Does not establish every interface's behavior or old distro/kernel compatibility |
+| Cargo integration | 2.17, 2.18, 2.19, 2.20 and 2.22 providers | Explicit release/descriptor selection, host build script and proc macro separation, target startup/nonshared/runtime inputs, positive program and too-new negative link, artifact imports and link-map paths | Experimental dynamic executable integration; not a published SDK or arbitrary native-dependency qualification |
+| Real execution | Six real input profiles | Selected C/Rust programs run under matching real loader/DSOs; allocation, thread/TLS destruction, unwinding, historical data, versioned/default interfaces; runtime dependency paths checked | Does not establish every interface's behavior or old distro/kernel compatibility |
 
 An absent symbol is rejected only inside known matrix scope. Missing historical
 or architectural evidence is **unknown**, not evidence that linking should fail.
@@ -65,15 +66,16 @@ No generated stub is executed. Runtime tests always use real implementations.
 | 2.17 GNU source | 2915 | 1756 | 2705 |
 | 2.18 GNU source | 2921 | 1750 | 2711 |
 | 2.19 GNU source | 2921 | 1750 | 2711 |
+| 2.20 GNU source | 2921 | 1750 | 2709 |
 | 2.22 GNU source | 2922 | 1749 | 2703 |
-| **Total** | **14594** | **8761** | **13677** |
+| **Total** | **17515** | **10511** | **16386** |
 
 All these local checks passed with GNU binutils 2.42. Different default counts
 reflect actual input profiles. The shared provider script now runs the exhaustive
 suite and retains individual results and input/tool hashes in `link-matrix/`.
 
 Hosted provider CI uses Rust 1.99.0 and Clang 21/24 for application builds and
-tests all four provider releases; historical glibc source builds use their pinned
+tests all five provider releases; historical glibc source builds use their pinned
 qualified builder. Snapshot/reference and Rust host checks at commit `c3faf20`
 [passed](https://github.com/rustcommons/linux-abi-tools/actions/runs/38064818450).
 The [expanded provider run](https://github.com/rustcommons/linux-abi-tools/actions/runs/38064818474)

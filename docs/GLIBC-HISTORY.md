@@ -52,7 +52,7 @@ as **default promotion**, **compatibility retention**, and, when evidenced,
 
 The highest numeric tag is not proof of the default. Availability lists do not
 contain this information; measured ELF version flags do. Defaults are unknown for
-unmeasured profiles, including 2.20–2.21 between our measured 2.19 and 2.22
+unmeasured profiles, including 2.21 between our measured 2.20 and 2.22
 ELF samples. Older interfaces may also receive bug fixes without acquiring a new
 tag; source/NEWS references and behavioral tests must record those separately.
 
@@ -61,8 +61,8 @@ tag; source/NEWS references and behavioral tests must record those separately.
 | Evidence | Current coverage | Limits |
 | --- | --- | --- |
 | Public ABI membership/kind/object or TLS size | 28 pinned x86_64 snapshot labels, 2.17–2.44; eight libraries; 4671 distinct library/symbol/version tuples | Other libraries, architectures, and earlier releases are not collected |
-| Native defaults, FUNC/IFUNC, binding, visibility, storage/alignment/ranges | 14594 observations from CentOS prebuilt 2.17 and GNU source-built 2.17/2.18/2.19/2.22 | Input-specific observations; no inferred defaults for other releases |
-| Provider/link/runtime qualification | Locally and hosted-qualified 2.17/2.18/2.19/2.22 experimental providers | Metadata coverage does not qualify every snapshot or distribution as a build/runtime target |
+| Native defaults, FUNC/IFUNC, binding, visibility, storage/alignment/ranges | 17515 observations from CentOS prebuilt 2.17 and GNU source-built 2.17/2.18/2.19/2.20/2.22 | Input-specific observations; no inferred defaults for other releases |
+| Provider/link/runtime qualification | Locally and hosted-qualified 2.17/2.18/2.19/2.22 experimental providers; 2.20 locally qualified, hosted jobs configured | Metadata coverage does not qualify every snapshot or distribution as a build/runtime target |
 | Early history | Official archive/diff candidates referring back to 1.00; 71 upstream tag candidates before 2.17 | Unverified release classification and target applicability; normalized symbol sets not collected |
 
 [PROVENANCE.json](../data/glibc-history/PROVENANCE.json) records the ABI data
