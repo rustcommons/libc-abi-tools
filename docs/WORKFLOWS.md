@@ -402,7 +402,9 @@ glibc-abilists releases from its own repository first.
 
 ### 10.1 Provider delivery
 
-Design: [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md). The user runs
+Design: [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md). `libc-abi provider` implements
+steps 2–4 for `source` and `container` modes (2026-10-12); cargo-libc's automatic
+preparation and `prebuilt` mode are still planned. The user runs
 `cargo libc build --target x86_64-unknown-linux-gnu.2.28`; with no provider given:
 
 1. **Resolve** the release and target, and look for a cached provider whose content
@@ -415,7 +417,10 @@ Design: [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md). The user runs
      2. Compile `crt1.o`, `crti.o`, `crtn.o` and `libc_nonshared.a` with the host's GCC,
         making the builder's recorded defaults explicit. Clang cannot compile these glibc
         sources faithfully ([why](PROVIDER-DELIVERY.md#why-source-mode-compiles-with-gcc-not-clang)).
-     3. Generate the stubs from the ABI data, and the `libgcc_s` stub.
+     3. Verify every object against the container build's recorded interface;
+        refuse on any unreviewed difference.
+     4. Generate the stubs from the ABI lists and the recorded library table, and
+        the `libgcc_s` stub.
    - **`prebuilt`:**
      1. Read the CI-built objects from `glibc-provider-binaries` and require their
         recorded SHA-256 and CI run.

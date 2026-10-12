@@ -22,6 +22,37 @@ jobs:
         run: |
           cargo test --all-targets --locked --offline --no-default-features
           cargo clippy --all-targets --locked --offline --no-default-features -- -D warnings
+  source-providers:
+    name: Source-mode providers for every release with GCC ${{ matrix.gcc }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        gcc: [12, 13, 14]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@1.99.0
+      - run: sudo apt-get update && sudo apt-get install -y gcc-${{ matrix.gcc }} binutils clang
+      - run: cargo fetch --locked
+      - run: cargo build --release --locked --offline --bin libc-abi
+      - name: Prepare and verify every release, and exercise the cache
+        run: bash scripts/check-provider-cache.sh target/release/libc-abi gcc-${{ matrix.gcc }}
+  container-providers:
+    name: Container-mode provider for glibc ${{ matrix.glibc }}, compared with source mode
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        # One release per builder image: CentOS 7, Debian 9, Debian 12.
+        glibc: ['2.17', '2.28', '2.40']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@1.99.0
+      - run: sudo apt-get update && sudo apt-get install -y podman gcc binutils curl
+      - run: cargo fetch --locked
+      - run: cargo build --release --locked --offline --bin libc-abi
+      - run: bash scripts/check-container-provider.sh target/release/libc-abi ${{ matrix.glibc }}
   msrv:
     runs-on: ubuntu-latest
     steps:

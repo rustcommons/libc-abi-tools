@@ -44,6 +44,8 @@ jobs:
         run: |
           bash examples/glibc-two-paths/elf-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
           bash examples/glibc-two-paths/prepare-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+      - name: Compare the source-mode provider with this container build
+        run: bash examples/glibc-two-paths/source-mode-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
       - name: Package qualified CI inputs
         run: |
           python3 examples/glibc-two-paths/ci-bundle.py pack "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE" "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE.tar.gz"

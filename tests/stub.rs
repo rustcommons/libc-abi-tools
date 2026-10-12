@@ -143,3 +143,23 @@ fn glibc_join_checks_membership_identity_and_sizes() {
         7
     );
 }
+
+/// Every release's recorded library table (glibc-provider-sources) renders all
+/// eight stubs against that release's ABI lists, as source mode does.
+#[cfg(all(feature = "bundled-glibc-data", feature = "provider-sources"))]
+#[test]
+fn recorded_library_tables_render_every_release() {
+    let sources = glibc_provider_sources::Sources::bundled().unwrap();
+    for &release in libc_abi_tools::provider::RELEASES {
+        let snapshot = libc_abi_tools::glibc::Snapshot::bundled(release.parse().unwrap()).unwrap();
+        let table = sources
+            .release(release)
+            .unwrap()
+            .table("libraries.tsv")
+            .unwrap();
+        let stubs = libc_abi_tools::stub::glibc_from_table(&snapshot, table).unwrap();
+        assert_eq!(stubs.len(), 8, "{release}");
+        let definitions: usize = stubs.iter().map(|(_, s)| s.selected.symbols.len()).sum();
+        assert_eq!(definitions + 1, table.lines().count(), "{release}");
+    }
+}

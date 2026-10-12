@@ -95,7 +95,10 @@ glibc's release tag, with the tag's signature check and the file's blob id and
 SHA-256 recorded there. A release label is not a claim of tested runtime
 compatibility. Every release is covered by parser tests. To leave the LGPL
 data out, build with `default-features = false` and pass `--data DIR`.
-Build and tests require no Zig; the only dependency is glibc-abilists.
+The default `provider-sources` feature adds
+[glibc-provider-sources](https://github.com/rustcommons/glibc-provider) (glibc's
+sources and headers, LGPL-2.1-or-later, and Linux UAPI headers) for `source` mode.
+Build and tests require no Zig; the only dependencies are those two crates.
 
 ## Build and try it
 
@@ -126,7 +129,18 @@ libc-abi glibc snapshot --data /path/to/glibc-data --release 2.17
 libc-abi glibc collect --source /path/to/glibc-checkout --output /path/to/new-data
 libc-abi glibc elf --input /path/to/target/libc.so.6 > libc-elf.tsv
 libc-abi libgcc stub --output /path/to/new-dir   # link-only libgcc_s.so.1 sources, GCC 4.8.5's interface
+libc-abi glibc libraries --release 2.28 --input /path/to/lib64 > libraries.tsv
+libc-abi provider prepare --glibc 2.28          # a link provider, built locally; prints its descriptor
+libc-abi provider list
 ```
+
+`libc-abi provider` prepares glibc link providers (stubs, startup objects,
+nonshared archives, headers) for cargo-libc's `--provider` in a cache. The default
+`source` mode compiles the recorded glibc sources of
+[glibc-provider-sources](https://github.com/rustcommons/glibc-provider) with the
+host's GCC, offline, and verifies every object against the qualified container
+build; `container` mode runs that build locally. See
+[PROVIDER-DELIVERY.md](docs/PROVIDER-DELIVERY.md#libc-abi-provider).
 
 The installed executable carries the ABI lists; `--data` reads a directory with
 the same layout instead (required when built without `bundled-glibc-data`).

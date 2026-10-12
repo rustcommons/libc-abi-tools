@@ -10,5 +10,6 @@ pub mod glibc;
 pub mod libgcc;
 pub mod matrix;
 pub mod provider;
+mod sha256;
 pub mod stub;
 pub mod version;

@@ -423,16 +423,27 @@ All 28 releases deduplicate to about 2.6 MiB compressed, so two small data crate
   (2026-10-12): build anyway, compare the result with the release's recorded
   `interfaces.tsv` on the user's machine before using it, and if it differs refuse and
   point to `container` mode.
-- [ ] Implement that local verification in the `provider` module.
+- [x] Implement that local verification in the `provider` module (2026-10-12): every
+  source-mode object is verified against `interfaces.tsv` before use, whatever the
+  GCC version; a difference refuses and points to `container` mode.
 - [x] Build the deduplicated content store and per-release manifests (path, SHA-256,
   size, origin, license) as the `glibc-provider-sources` crate (2026-10-12): all 28
   releases in one 3.7 MB pack, which decompresses to 66 MiB and checks every file's
   SHA-256. The replay builds every release from it.
 - [ ] Publish `glibc-provider-sources` (user's go-ahead), and after the legal review
   build and publish `glibc-provider-binaries` from a qualified commit.
-- [ ] Add the `provider` module to `libc-abi-tools` (features `provider-sources`
-  default, `provider-binaries` optional), the cache layout, and the `libc-abi
-  provider` commands.
+- [x] Add the `provider` module to `libc-abi-tools` (2026-10-12): feature
+  `provider-sources` (default), the cache layout, `source` and `container` modes, and
+  `libc-abi provider prepare|list|path|verify|export|import|remove`
+  ([PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md#libc-abi-provider)). Stubs come from
+  each release's recorded library table (`libraries.tsv`, glibc-provider `1ae578c`),
+  so `source` mode needs no glibc binary. Checked in CI:
+  - every release in source mode with GCC 12, 13 and 14, plus the cache operations;
+  - every fresh container build in the provider workflow: the source-mode
+    provider's library table, stubs, `libgcc_s` stub and headers byte-identical;
+  - container mode for 2.17, 2.28 and 2.40 (one per builder), compared with source
+    mode.
+- [ ] The `provider-binaries` feature and `prebuilt` mode, after the legal review.
 - [ ] Add automatic preparation, `--provider-mode`, and `cargo libc provider
   prepare|list|path|verify|export|import|remove` to cargo-libc; keep `--provider
   FILE` and `--sysroot` working.

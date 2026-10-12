@@ -26,17 +26,7 @@ pub fn render_glibc(
     reference: &elf::Metadata,
 ) -> Result<Sources, String> {
     snapshot.release.validate_release()?;
-    let soname = match library {
-        "c" => "libc.so.6",
-        "m" => "libm.so.6",
-        "ld" => "ld-linux-x86-64.so.2",
-        "resolv" => "libresolv.so.2",
-        "pthread" => "libpthread.so.0",
-        "dl" => "libdl.so.2",
-        "rt" => "librt.so.1",
-        "util" => "libutil.so.1",
-        _ => return Err("unsupported glibc library identity".into()),
-    };
+    let soname = glibc_soname(library).ok_or("unsupported glibc library identity")?;
     if reference.soname != soname {
         return Err(format!("expected SONAME {soname}"));
     }
@@ -94,6 +84,69 @@ pub fn render_glibc(
     }
     let names: BTreeSet<_> = expected.iter().map(|s| s.name.as_str()).collect();
     render(&public, &names.into_iter().collect::<Vec<_>>())
+}
+
+/// The SONAME of each glibc library, in [`crate::glibc::LIBRARIES`]' names.
+pub fn glibc_soname(library: &str) -> Option<&'static str> {
+    Some(match library {
+        "c" => "libc.so.6",
+        "m" => "libm.so.6",
+        "ld" => "ld-linux-x86-64.so.2",
+        "resolv" => "libresolv.so.2",
+        "pthread" => "libpthread.so.0",
+        "dl" => "libdl.so.2",
+        "rt" => "librt.so.1",
+        "util" => "libutil.so.1",
+        _ => return None,
+    })
+}
+
+/// The stub evidence of all eight libraries of a release, from a directory with
+/// the real libraries (an installed `lib64`), as one [`elf::Metadata::to_tsv`]
+/// table: exactly the public definitions [`render_glibc`] uses, each library
+/// checked against the snapshot first. [`glibc_from_table`] renders stubs from it
+/// without the libraries.
+pub fn glibc_table(snapshot: &Snapshot, lib64: &std::path::Path) -> Result<String, String> {
+    let mut table = String::new();
+    for library in crate::glibc::LIBRARIES {
+        let soname = glibc_soname(library).expect("known library");
+        let reference = elf::Metadata::load(&lib64.join(soname))?;
+        let text = render_glibc(snapshot, library, &reference)
+            .map_err(|e| format!("{soname}: {e}"))?
+            .selected
+            .to_tsv();
+        let rows = if table.is_empty() {
+            &text[..]
+        } else {
+            text.split_once('\n').map_or("", |(_, rows)| rows)
+        };
+        table.push_str(rows);
+    }
+    Ok(table)
+}
+
+/// Stubs for all eight libraries from a [`glibc_table`], by library name.
+pub fn glibc_from_table(
+    snapshot: &Snapshot,
+    table: &str,
+) -> Result<Vec<(&'static str, Sources)>, String> {
+    let libraries = elf::Metadata::from_tsv(table)?;
+    if libraries.len() != crate::glibc::LIBRARIES.len() {
+        return Err("the library table must have exactly the eight glibc libraries".into());
+    }
+    crate::glibc::LIBRARIES
+        .iter()
+        .map(|&library| {
+            let soname = glibc_soname(library).expect("known library");
+            let reference = libraries
+                .iter()
+                .find(|m| m.soname == soname)
+                .ok_or_else(|| format!("the library table lacks {soname}"))?;
+            let sources =
+                render_glibc(snapshot, library, reference).map_err(|e| format!("{soname}: {e}"))?;
+            Ok((library, sources))
+        })
+        .collect()
 }
 
 fn identifier(name: &str) -> bool {

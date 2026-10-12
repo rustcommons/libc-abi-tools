@@ -74,10 +74,18 @@ the **GNU Lesser General Public License, version 2.1 or later** (glibc's
   `bundled-glibc-data` feature, so a default build compiles the LGPL data in.
   Build with `default-features = false` to leave it out and read a data
   directory (`--data DIR`) instead.
+- `libc-abi-tools` depends on `glibc-provider-sources`
+  ([glibc-provider](https://github.com/rustcommons/glibc-provider)) through the
+  default `provider-sources` feature: the recorded glibc source files, generated and
+  installed headers (LGPL-2.1-or-later), the builder's Linux UAPI headers (each
+  under its own license, mostly GPL-2.0 WITH Linux-syscall-note), and per-release
+  tables describing the container-built objects and libraries. `source` mode
+  compiles them into a provider on the user's machine; a provider's headers and
+  objects keep those licenses. `default-features = false` leaves the crate out.
 - `libc-abi glibc export-data` writes the lists with `SOURCE.tsv` (tag and
   commit per release) and `COPYING.LIB` (the LGPL text). Keep both with any copy.
-- No glibc implementation, headers, CRT objects, or runtime libraries are
-  included.
+- No glibc binaries, CRT objects, or runtime libraries are included; `container`
+  mode builds them locally from the pinned GNU archive.
 
 Until 2026-10-10 this repository carried a copy of the same 224 x86_64 files
 taken from Zig's repository. Before it was removed, every one of them was

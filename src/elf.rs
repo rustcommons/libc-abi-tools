@@ -15,6 +15,7 @@ const STRTAB: u32 = 3;
 const DYNAMIC: u32 = 6;
 const VERDEF: u32 = 0x6fff_fffd;
 const VERSYM: u32 = 0x6fff_ffff;
+const TSV_HEADER: &str = "soname\tsymbol\tversion\tdefault\ttype\tbinding\tvisibility\tsection\tsection_alignment\tvalue\tsize\tsame_range\n";
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Symbol {
@@ -394,8 +395,91 @@ impl Metadata {
         })
     }
 
+    /// Reads [`Metadata::to_tsv`] output back, one entry per SONAME in the order
+    /// first seen. Several libraries' rows may share one table under one header.
+    pub fn from_tsv(text: &str) -> Result<Vec<Self>, String> {
+        let mut lines = text.lines();
+        if lines.next() != Some(TSV_HEADER.trim_end()) || !text.ends_with('\n') {
+            return Err("not an ELF metadata table".into());
+        }
+        let mut libraries: Vec<Self> = Vec::new();
+        for line in lines {
+            let fields: Vec<&str> = line.split('\t').collect();
+            let [soname, name, version, default, kind, binding, visibility, section, alignment, value, size, group] =
+                fields[..]
+            else {
+                return Err(format!("malformed ELF metadata row {line:?}"));
+            };
+            let number = |text: &str| {
+                text.parse::<u64>()
+                    .map_err(|_| format!("invalid number {text:?} in {line:?}"))
+            };
+            let named = |text: &str, names: &[(&str, u8)]| {
+                names
+                    .iter()
+                    .find(|(n, _)| *n == text)
+                    .map(|&(_, v)| v)
+                    .ok_or_else(|| format!("unsupported value {text:?} in {line:?}"))
+            };
+            let symbol = Symbol {
+                name: name.into(),
+                version: (version != "-").then(|| version.into()),
+                default_version: match default {
+                    "yes" => Some(true),
+                    "no" => Some(false),
+                    "-" => None,
+                    _ => return Err(format!("invalid default {default:?}")),
+                },
+                symbol_type: named(
+                    kind,
+                    &[
+                        ("NOTYPE", 0),
+                        ("OBJECT", 1),
+                        ("FUNC", 2),
+                        ("TLS", 6),
+                        ("IFUNC", 10),
+                    ],
+                )?,
+                binding: named(binding, &[("GLOBAL", 1), ("WEAK", 2), ("GNU_UNIQUE", 10)])?,
+                visibility: named(
+                    visibility,
+                    &[
+                        ("DEFAULT", 0),
+                        ("INTERNAL", 1),
+                        ("HIDDEN", 2),
+                        ("PROTECTED", 3),
+                    ],
+                )?,
+                section: section
+                    .parse()
+                    .map_err(|_| format!("invalid section in {line:?}"))?,
+                section_alignment: number(alignment)?,
+                value: value
+                    .strip_prefix("0x")
+                    .and_then(|v| u64::from_str_radix(v, 16).ok())
+                    .ok_or_else(|| format!("invalid value in {line:?}"))?,
+                size: number(size)?,
+                same_range: match group {
+                    "-" => None,
+                    g => Some(number(g)? as usize),
+                },
+            };
+            if soname.is_empty() || name.is_empty() {
+                return Err(format!("empty SONAME or name in {line:?}"));
+            }
+            match libraries.iter_mut().find(|m| m.soname == soname) {
+                Some(library) => library.symbols.push(symbol),
+                None => libraries.push(Self {
+                    soname: soname.into(),
+                    symbols: vec![symbol],
+                }),
+            }
+        }
+        Ok(libraries)
+    }
+
     pub fn to_tsv(&self) -> String {
-        let mut text = String::from("soname\tsymbol\tversion\tdefault\ttype\tbinding\tvisibility\tsection\tsection_alignment\tvalue\tsize\tsame_range\n");
+        let mut text = String::from(TSV_HEADER);
         for s in &self.symbols {
             let kind = match s.symbol_type {
                 0 => "NOTYPE".into(),

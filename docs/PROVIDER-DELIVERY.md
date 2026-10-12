@@ -1,11 +1,12 @@
 # Provider delivery: three ways to obtain a provider
 
-Status: **design, not implemented.** Today a provider exists only where the
-repository's example scripts built it (CI or a developer machine), and cargo-libc
-needs `--provider FILE` pointing at its descriptor. This document defines how users
-will obtain the provider for any release, 2.17 through 2.44, in three ways. All
-three produce the **same provider layout** and must pass the **same qualification**.
-The [roadmap](ROADMAP.md#provider-delivery) tracks the work.
+Status (2026-10-12): **`source` and `container` modes are implemented** in
+`libc-abi-tools` (`libc-abi provider`, [below](#libc-abi-provider)); cargo-libc does
+not use them yet and still needs `--provider FILE`. `prebuilt` waits on the legal
+review. This document defines how users obtain the provider for any release, 2.17
+through 2.44, in three ways. All three produce the **same provider layout** and must
+pass the **same qualification**. The [roadmap](ROADMAP.md#provider-delivery) tracks
+the work.
 
 ## What a provider contains
 
@@ -37,7 +38,10 @@ faithfully ([why](#why-source-mode-compiles-with-gcc-not-clang)).
     wrappers leave in 2.33 and `libpthread_nonshared.a` merges in 2.28);
   - the generated configuration headers those files need;
   - the exact compile commands, captured from our pinned container builds.
-- **Generated locally:** the link stubs, from the ABI data, as today.
+- **Generated locally:** the link stubs, from the ABI lists and the release's
+  recorded library table (`libraries.tsv`: each public definition's version, type,
+  binding, size and address, recorded from the container-built libraries), so no
+  glibc binary is needed.
 - **Also shipped:** the builder compiler's recorded defaults (its predefined macros).
   Recorded commands leave defaults such as position-independent code implicit, and
   the local compile makes them explicit; it also turns off the host compiler's own
@@ -52,6 +56,17 @@ faithfully ([why](#why-source-mode-compiles-with-gcc-not-clang)).
     ones: symbols, visibility, sections and references (`glibc-provider-replay`);
   - then run the full application, exhaustive and Cargo suites against the result,
     as for container-built providers.
+
+- **The loader:** the descriptor's sysroot must contain
+  `lib64/ld-linux-x86-64.so.2`. In this mode it is the loader's link stub: nothing
+  runs it, since programs record the path `/lib64/ld-linux-x86-64.so.2` and run with
+  the target system's loader. Runtime tests need `container` mode's real libraries.
+- **Verification before use:** every compiled object is compared with the interface
+  recorded from the container build (`interfaces.tsv`), as the replay does. Only the
+  reviewed differences in glibc-provider's `ACCEPTED_DIFFERENCES` are allowed. Any
+  other difference refuses the provider and points to `container` mode; GCC versions
+  outside the qualified range build and are used only if they pass. The verdicts are
+  kept in the provider's `verification.tsv`.
 
 ### Why `source` mode compiles with GCC, not Clang
 
@@ -155,6 +170,10 @@ Run the same pinned container build that CI runs, on the user's machine.
 - **Why:** the reference for the other two modes, for anyone who wants to build
   everything themselves, and the only mode that also produces the real runtime
   libraries used for runtime testing.
+- **What it keeps:** the installed headers, startup objects and nonshared archives,
+  the real `lib64` (loader and libraries, for running tests), and the builder's own
+  `libgcc_s.so.1` in `run-runtime/`. Stubs come from the same table format as
+  `source` mode, measured from this build's libraries (`libraries.tsv`).
 - **Limitation:** it depends on vendor images and archives staying available.
   Replacing them with toolchains built from source is a long-term
   [roadmap](ROADMAP.md#long-term-source-built-builder-toolchains) item.
@@ -218,17 +237,50 @@ cargo libc provider remove --glibc 2.28 [--mode M]
 The same operations exist as `libc-abi provider ...` for users who do not use
 cargo-libc. `prepare` without `--glibc` accepts `--all`.
 
+### `libc-abi provider`
+
+Implemented 2026-10-12 in `libc-abi-tools` (`src/provider/`):
+
+```sh
+libc-abi provider prepare --glibc 2.28 [--mode source|container] [--cc GCC]
+libc-abi provider prepare --all             # every release, 3–7 s each in source mode
+libc-abi provider list
+libc-abi provider path --glibc 2.28         # the descriptor prepare would use
+libc-abi provider verify --glibc 2.28
+libc-abi provider export --glibc 2.28 --to DIR
+libc-abi provider import DIR
+libc-abi provider remove --glibc 2.28 [--mode M] | --all
+```
+
+`prepare` prints the descriptor path. `--cache DIR` overrides the cache root;
+`container` mode also takes `--engine` and `--archives DIR` (or
+`ABI_GLIBC_SOURCE_DIR`) for previously fetched archives. `export` leaves out the
+descriptor, whose paths are the exporting machine's; `import` checks every file
+against the manifest and writes a descriptor with the importing machine's GCC
+startup files.
+
 ### Cache
 
 ```text
 $CARGO_HOME/libc-providers/x86_64-unknown-linux-gnu/glibc-2.28/<mode>-<content-hash>/
     provider.txt  sysroot/  stubs/  compiler-runtime/  manifest.json
+    libraries.tsv  verification.tsv (source)  run-runtime/ (container)
 ```
 
 The cache location can be overridden with `CARGO_LIBC_PROVIDER_DIR`. The content
-hash covers every input (manifest hashes, tool versions, compile commands), so
-changed inputs never reuse a stale provider. Each entry's `manifest.json` records
-its mode and origin.
+hash covers every input, so changed inputs never reuse a stale provider:
+- the libc-abi-tools version, the ABI lists and the `libgcc_s` table;
+- in `source` mode, the release's tables in glibc-provider-sources (which name every
+  file by SHA-256) and the accepted differences;
+- in `container` mode, the archive hash, image digest and build script;
+- the host's GCC and binutils versions, and the path and SHA-256 of `crtbegin.o` and
+  `crtend.o`.
+
+Each entry's `manifest.json` records its mode, origin, tools, verification summary,
+and every file's SHA-256 and size (symbolic links by target), which `verify` and
+`import` recheck. `verify` also rechecks the eight stubs against the ABI lists and
+the `libgcc_s` stub against GCC 4.8.5's interface. Preparation happens in a temporary
+directory beside the entry and is moved into place only when complete.
 
 ### Descriptor
 

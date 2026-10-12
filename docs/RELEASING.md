@@ -10,7 +10,7 @@ without the maintainer's go-ahead.
 | --- | --- | --- |
 | `linux-targets` | none | Library; distribution presets compiled in |
 | `kernel-abi-tools` | `linux-targets` | Library and the `kernel-seccomp`/`syscall-probe` binaries; syscall and `madvise` data compiled in |
-| `libc-abi-tools` | `glibc-abilists` (default `bundled-glibc-data` feature) | Library and the `libc-abi` binary; no data of its own |
+| `libc-abi-tools` | `glibc-abilists` (default `bundled-glibc-data` feature), `glibc-provider-sources` (default `provider-sources` feature) | Library and the `libc-abi` binary; no data of its own except the `libgcc_s` table and the container build scripts (`examples/glibc-*/build-inputs.sh`, `INPUTS.toml`) |
 | `linux-abi-scan` | `kernel-abi-tools`, `linux-targets` | Library and the `linux-abi-scan` binary (tier 1 static inspection) |
 | `linux-abi-tools` | the four above | Re-exports only |
 
@@ -20,8 +20,12 @@ README, and license/notice files are packaged. `libc-abi-tools` leaves out
 build of it includes glibc-abilists' LGPL-2.1-or-later data; build with
 `default-features = false` to leave that out.
 
-`glibc-abilists` must be on crates.io in the required version before
-`libc-abi-tools` is published.
+`glibc-abilists` and `glibc-provider-sources` must be on crates.io in the
+required versions before `libc-abi-tools` is published. Until its first release,
+`glibc-provider-sources` is a git dependency with a `version` too; publishing uses
+the version, so `cargo package` cannot verify `libc-abi-tools` until that version
+is on crates.io. Publish it first, then drop the `git`/`rev` keys and update
+`Cargo.lock`.
 
 ## Release record
 
@@ -57,7 +61,7 @@ here waited a few minutes).
 4. With CI green on the commit, publish in dependency order:
 
    ```sh
-   # first, in the glibc-abilists repository: cargo publish
+   # first, in the glibc-abilists and glibc-provider repositories: cargo publish
    cargo publish -p linux-targets
    cargo publish -p kernel-abi-tools
    cargo publish -p linux-abi-scan

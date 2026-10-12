@@ -36,6 +36,13 @@ every workflow and its cargo-libc mapping; keep it in step with changes.
 - Providers link the compiler runtime as a generated `libgcc_s` stub with GCC
   4.8.5's interface (`src/libgcc_s-gcc-4.8.5.tsv`). Regenerate that table with
   `scripts/record-libgcc-s.sh` from the pinned CentOS 7 image; never edit it by hand.
+- `src/provider/` prepares providers (`libc-abi provider`). `source` mode compiles
+  glibc-provider-sources' recorded sources with the host's GCC and must verify every
+  object against the recorded interfaces before use; a difference refuses, never
+  falls back. `container` mode runs the pinned `examples/glibc-*/build-inputs.sh`.
+  Every mode generates the same stubs, from the release's recorded library table.
+  `src/provider/build.rs` follows glibc-provider's `glibc-provider-replay`; keep the
+  two in step.
 - Use deterministic outputs and validate malformed inputs without panics.
 - Keep implementation dependencies minimal; start with Rust's standard library.
 - Ask about unresolved product decisions; do not claim Zig parity prematurely.
@@ -81,7 +88,9 @@ every workflow and its cargo-libc mapping; keep it in step with changes.
 
 - Every crate stays std-only apart from rustcommons crates: `kernel-abi-tools`
   may depend on `linux-targets`, `linux-abi-scan` on both of those,
-  `libc-abi-tools` on `glibc-abilists`, and `linux-abi-tools` on the other four.
+  `libc-abi-tools` on `glibc-abilists` and `glibc-provider-sources` (default
+  `provider-sources` feature; a git revision until it is published), and
+  `linux-abi-tools` on the other four.
 - Releases go to crates.io only (see [docs/RELEASING.md](docs/RELEASING.md)).
   Keep each manifest's `include` list minimal. The glibc ABI lists
   (LGPL-2.1-or-later) are published only in `glibc-abilists`, which must be

@@ -1,5 +1,12 @@
-//! Versioned local provider descriptor. This is a trusted build configuration,
-//! not a signed or redistributable SDK.
+//! Providers: the versioned local descriptor (a trusted build configuration,
+//! not a signed or redistributable SDK), and their preparation and cache in the
+//! delivery modes of docs/PROVIDER-DELIVERY.md.
+pub mod build;
+pub mod cache;
+pub mod json;
+pub mod pins;
+pub mod prepare;
+
 use crate::version::Version;
 use std::{
     collections::BTreeMap,

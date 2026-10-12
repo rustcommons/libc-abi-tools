@@ -179,3 +179,26 @@ fn cli_collects_fixture_and_reports_invalid_input() {
         .unwrap()
         .contains("expected ELF64"));
 }
+
+#[test]
+fn tables_read_back_unchanged() {
+    let metadata = Metadata::parse(FIXTURE).unwrap();
+    let table = metadata.to_tsv();
+    assert_eq!(
+        Metadata::from_tsv(&table).unwrap(),
+        std::slice::from_ref(&metadata)
+    );
+    // Several libraries under one header keep their own symbols.
+    let mut other = metadata.clone();
+    other.soname = "libother.so.1".into();
+    let joined = format!("{table}{}", other.to_tsv().split_once('\n').unwrap().1);
+    assert_eq!(Metadata::from_tsv(&joined).unwrap(), [metadata, other]);
+    for bad in [
+        table.replacen("soname", "name", 1),
+        table.trim_end().to_string(),
+        table.replacen("\tGLOBAL\t", "\tLOCAL\t", 1),
+        format!("{table}x\ty\n"),
+    ] {
+        assert!(Metadata::from_tsv(&bad).is_err(), "{bad}");
+    }
+}
