@@ -484,3 +484,25 @@ than the CI host's glibc 2.39: a program using `sched_getattr@GLIBC_2.41` built 
 the 2.41–2.44 providers was refused ("the host's libraries lack libc.so.6
 GLIBC_2.41"), while every provider's normal local run still passed. Releases whose
 libc defines no version beyond the host skip that check.
+
+## libgcc_s stub for every provider (2026-10-12)
+
+Every provider now links against a generated `libgcc_s.so.1` stub with GCC 4.8.5's
+interface instead of its builder's real library ([design](PROVIDER-DELIVERY.md#the-libgcc_s-stub)).
+The [84-job provider run](https://github.com/rustcommons/linux-abi-tools/actions/runs/38193829047) at `b5c926a` passed for all 28 releases:
+
+- CI regenerated the recorded table from CentOS 7's `libgcc-4.8.5-44.el7` in the
+  pinned image and found it unchanged.
+- Every release's stub exported exactly the 138 recorded definitions with GCC's
+  version chain, and contained only traps. For 2.17–2.25 it also equalled the builder's
+  own GCC 4.8.5 library; the Debian 9 (GCC 6.3) and Debian 12 (GCC 12.2) run-time
+  libraries provided every recorded definition.
+- Every Rust executable, built directly and through cargo-libc (debug and release),
+  imported 12 `libgcc_s` definitions, all in GCC 4.8.5's runtime, and ran with the
+  real library; loader lists showed the stub was never loaded.
+- A link needing `__divmodti4@GCC_7.0.0` failed against the stub and succeeded
+  against the host's GCC 13 library.
+
+Local runs of every stage for 2.17, 2.28 and 2.44 gave the same results before the
+hosted run.
+

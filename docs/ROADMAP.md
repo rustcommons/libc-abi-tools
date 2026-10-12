@@ -398,7 +398,11 @@ All 28 releases deduplicate to about 2.6 MiB compressed, so two small data crate
 - [ ] Legal review of that arrangement before publishing `prebuilt`.
 - [x] Decide the compiler runtime (2026-10-11): a generated `libgcc_s` stub with
   CentOS 7's GCC 4.8.5 version set for every release; host GCC `crtbegin`/`crtend`.
-- [ ] Generate and qualify the `libgcc_s` stub across all releases.
+- [x] Generate and qualify the `libgcc_s` stub across all releases (2026-10-12, `b5c926a`,
+  [84-job run](https://github.com/rustcommons/linux-abi-tools/actions/runs/38193829047)): every provider links against it; design and checks in
+  [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md#the-libgcc_s-stub).
+- [ ] Include the recorded `libgcc_s` interface (`src/libgcc_s-gcc-4.8.5.tsv`, names and
+  versions measured from GCC's library) in the legal review.
 - [x] Capture, in the container builds, the exact source files, generated
   configuration headers and compile commands for `crt1.o`, `crti.o`, `crtn.o` and
   every `libc_nonshared.a` member, per release (2026-10-11, all 28 releases, in
@@ -415,8 +419,11 @@ All 28 releases deduplicate to about 2.6 MiB compressed, so two small data crate
 - [x] Repeat the replay with other GCC versions in CI (2026-10-12, glibc-provider
   `6c84b68`): GCC 11–16, upstream and Rocky 9, Ubuntu 24.04, Debian 13 and Fedora 43
   builds, all reproduce every release. Repeated on every push and weekly.
-- [ ] Decide what `source` mode does with a GCC version outside the qualified range
-  (older than 11 or newer than 16): refuse, warn, or verify the result locally.
+- [x] Decide what `source` mode does with a GCC version outside the qualified range
+  (2026-10-12): build anyway, compare the result with the release's recorded
+  `interfaces.tsv` on the user's machine before using it, and if it differs refuse and
+  point to `container` mode.
+- [ ] Implement that local verification in the `provider` module.
 - [ ] Build the deduplicated content store and per-release manifests (path, SHA-256,
   size, origin, license); publish `glibc-provider-sources` and
   `glibc-provider-binaries` from a qualified commit.

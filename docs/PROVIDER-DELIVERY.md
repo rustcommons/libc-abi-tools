@@ -299,7 +299,8 @@ refuses it. Every provider therefore links against a stub with the interface of 
   inheriting the previous one), and contains no code: every function body is a trap.
 - **At run time** a program uses the target system's real `libgcc_s.so.1`. Any GCC
   from 4.8.5 on provides every definition the stub has, so the program loads there.
-- **Qualification, every release** (glibc provider integration workflow):
+- **Qualification, every release** (glibc provider integration workflow; first
+  passed in [run 38193829047](https://github.com/rustcommons/linux-abi-tools/actions/runs/38193829047), all 84 jobs):
   - the stub's exports and version chain equal the record; for 2.17–2.25 the
     builder's own library is GCC 4.8.5's, and must equal the record too;
   - the real library each test runs with provides every recorded definition;
