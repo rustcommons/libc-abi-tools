@@ -403,8 +403,8 @@ glibc-abilists releases from its own repository first.
 ### 10.1 Provider delivery
 
 Design: [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md). `libc-abi provider` implements
-steps 2–4 for `source` and `container` modes (2026-10-12); cargo-libc's automatic
-preparation and `prebuilt` mode are still planned. The user runs
+steps 2–4 for `source` and `container` modes (2026-10-12), and cargo-libc runs them
+automatically; `prebuilt` mode is still planned. The user runs
 `cargo libc build --target x86_64-unknown-linux-gnu.2.28`; with no provider given:
 
 1. **Resolve** the release and target, and look for a cached provider whose content

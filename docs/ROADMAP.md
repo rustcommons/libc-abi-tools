@@ -444,9 +444,11 @@ All 28 releases deduplicate to about 2.6 MiB compressed, so two small data crate
   - container mode for 2.17, 2.28 and 2.40 (one per builder), compared with source
     mode.
 - [ ] The `provider-binaries` feature and `prebuilt` mode, after the legal review.
-- [ ] Add automatic preparation, `--provider-mode`, and `cargo libc provider
+- [x] Add automatic preparation, `--provider-mode`, and `cargo libc provider
   prepare|list|path|verify|export|import|remove` to cargo-libc; keep `--provider
-  FILE` and `--sysroot` working.
+  FILE` and `--sysroot` working (2026-10-12, cargo-libc `866aee7`, through
+  `provider::cli` here). Its CI builds, runs and verifies with the automatic provider
+  for every release, and with a container-mode provider for 2.28.
 - [ ] Qualify every release in every mode in hosted CI (byte comparisons, object
   equivalence, full suites); list passing modes per release in PROVIDERS.md.
 - [ ] Document the three modes for users, including offline and air-gapped use, and

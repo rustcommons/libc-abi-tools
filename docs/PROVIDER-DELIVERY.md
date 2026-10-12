@@ -1,9 +1,9 @@
 # Provider delivery: three ways to obtain a provider
 
 Status (2026-10-12): **`source` and `container` modes are implemented** in
-`libc-abi-tools` (`libc-abi provider`, [below](#libc-abi-provider)); cargo-libc does
-not use them yet and still needs `--provider FILE`. `prebuilt` waits on the legal
-review. This document defines how users obtain the provider for any release, 2.17
+`libc-abi-tools` (`libc-abi provider`, [below](#libc-abi-provider)), and cargo-libc
+prepares a provider automatically when given neither `--provider` nor `--sysroot`.
+`prebuilt` waits on the legal review. This document defines how users obtain the provider for any release, 2.17
 through 2.44, in three ways. All three produce the **same provider layout** and must
 pass the **same qualification**. The [roadmap](ROADMAP.md#provider-delivery) tracks
 the work.
