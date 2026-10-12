@@ -12,7 +12,8 @@ Inputs are pinned in [INPUTS.toml](../examples/glibc-2.22/INPUTS.toml):
   packages used to bootstrap 2.17, supplying GCC 4.8.5 and Linux 3.10 UAPI headers.
 - Configuration: `--prefix=/usr --libdir=/usr/lib64 --disable-werror --enable-kernel=3.2`.
 - No source patch: 2.22 already includes the freestanding syscall-header fix.
-- A separate real CentOS GCC 4.8.5 unwinder; its required GLIBC versions remain
+- A generated `libgcc_s` stub with GCC 4.8.5's interface to link against, and the
+  real CentOS GCC 4.8.5 unwinder to run the tests; its required GLIBC versions remain
   compatible with 2.22. Host GCC supplies explicit compiler CRT begin/end objects.
 
 The builder's glibc 2.17 is bootstrap-only. The work tree's `prebuilt` directory

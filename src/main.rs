@@ -1,4 +1,4 @@
-use libc_abi_tools::{elf, glibc, matrix::Matrix, version::Version};
+use libc_abi_tools::{elf, glibc, libgcc, matrix::Matrix, version::Version};
 use std::{
     ffi::OsString,
     io::{self, Write},
@@ -16,6 +16,7 @@ USAGE
   libc-abi glibc diff [--data DIR] --from VERSION --to VERSION [--symbol NAME]
   libc-abi glibc changes [--data DIR]
   libc-abi glibc expect [--data DIR] --release VERSION --library NAME --symbol NAME --version VERSION
+  libc-abi libgcc stub --output DIR
   libc-abi --version
 
 The glibc ABI lists come from the GNU C Library's release tags through the
@@ -33,7 +34,16 @@ Target releases start at 2.17; older symbol versions are retained.
 matrix compares all available snapshots; first observation is not introduction.
 expect prints accept/reject/unknown for exact library/symbol/version membership.
 Missing release/library evidence is unknown, not a rejection or fallback.
-No stub libraries, sysroots, headers, or runtime implementations are generated.
+The glibc commands generate no stub libraries, sysroots, headers, or runtime
+implementations.
+
+libgcc stub writes, into a new directory, the assembly (libgcc_s.S) and version
+script (libgcc_s.map) of a link-only libgcc_s.so.1 with the interface of GCC
+4.8.5's compiler runtime, the one every provider links against:
+  as --64 libgcc_s.S -o libgcc_s.o
+  ld -shared --build-id=none -soname libgcc_s.so.1 --version-script=libgcc_s.map \\
+    libgcc_s.o -o libgcc_s.so.1
+Its functions trap: link against it, but run with a real libgcc_s.so.1.
 ";
 
 fn run(args: Vec<OsString>) -> Result<(), String> {
@@ -44,6 +54,9 @@ fn run(args: Vec<OsString>) -> Result<(), String> {
     if args.len() == 1 && args[0] == "--version" {
         println!("libc-abi {}", env!("CARGO_PKG_VERSION"));
         return Ok(());
+    }
+    if args[0] == "libgcc" {
+        return libgcc_command(&args[1..]);
     }
     if args.len() < 2 || args[0] != "glibc" {
         return Err("expected glibc snapshot, glibc collect, or glibc elf; see --help".into());
@@ -167,6 +180,32 @@ fn run(args: Vec<OsString>) -> Result<(), String> {
         "export-data" => export_data(&PathBuf::from(required("--output")?))?,
         _ => unreachable!(),
     }
+    Ok(())
+}
+
+fn libgcc_command(args: &[OsString]) -> Result<(), String> {
+    let [command, flag, output] = args else {
+        return Err("expected libgcc stub --output DIR; see --help".into());
+    };
+    if command != "stub" || flag != "--output" || output.is_empty() {
+        return Err("expected libgcc stub --output DIR; see --help".into());
+    }
+    let output = PathBuf::from(output);
+    let sources = libgcc::stub()?;
+    std::fs::create_dir(&output)
+        .map_err(|e| format!("cannot create new directory {}: {e}", output.display()))?;
+    for (name, text) in [
+        ("libgcc_s.S", &sources.assembly),
+        ("libgcc_s.map", &sources.versions),
+    ] {
+        std::fs::write(output.join(name), text).map_err(|e| e.to_string())?;
+    }
+    println!(
+        "{}: {} definitions, the interface of GCC {}",
+        libgcc::SONAME,
+        sources.selected.symbols.len(),
+        libgcc::GCC_RELEASE
+    );
     Ok(())
 }
 

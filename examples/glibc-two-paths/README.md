@@ -193,8 +193,9 @@ Run `expanded-and-check.sh` with the existing experiment directory to reproduce 
 The [full-library follow-up](../../docs/FULL-LIBRARIES.md) now generates all
 public numeric GLIBC 2.17 definitions in the eight selected libraries and builds
 a Rust allocation/thread/TLS-destruction/unwind program with both old runtimes.
-Run `full-and-check.sh` for that experiment. It adds an explicitly sourced old
-compiler runtime rather than silently selecting the host unwinder.
+Run `full-and-check.sh` for that experiment. It links against a generated
+`libgcc_s` stub with GCC 4.8.5's interface and runs with the builder's real old
+compiler runtime, never the host unwinder.
 
 `full-and-check.sh` is now a convenience wrapper for `prepare-and-check.sh` and
 `application-and-check.sh`. Hosted CI runs preparation once per release, then

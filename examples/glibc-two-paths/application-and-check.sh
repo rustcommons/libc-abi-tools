@@ -18,6 +18,9 @@ pthread_defaults_expectation=$(python3 "$example_dir/check-matrix.py" "$work/elf
 python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" pthread,c pthread_setattr_default_np GLIBC_2.18 "$pthread_defaults_expectation"
 python3 "$example_dir/check-matrix.py" "$work/elf-metadata/matrix.tsv" "$release" c fmemopen GLIBC_2.2.5 accept
 too_new=$(python3 "$example_dir/too-new-symbol.py" "$work/elf-metadata/matrix.tsv" "$release")
+# A libgcc_s interface the host's runtime has and GCC 4.8.5's lacks.
+host_libgcc=$(gcc -print-file-name=libgcc_s.so.1)
+libgcc_newer=$(python3 "$example_dir/check-libgcc.py" newer "$repo" "$host_libgcc")
 for route in "${routes[@]}"; do
     root="$work/$route"
     generated="$work/full-libraries-$route"
@@ -28,11 +31,12 @@ for route in "${routes[@]}"; do
         -C linker-flavor=ld -C relocation-model=static -C panic=unwind -o "rust-full-$route"
     readelf --wide --dyn-syms --version-info --dynamic "rust-full-$route" \
         > "logs/full-$route-rust-executable.txt"
-    "$root/lib64/ld-linux-x86-64.so.2" --library-path "$work/compiler-runtime:$root/lib64:$root/usr/lib64" \
+    "$root/lib64/ld-linux-x86-64.so.2" --library-path "$work/run-runtime:$root/lib64:$root/usr/lib64" \
         --list "./rust-full-$route" > "logs/full-$route-rust-runtime-libraries.txt"
-    "$root/lib64/ld-linux-x86-64.so.2" --library-path "$work/compiler-runtime:$root/lib64:$root/usr/lib64" \
+    "$root/lib64/ld-linux-x86-64.so.2" --library-path "$work/run-runtime:$root/lib64:$root/usr/lib64" \
         "./rust-full-$route" > "logs/full-$route-rust-run.txt"
     grep -qx 'Rust allocation, thread/TLS, and unwinding work!' "logs/full-$route-rust-run.txt"
+    python3 "$example_dir/check-libgcc.py" imports "$repo" "logs/full-$route-rust-executable.txt"
     for program in expanded data-views too-new fmemopen-2.22 fmemopen-default pthread-default-2.18 sigvec-default-2.21; do
         "$compiler" -O0 -fno-builtin -fno-pie -fno-stack-protector -nostdinc -DTOO_NEW_SYMBOL="$too_new" \
             -isystem "$root/usr/include" -isystem "$(gcc -print-file-name=include)" \
@@ -59,6 +63,20 @@ for route in "${routes[@]}"; do
         echo "Unexpected success linking newer $too_new." >&2; exit 1
     fi
     grep -q "undefined reference to .*$too_new" "logs/full-$route-negative.txt"
+    # The libgcc_s stub refuses an interface newer than GCC 4.8.5's runtime, which
+    # the host's runtime accepts (the control: same object, host libgcc_s).
+    "$compiler" -O0 -fno-builtin -fno-pie -fno-stack-protector -nostdinc -DTOO_NEW_SYMBOL="$libgcc_newer" \
+        -isystem "$root/usr/include" -isystem "$(gcc -print-file-name=include)" \
+        -c "$example_dir/too-new.c" -o "libgcc-newer-full-$route.o"
+    if ld -o "libgcc-newer-full-$route" --dynamic-linker /lib64/ld-linux-x86-64.so.2 \
+        "${inputs[@]}" "libgcc-newer-full-$route.o" -L"$work/compiler-runtime" -lgcc_s "${libs[@]}" \
+        > "logs/full-$route-libgcc-negative.txt" 2>&1; then
+        echo "Unexpected success linking $libgcc_newer, newer than GCC 4.8.5's libgcc_s" >&2; exit 1
+    fi
+    grep -q "undefined reference to .$libgcc_newer" "logs/full-$route-libgcc-negative.txt"
+    ld -o "libgcc-newer-host-$route" --dynamic-linker /lib64/ld-linux-x86-64.so.2 --allow-shlib-undefined \
+        "${inputs[@]}" "libgcc-newer-full-$route.o" "$host_libgcc" "${libs[@]}" \
+        > "logs/full-$route-libgcc-control.txt" 2>&1
     pthread_command=(ld -o "pthread-default-full-$route" --dynamic-linker /lib64/ld-linux-x86-64.so.2
         "${inputs[@]}" "pthread-default-2.18-full-$route.o" -L"$generated" -lpthread "${libs[@]}")
     if [ "$pthread_defaults_expectation" = accept ]; then

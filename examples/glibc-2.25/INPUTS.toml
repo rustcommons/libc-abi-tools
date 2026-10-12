@@ -9,6 +9,6 @@ builder_image = "docker.io/library/centos@sha256:dead07b4d8ed7e29e98de0f4504d87e
 bootstrap_repository = "https://vault.centos.org/7.9.2009/os/x86_64/"
 bootstrap_gcc = "4.8.5-44.el7"
 bootstrap_kernel_headers = "3.10.0-1160.el7"
-compiler_runtime = "Real CentOS GCC 4.8.5 libgcc_s.so.1, GLIBC requirements independently inspected"
+compiler_runtime = "Link: generated libgcc_s stub with GCC 4.8.5's interface; tests run with the real CentOS GCC 4.8.5 libgcc_s.so.1"
 configuration = "--prefix=/usr --libdir=/usr/lib64 --disable-werror --enable-kernel=3.2"
 source_patches = "none"

@@ -16,7 +16,8 @@ Inputs are pinned in [INPUTS.toml](../examples/glibc-2.20/INPUTS.toml):
   packages as 2.18 and 2.19, including GCC 4.8.5 and Linux 3.10 UAPI headers.
 - `--prefix=/usr --libdir=/usr/lib64 --disable-werror --enable-kernel=3.2`.
 - No source patches; the 2.18 builder and configuration built 2.20 unchanged.
-- Compatible real CentOS GCC unwinder and explicit host GCC CRT begin/end objects.
+- A generated `libgcc_s` stub with GCC 4.8.5's interface to link against, the real
+  CentOS GCC 4.8.5 unwinder to run the tests, and explicit host GCC CRT begin/end objects.
 
 The work tree's `prebuilt` directory supplies only the bootstrap unwinder file;
 it is not a 2.20 distribution runtime. The selected target route is `source`.

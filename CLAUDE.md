@@ -33,6 +33,9 @@ every workflow and its cargo-libc mapping; keep it in step with changes.
 - Keep ABI collection/serialization separate from linker stub generation and
   real startup objects, headers, and runtime implementations.
 - Preserve symbol versions, library identity, symbol kind, and object/TLS sizes.
+- Providers link the compiler runtime as a generated `libgcc_s` stub with GCC
+  4.8.5's interface (`src/libgcc_s-gcc-4.8.5.tsv`). Regenerate that table with
+  `scripts/record-libgcc-s.sh` from the pinned CentOS 7 image; never edit it by hand.
 - Use deterministic outputs and validate malformed inputs without panics.
 - Keep implementation dependencies minimal; start with Rust's standard library.
 - Ask about unresolved product decisions; do not claim Zig parity prematurely.

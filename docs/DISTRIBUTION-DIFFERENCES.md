@@ -83,7 +83,8 @@ redistribute them and must at least:
 - **Kernel UAPI headers (GPL-2.0 with the Linux-syscall-note):** keep the license and
   note with the headers.
 - **`libgcc_s` (GPL-3.0 with the GCC Runtime Library Exception):** keep the license and
-  exception text.
+  exception text. The generic providers ship none of it: they link against a generated
+  stub with GCC 4.8.5's interface.
 - **Distribution terms, which go beyond the code licenses:** Debian and Ubuntu packages
   may be redistributed. Red Hat Enterprise Linux and SUSE Linux Enterprise binaries
   are obtained under subscription terms that restrict redistribution. Red Hat's

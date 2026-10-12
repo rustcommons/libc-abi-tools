@@ -80,15 +80,17 @@ for route in "${routes[@]}"; do
     fi
     grep -F -- '--target version conflicts with --glibc' "$work/logs/provider-$route-check-conflict.txt"
     "$work/$route/lib64/ld-linux-x86-64.so.2" \
-        --library-path "$work/compiler-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
+        --library-path "$work/run-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
         "$artifact" | tee "$work/logs/provider-$route-runtime.txt"
     grep -F 'host build script ran' "$work/logs/provider-$route-runtime.txt"
     grep -F 'host procedural macro ran' "$work/logs/provider-$route-runtime.txt"
     grep -F 'target executable ran; thread result = 42' "$work/logs/provider-$route-runtime.txt"
     "$work/$route/lib64/ld-linux-x86-64.so.2" \
-        --library-path "$work/compiler-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
+        --library-path "$work/run-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
         --list "$artifact" > "$work/logs/provider-$route-runtime-libraries.txt"
     python3 "$example_dir/check-provider.py" "$work" "$route"
+    readelf --wide --dyn-syms --version-info "$artifact" > "$work/logs/provider-$route-executable.txt"
+    python3 "$example_dir/check-libgcc.py" imports "$repo" "$work/logs/provider-$route-executable.txt"
     # Normal Cargo selections must survive the coordinator unchanged.
     workflow_dir="$work/cargo-workflow-$route"
     manifest="$companion/examples/hello/Cargo.toml"
@@ -104,7 +106,7 @@ for route in "${routes[@]}"; do
     done
     for executable in glibc-hello qualification-member examples/qualification; do
         "$work/$route/lib64/ld-linux-x86-64.so.2" \
-            --library-path "$work/compiler-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
+            --library-path "$work/run-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
             "$workflow_dir/x86_64-unknown-linux-gnu/qualification/$executable" \
             > "$work/logs/provider-$route-workflow-$(basename "$executable")-runtime.txt"
     done
@@ -118,10 +120,13 @@ for route in "${routes[@]}"; do
         -p glibc-hello --example qualification --features qualification --release --locked --offline \
         > "$work/logs/provider-$route-workflow-example.txt" 2>&1
     "$work/$route/lib64/ld-linux-x86-64.so.2" \
-        --library-path "$work/compiler-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
+        --library-path "$work/run-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
         "$workflow_dir/x86_64-unknown-linux-gnu/release/examples/qualification" \
         > "$work/logs/provider-$route-workflow-release-runtime.txt"
     grep -F 'qualification example ran' "$work/logs/provider-$route-workflow-release-runtime.txt"
+    readelf --wide --dyn-syms --version-info "$workflow_dir/x86_64-unknown-linux-gnu/release/examples/qualification" \
+        > "$work/logs/provider-$route-workflow-release-executable.txt"
+    python3 "$example_dir/check-libgcc.py" imports "$repo" "$work/logs/provider-$route-workflow-release-executable.txt"
     # A stale executable from the workspace build cannot satisfy a package-only invocation.
     if "$CARGO_TARGET_DIR/debug/cargo-libc" build --provider "$descriptor" \
         --target "x86_64-unknown-linux-gnu.$release" --cc "$clang" --ld /usr/bin/ld.bfd \

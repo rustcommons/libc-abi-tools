@@ -65,7 +65,8 @@ pinned = rows(work / ("elf-metadata/pinned-" + RELEASE + ".tsv"))
 manifest = {"schema": 1, "scope": "selected application/runtime evidence" if mode == "--application-only" else "complete pinned public numeric GLIBC ABI, experimental environment",
             "release": RELEASE, "libraries": [], "executables": {},
             "compiler_runtime_sha256": digest(work / "compiler-runtime/libgcc_s.so.1"),
-            "compiler_runtime_source_sha256": digest(work / "prebuilt/usr/lib64/libgcc_s.so.1"),
+            "compiler_runtime_interface": "GCC 4.8.5 libgcc_s.so.1, link-only stub",
+            "run_runtime_sha256": digest(work / "run-runtime/libgcc_s.so.1"),
             "upstream_pin_sha256": digest(repo / "data/glibc/SOURCE.tsv"),
             "real_input_manifest_sha256": digest(work / "elf-metadata/manifest.json")}
 total = 0
@@ -122,12 +123,13 @@ for route in ROUTES:
     require("(RPATH)" not in executable and "(RUNPATH)" not in executable, "Runtime search path embedded")
     loaded = (work / "logs" / ("full-" + route + "-rust-runtime-libraries.txt")).read_text()
     require(str(work / route / "lib64/libc.so.6") in loaded and
-            str(work / "compiler-runtime/libgcc_s.so.1") in loaded and "full-libraries" not in loaded,
+            str(work / "run-runtime/libgcc_s.so.1") in loaded and "full-libraries" not in loaded and
+            "compiler-runtime" not in loaded,
             "Wrong Rust runtime libc/unwinder")
     # Every explicitly resolved dependency must stay in the approved real trees.
     for resolved in re.findall(r"=>\s+(/\S+)", loaded):
         require(any(pathlib.Path(resolved).resolve().is_relative_to(root.resolve()) for root in
-                    (work / route, work / "compiler-runtime")), "Unexpected host runtime: " + resolved)
+                    (work / route, work / "run-runtime")), "Unexpected host runtime: " + resolved)
     link_map = (work / "logs" / ("full-" + route + "-rust-link.map")).read_text()
     require("libc_nonshared.a" in link_map and str(work / route / "usr/lib64/crt1.o") in link_map,
             "Missing explicit target startup")

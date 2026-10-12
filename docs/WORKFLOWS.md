@@ -313,7 +313,7 @@ by step:
 3. **Build glibc from source in the builder:** `run.sh` starts the pinned image and
    `build-inputs.sh` inside it:
    - installs the signature-checked packages and records them;
-   - copies the builder's real `libgcc_s.so.1`;
+   - copies the builder's real `libgcc_s.so.1`, used only to run the tests;
    - configures (`--prefix=/usr --libdir=/usr/lib64 --disable-werror --enable-kernel=3.2`),
      builds, and installs into an isolated `source/` tree;
    - copies the kernel UAPI headers.
@@ -330,7 +330,10 @@ by step:
    - generates the eight link-only DSOs from the measured metadata;
    - checks the exact exported set, default and compatibility versions, types,
      binding, visibility, object sizes, alignment, shared storage, SONAME and
-     absence of dependencies (`check-full.py --abi-only`).
+     absence of dependencies (`check-full.py --abi-only`);
+   - generates the `libgcc_s` stub (`libc-abi libgcc stub`) and checks its exports and
+     version chain against the recorded GCC 4.8.5 interface, and that the real library
+     the tests run with provides all of it (`check-libgcc.py stub`).
 6. **Exhaustive linking:** `check-link-matrix.py`, against each isolated stub library.
    - Every interface present in the release links.
    - Every absent interface fails.
@@ -412,7 +415,7 @@ Design: [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md). The user runs
      2. Compile `crt1.o`, `crti.o`, `crtn.o` and `libc_nonshared.a` with the host's GCC,
         making the builder's recorded defaults explicit. Clang cannot compile these glibc
         sources faithfully ([why](PROVIDER-DELIVERY.md#why-source-mode-compiles-with-gcc-not-clang)).
-     3. Generate the stubs from the ABI data.
+     3. Generate the stubs from the ABI data, and the `libgcc_s` stub.
    - **`prebuilt`:**
      1. Read the CI-built objects from `glibc-provider-binaries` and require their
         recorded SHA-256 and CI run.

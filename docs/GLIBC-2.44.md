@@ -14,7 +14,7 @@ Inputs are pinned in [INPUTS.toml](../examples/glibc-2.44/INPUTS.toml):
 - Builder `docker.io/library/debian@sha256:bc49dc1918ee1a47a93e65b5e4676e8680fb754b133197b92ca52bfe6731d5f0` with packages from
   http://snapshot.debian.org/archive/debian/20260901T000000Z bookworm main (signed Release; Valid-Until not enforced): GCC 12.2.0-14+deb12u1, binutils 2.40-2, kernel headers linux-libc-dev 6.1.176-1.
 - `--prefix=/usr --libdir=/usr/lib64 --disable-werror --enable-kernel=3.2`; no source patches.
-- Compiler runtime: Real Debian 12 GCC 12.2 libgcc_s.so.1 (requires GLIBC_2.35 at most).
+- Compiler runtime: Link: generated libgcc_s stub with GCC 4.8.5's interface; tests run with the real Debian 12 GCC 12.2 libgcc_s.so.1 (requires GLIBC_2.35 at most).
 
 | Library | Public numeric GLIBC definitions |
 | --- | ---: |

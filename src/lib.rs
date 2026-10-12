@@ -7,6 +7,7 @@
 
 pub mod elf;
 pub mod glibc;
+pub mod libgcc;
 pub mod matrix;
 pub mod provider;
 pub mod stub;

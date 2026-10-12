@@ -10,6 +10,6 @@ bootstrap_repository = "http://snapshot.debian.org/archive/debian/20260901T00000
 bootstrap_gcc = "12.2.0-14+deb12u1"
 bootstrap_binutils = "2.40-2"
 bootstrap_kernel_headers = "linux-libc-dev 6.1.176-1"
-compiler_runtime = "Real Debian 12 GCC 12.2 libgcc_s.so.1 (requires GLIBC_2.35 at most)"
+compiler_runtime = "Link: generated libgcc_s stub with GCC 4.8.5's interface; tests run with the real Debian 12 GCC 12.2 libgcc_s.so.1 (requires GLIBC_2.35 at most)"
 configuration = "--prefix=/usr --libdir=/usr/lib64 --disable-werror --enable-kernel=3.2"
 source_patches = "none"

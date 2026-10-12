@@ -50,13 +50,13 @@ The experiment uses these inputs explicitly:
 | glibc link-only DSOs | Generated from the matched ABI/ELF evidence |
 | CRT, libc_nonshared.a, libpthread_nonshared.a | Each real target input tree |
 | C headers | Each real target input tree |
-| libgcc_s.so.1 | Compatible CentOS GCC 4.8.5 runtime, used for both routes |
+| libgcc_s.so.1 | Link: generated stub with GCC 4.8.5's interface. Run: CentOS 7's real GCC 4.8.5 runtime. Both routes |
 | crtbegin.o and crtend.o | Host GCC 13, explicitly selected and exercised |
 | Rust compiler and static standard library | Installed Linux Rust 1.98.1 SDK |
 
 The source route builds glibc; its compiler runtime is obtained prebuilt. The
 wrapper calls GNU ld directly and inserts the target startup/nonshared objects,
-generated library search directory, and explicit old compiler runtime.
+generated library search directory, and the generated `libgcc_s` stub.
 Host GCC startup objects and Rust SDK archives are recorded in the link manifest.
 It is a fixed experimental non-PIE configuration, not a general linker wrapper.
 
@@ -75,8 +75,8 @@ bash examples/glibc-two-paths/full-and-check.sh /tmp/libc-abi-two-paths-clean
 ```
 
 The `full-libraries-prebuilt` and `full-libraries-source` directories must not
-exist. The retained compiler runtime is reused only when its bytes match the
-reference file. Reports are overwritten on rerun; partial writes can leave a new
+exist. The retained `libgcc_s` stub and run-time library are reused only when their
+bytes match a fresh generation and the reference file. Reports are overwritten on rerun; partial writes can leave a new
 generation directory for inspection.
 
 The Rust program tests allocation, a spawned thread, thread-local value isolation,

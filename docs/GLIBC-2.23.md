@@ -14,7 +14,7 @@ Inputs are pinned in [INPUTS.toml](../examples/glibc-2.23/INPUTS.toml):
 - Builder `docker.io/library/centos@sha256:dead07b4d8ed7e29e98de0f4504d87e8880d4347859d839686a31da35a3b532f` with packages from
   https://vault.centos.org/7.9.2009/os/x86_64/: GCC 4.8.5-44.el7, kernel headers 3.10.0-1160.el7.
 - `--prefix=/usr --libdir=/usr/lib64 --disable-werror --enable-kernel=3.2`; no source patches.
-- Compiler runtime: Real CentOS GCC 4.8.5 libgcc_s.so.1, GLIBC requirements independently inspected.
+- Compiler runtime: Link: generated libgcc_s stub with GCC 4.8.5's interface; tests run with the real CentOS GCC 4.8.5 libgcc_s.so.1.
 
 | Library | Public numeric GLIBC definitions |
 | --- | ---: |

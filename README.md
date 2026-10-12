@@ -125,6 +125,7 @@ libc-abi glibc export-data --output /path/to/glibc-data       # files + SOURCE.t
 libc-abi glibc snapshot --data /path/to/glibc-data --release 2.17
 libc-abi glibc collect --source /path/to/glibc-checkout --output /path/to/new-data
 libc-abi glibc elf --input /path/to/target/libc.so.6 > libc-elf.tsv
+libc-abi libgcc stub --output /path/to/new-dir   # link-only libgcc_s.so.1 sources, GCC 4.8.5's interface
 ```
 
 The installed executable carries the ABI lists; `--data` reads a directory with

@@ -8,7 +8,7 @@ from experiment import RELEASE
 
 work = pathlib.Path(sys.argv[1]).resolve()
 route = sys.argv[2]
-roots = [(work / route).resolve(), (work / "compiler-runtime").resolve()]
+roots = [(work / route).resolve(), (work / "run-runtime").resolve()]
 link_roots = [(work / ("full-libraries-" + route)).resolve(), (work / "compiler-runtime").resolve()]
 link_map = (work / "logs" / ("provider-" + route + "-link.map")).read_text()
 assert any(line.startswith("LOAD ") and pathlib.Path(line[5:]).resolve() ==
@@ -24,7 +24,8 @@ for line in link_map.splitlines():
 assert any("full-libraries-" in path and "libc.so.6" in path for path in inputs), "Stub libc not used"
 loaded = (work / "logs" / ("provider-" + route + "-runtime-libraries.txt")).read_text()
 assert str(work / route / "lib64/libc.so.6") in loaded, "Wrong runtime libc"
-assert str(work / "compiler-runtime/libgcc_s.so.1") in loaded, "Wrong runtime unwinder"
+assert str(work / "run-runtime/libgcc_s.so.1") in loaded, "Wrong runtime unwinder"
+assert "compiler-runtime" not in loaded, "The link-only libgcc_s stub was loaded"
 for resolved in re.findall(r"=>\s+(/\S+)", loaded):
     assert any(pathlib.Path(resolved).resolve().is_relative_to(root) for root in roots), "Host runtime: " + resolved
 artifact = work / ("cargo-" + route) / "x86_64-unknown-linux-gnu/debug/glibc-hello"

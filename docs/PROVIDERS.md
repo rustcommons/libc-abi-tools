@@ -73,8 +73,9 @@ tests (2.43 and 2.44 have no later release, so they use a name absent from every
 | Debian 9 (GCC 6.3, binutils 2.28), archive.debian.org | 2.26–2.36 | Meets GCC 6.2 and binutils 2.25; binutils 2.28 cannot assemble the AVX-512 code in 2.37 |
 | Debian 12 (GCC 12.2, binutils 2.40), snapshot.debian.org 2026-09-01 | 2.37–2.44 | 2.42 needs GCC 12.1 and binutils 2.39 |
 
-Images are pinned by digest and apt verifies the signed Release files. Each provider uses
-its builder's real `libgcc_s.so.1`, whose GLIBC requirement is below the release it serves.
+Images are pinned by digest and apt verifies the signed Release files. Each provider links
+against a generated `libgcc_s` stub with GCC 4.8.5's interface, so programs need no newer
+compiler runtime than CentOS 7's; the tests run them with each builder's real `libgcc_s.so.1`.
 
 Hosted run: [38158161339](https://github.com/rustcommons/linux-abi-tools/actions/runs/38158161339) at producer `ae68bf63f5ddde7fc7852e76eab83ad2c1beb2c0` with
 consumer cargo-libc `bfe04693f6685770b47c9346e32de556a8029f4e`, Rust 1.99.0 and Clang 21/24.

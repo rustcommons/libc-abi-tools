@@ -180,6 +180,19 @@ fn data_layout(
 /// a semantic alias relationship. Overlapping data/TLS views retain relative
 /// offsets in a common backing range; incompatible/code overlaps are rejected.
 pub fn render(reference: &elf::Metadata, names: &[&str]) -> Result<Sources, String> {
+    render_versions(reference, names, "GLIBC_", false)
+}
+
+/// [`render`] for any numeric version family, such as libgcc_s's `GCC_3.0`.
+/// Each version keeps its observed spelling (`GCC_4.0.0`); GLIBC versions must
+/// be canonical. With `chained`, each version node inherits the previous one,
+/// as GCC's version nodes do.
+pub fn render_versions(
+    reference: &elf::Metadata,
+    names: &[&str],
+    prefix: &str,
+    chained: bool,
+) -> Result<Sources, String> {
     if names.is_empty() || names.len() > 10000 || reference.symbols.len() > 100000 {
         return Err("stub requires 1..10000 names and at most 100000 ELF definitions".into());
     }
@@ -204,6 +217,7 @@ pub fn render(reference: &elf::Metadata, names: &[&str]) -> Result<Sources, Stri
     let mut keys = BTreeSet::new();
     let mut defaults = BTreeSet::new();
     let mut nodes = BTreeMap::<Version, BTreeSet<String>>::new();
+    let mut spellings = BTreeMap::<Version, String>::new();
     let mut assembly = String::from("# Experimental link-only library; function bodies trap.\n");
     let mut storage = BTreeMap::new();
     let mut ranges = BTreeMap::<u16, BTreeMap<u64, u64>>::new();
@@ -231,12 +245,19 @@ pub fn render(reference: &elf::Metadata, names: &[&str]) -> Result<Sources, Stri
             .as_deref()
             .ok_or("unversioned stub definitions unsupported")?;
         let numeric: Version = version
-            .strip_prefix("GLIBC_")
-            .ok_or("stub requires numeric GLIBC versions")?
+            .strip_prefix(prefix)
+            .ok_or_else(|| format!("stub requires numeric {prefix} versions"))?
             .parse()?;
         // Reject spellings that cannot be reproduced by the numeric version type.
-        if format!("GLIBC_{numeric}") != version {
+        if prefix == "GLIBC_" && format!("GLIBC_{numeric}") != version {
             return Err("noncanonical GLIBC version".into());
+        }
+        if *spellings
+            .entry(numeric)
+            .or_insert_with(|| version.to_string())
+            != version
+        {
+            return Err(format!("{version}: one version spelled two ways"));
         }
         let default = symbol
             .default_version
@@ -385,15 +406,21 @@ pub fn render(reference: &elf::Metadata, names: &[&str]) -> Result<Sources, Stri
     }
     assembly.push_str(".section .note.GNU-stack,\"\",@progbits\n");
     let mut versions = String::new();
+    let mut previous: Option<&str> = None;
     for (index, (version, names)) in nodes.iter().enumerate() {
-        writeln!(versions, "GLIBC_{version} {{\n  global:").expect("String write");
+        let spelled = &spellings[version];
+        writeln!(versions, "{spelled} {{\n  global:").expect("String write");
         for name in names {
             writeln!(versions, "    {name};").expect("String write");
         }
         if index == 0 {
             versions.push_str("  local: *;\n");
         }
-        versions.push_str("};\n");
+        match previous {
+            Some(parent) if chained => writeln!(versions, "}} {parent};").expect("String write"),
+            _ => versions.push_str("};\n"),
+        }
+        previous = Some(spelled);
     }
     Ok(Sources {
         assembly,

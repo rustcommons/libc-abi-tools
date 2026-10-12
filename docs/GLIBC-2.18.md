@@ -14,7 +14,8 @@ Inputs are pinned in [INPUTS.toml](../examples/glibc-2.18/INPUTS.toml):
 - `--prefix=/usr --libdir=/usr/lib64 --disable-werror --enable-kernel=3.2`.
 - No source patches. The official 2.18 Makefile already contains the freestanding
   syscall-header preprocessing fix applied locally to 2.17.
-- Compatible real CentOS GCC unwinder and explicit host GCC CRT begin/end objects.
+- A generated `libgcc_s` stub with GCC 4.8.5's interface to link against, the real
+  CentOS GCC 4.8.5 unwinder to run the tests, and explicit host GCC CRT begin/end objects.
 
 The work tree's `prebuilt` directory supplies only the bootstrap unwinder file;
 it is not a 2.18 distribution runtime. The selected target route is `source`.

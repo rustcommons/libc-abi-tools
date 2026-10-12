@@ -30,6 +30,9 @@ jobs:
           cargo run --locked --offline --bin libc-abi -- glibc export-data --output data/glibc
       - name: Install preparation tools
         run: sudo apt-get update && sudo apt-get install -y podman make python3 gcc binutils
+      - name: Check the recorded GCC 4.8.5 libgcc_s interface against CentOS 7's library
+        if: matrix.glibc == '2.17'
+        run: bash scripts/record-libgcc-s.sh --check
       - name: Build pinned target inputs once per release
         run: |
           if [ "$ABI_GLIBC_RELEASE" = 2.17 ]; then

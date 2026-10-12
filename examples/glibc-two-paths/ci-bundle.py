@@ -89,7 +89,7 @@ def pack(work, archive):
         for filename in (work / "logs").glob("full-" + route + "-*-exports.txt"):
             add("logs/" + filename.name)
     add("compiler-runtime", work / "compiler-runtime")
-    add("prebuilt/usr/lib64/libgcc_s.so.1", work / "prebuilt")
+    add("run-runtime", work / "run-runtime")
     add("elf-metadata", work / "elf-metadata")
     for filename in ("packages.txt", "builder-gcc.txt", "source-adjustment.patch", "abi-manifest.json"):
         add("logs/" + filename)

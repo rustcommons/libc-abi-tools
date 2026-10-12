@@ -54,7 +54,8 @@ The bundle contains:
   libraries in the public ABI matrix. Execution traces now audit initialized
   modules, including NSS and the controlled dynamic-loading fixture, against
   the selected real tree and the exact known application/fixture paths.
-- The compatible real compiler unwinder, native metadata and preparation
+- The generated `libgcc_s` stub, the builder's real compiler unwinder (used only to
+  run the tests), native metadata and preparation
   manifests, original glibc archive, package/compiler/patch records, and project
   attribution/separate ABI data license. The archive includes glibc's source
   and license files; this transport format does not establish a complete SDK

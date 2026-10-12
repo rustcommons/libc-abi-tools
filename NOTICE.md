@@ -47,6 +47,17 @@ For the record, Zig's tree at that commit also shipped `glibc/COPYING.abilists`
 to its copies of glibc's ABI lists. This project used those copies until
 2026-10-10 and now takes the lists from glibc itself (below).
 
+## Compiler runtime interface: GCC's libgcc_s
+
+`src/libgcc_s-gcc-4.8.5.tsv` lists the interface of `libgcc_s.so.1` from GCC 4.8.5,
+as shipped in CentOS 7's package `libgcc-4.8.5-44.el7.x86_64` (SHA-256
+`8f148d8b7ed050f93064fafca6df434706844cf8346d5feed8ecce8c67f39c68`): each exported
+symbol's name, symbol version, whether that version is the default, type, size, and the
+alignment of its one data object. `scripts/record-libgcc-s.sh` measures it from the
+library's dynamic symbol table. It contains no code, data or text of GCC; the library
+itself is GCC's, under the GNU GPL version 3 with the GCC Runtime Library Exception. The
+stubs generated from the table contain only traps and are never run.
+
 ## glibc ABI data: the GNU C Library
 
 The ABI lists come from the **GNU C Library (glibc)** itself, collected from
