@@ -3,6 +3,7 @@
 //! delivery modes of docs/PROVIDER-DELIVERY.md.
 pub mod build;
 pub mod cache;
+pub mod cli;
 pub mod json;
 pub mod pins;
 pub mod prepare;
