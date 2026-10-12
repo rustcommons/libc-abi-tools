@@ -412,8 +412,11 @@ All 28 releases deduplicate to about 2.6 MiB compressed, so two small data crate
 - [x] Decide the `source` mode compiler (2026-10-11): the host's GCC, with the builder's
   recorded defaults made explicit. Reasons in
   [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md#why-source-mode-compiles-with-gcc-not-clang).
-- [ ] Repeat the replay with other GCC versions (12, 14, 15) in CI; do not offer `source`
-  mode with a GCC version whose result differs.
+- [x] Repeat the replay with other GCC versions in CI (2026-10-12, glibc-provider
+  `6c84b68`): GCC 11–16, upstream and Rocky 9, Ubuntu 24.04, Debian 13 and Fedora 43
+  builds, all reproduce every release. Repeated on every push and weekly.
+- [ ] Decide what `source` mode does with a GCC version outside the qualified range
+  (older than 11 or newer than 16): refuse, warn, or verify the result locally.
 - [ ] Build the deduplicated content store and per-release manifests (path, SHA-256,
   size, origin, license); publish `glibc-provider-sources` and
   `glibc-provider-binaries` from a qualified commit.

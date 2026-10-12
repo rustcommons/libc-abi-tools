@@ -117,8 +117,12 @@ compile fully with Clang, and even there `_IO_stdin_used` differs.
     defines a link-warning alias only for GCC older than 5, and nothing built with a
     modern compiler can reference it.
 
-**Still to qualify:** other GCC versions (12, 14, 15) in CI. A compiler version
-whose result differs is reported, and `source` mode is not offered with it.
+**GCC versions qualified (2026-10-12):** 11, 12, 13, 14, 15 and 16, both
+upstream releases and the distribution builds of Rocky Linux 9, Ubuntu 24.04, Debian 13
+and Fedora 43. All reproduce every release, with nothing differing and nothing failing to build
+([results](https://github.com/rustcommons/glibc-provider/blob/main/docs/REPLAY.md#gcc-versions-ci-2026-10-12)).
+glibc-provider's Replay workflow repeats this on every push and weekly. A compiler
+version whose result differs is reported, and `source` mode is not offered with it.
 
 ### Mode 1: `prebuilt`
 
