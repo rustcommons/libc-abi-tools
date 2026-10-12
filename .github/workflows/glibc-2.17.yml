@@ -22,7 +22,7 @@ jobs:
     env:
       ABI_GLIBC_RELEASE: ${{ matrix.glibc }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@1.99.0
       - name: Fetch dependencies and export the glibc ABI lists
         run: |
@@ -45,7 +45,7 @@ jobs:
         run: |
           python3 examples/glibc-two-paths/ci-bundle.py pack "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE" "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE.tar.gz"
       - name: Upload prepared provider inputs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: glibc-${{ matrix.glibc }}-prepared-inputs
           compression-level: 0
@@ -55,7 +55,7 @@ jobs:
             ${{ runner.temp }}/glibc-${{ matrix.glibc }}.tar.gz.sha256
       - name: Retain preparation diagnostics even after failure
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: glibc-${{ matrix.glibc }}-preparation-diagnostics
           path: |
@@ -76,10 +76,10 @@ jobs:
       ABI_GLIBC_RELEASE: ${{ matrix.glibc }}
       ABI_BEHAVIOR_CC: /usr/bin/clang-${{ matrix.clang }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: libc-abi-tools
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: rustcommons/cargo-libc
           path: cargo-libc
@@ -91,7 +91,7 @@ jobs:
         run: |
           bash libc-abi-tools/.github/install-clang.sh "$CLANG_MAJOR"
           sudo apt-get install -y python3 gcc binutils
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: glibc-${{ matrix.glibc }}-prepared-inputs
           path: ${{ runner.temp }}/prepared-inputs
@@ -111,7 +111,7 @@ jobs:
           bash examples/glibc-two-paths/provider-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE" "$GITHUB_WORKSPACE/cargo-libc" "$ABI_BEHAVIOR_CC"
       - name: Retain application diagnostics even after failure
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: glibc-${{ matrix.glibc }}-clang-${{ matrix.clang }}-application-diagnostics
           path: |
