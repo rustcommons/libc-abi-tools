@@ -166,7 +166,7 @@ New data crates keep licenses separate, as glibc-abilists already does for the A
 
 | Crate (names to be decided) | Contents | License |
 | --- | --- | --- |
-| `glibc-provider-sources` | Deduplicated headers, startup/nonshared sources, generated configuration headers, compile commands, per-release manifests | LGPL-2.1-or-later (glibc), GPL-2.0 WITH Linux-syscall-note (UAPI headers) |
+| `glibc-provider-sources` (built 2026-10-12, [glibc-provider](https://github.com/rustcommons/glibc-provider); 3.7 MB) | Deduplicated headers, startup/nonshared sources, generated configuration headers, compile commands, the recorded object interfaces, per-release tables | LGPL-2.1-or-later (glibc and the crate's code); the UAPI headers' own licenses, mostly GPL-2.0 WITH Linux-syscall-note |
 | `glibc-provider-binaries` | Deduplicated CI-built startup objects and nonshared archives, per-release manifests with hashes and CI run | LGPL-2.1-or-later, plus the mode 1 source arrangement |
 
 `libc-abi-tools` gains a `provider` module, following the existing

@@ -424,9 +424,12 @@ All 28 releases deduplicate to about 2.6 MiB compressed, so two small data crate
   `interfaces.tsv` on the user's machine before using it, and if it differs refuse and
   point to `container` mode.
 - [ ] Implement that local verification in the `provider` module.
-- [ ] Build the deduplicated content store and per-release manifests (path, SHA-256,
-  size, origin, license); publish `glibc-provider-sources` and
-  `glibc-provider-binaries` from a qualified commit.
+- [x] Build the deduplicated content store and per-release manifests (path, SHA-256,
+  size, origin, license) as the `glibc-provider-sources` crate (2026-10-12): all 28
+  releases in one 3.7 MB pack, which decompresses to 66 MiB and checks every file's
+  SHA-256. The replay builds every release from it.
+- [ ] Publish `glibc-provider-sources` (user's go-ahead), and after the legal review
+  build and publish `glibc-provider-binaries` from a qualified commit.
 - [ ] Add the `provider` module to `libc-abi-tools` (features `provider-sources`
   default, `provider-binaries` optional), the cache layout, and the `libc-abi
   provider` commands.
