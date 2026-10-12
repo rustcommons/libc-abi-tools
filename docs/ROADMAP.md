@@ -344,6 +344,36 @@ fill 2.18–2.21 first, then 2.23–2.33, qualify the 2.34 library merger, and
 extend subsequent releases individually. Each provider must pass the same
 input, ABI, relocation, Cargo, real runtime, and hosted CI gates.
 
+## Rust API documentation
+
+Added 2026-10-11. Every published crate needs complete Rust API documentation on
+docs.rs. Today `cargo doc` builds without warnings and every crate has a crate-level
+description, but public items without documentation remain (lib targets, measured
+with `-W missing_docs` on 2026-10-11):
+
+| Crate | Undocumented public items |
+| --- | ---: |
+| `libc-abi-tools` | 60 |
+| `linux-abi-scan` | 26 |
+| `kernel-abi-tools` | 15 |
+| `linux-targets` | 5 |
+| `linux-abi-tools` | 0 |
+
+- [ ] Document every public item: what it does, its inputs, its errors, and for data
+  types the meaning of each field. Then add `#![warn(missing_docs)]` to each crate
+  (CI denies warnings).
+- [ ] Give each crate an overview with a runnable example of its main use, kept as a
+  doc test (`cargo test --doc`).
+- [ ] Add `cargo doc --workspace --no-deps` with `RUSTDOCFLAGS="-D warnings"` to CI, so
+  broken intra-doc links and malformed docs fail the build.
+- [ ] Add `documentation` (the docs.rs URL) and `[package.metadata.docs.rs]` (target
+  `x86_64-unknown-linux-gnu`, all features documented) to each published Cargo.toml,
+  and a docs.rs badge to each README.
+- [ ] After each release, confirm the docs.rs build succeeded and the pages read
+  correctly.
+- [ ] Document the `provider` module and its features as part of the provider delivery
+  work below, before it is published.
+
 ## Provider delivery
 
 Next major work, designed in [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md); not
