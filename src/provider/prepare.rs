@@ -26,6 +26,9 @@ pub struct Options {
     /// `container`: a directory of previously fetched `glibc-X.Y.tar.xz`
     /// archives, used before downloading (also `ABI_GLIBC_SOURCE_DIR`).
     pub archives: Option<PathBuf>,
+    /// `container`: move the build's work tree (sources, the installed glibc,
+    /// logs) here instead of deleting it. The directory must not exist.
+    pub keep_work: Option<PathBuf>,
 }
 
 impl Options {
@@ -36,6 +39,7 @@ impl Options {
             force: false,
             engine: None,
             archives: None,
+            keep_work: None,
         }
     }
 }
@@ -542,7 +546,17 @@ fn container(release: &str, snapshot: &Snapshot, options: &Options) -> Result<Pr
     let pins = pins::pins(release)?;
     let hash = container_hash(release, snapshot, &host)?;
     let entry = cache::entry(&options.root, release, Mode::Container, &hash);
+    if let Some(keep) = &options.keep_work {
+        if keep.exists() {
+            return Err(format!("--keep-work {} already exists", keep.display()));
+        }
+    }
     if let Some(prepared) = reuse(&entry, options.force) {
+        if options.keep_work.is_some() {
+            return Err(format!(
+                "the glibc {release} container provider is cached, so there is no build to keep; add --force"
+            ));
+        }
         return Ok(prepared);
     }
     let engine = match &options.engine {
@@ -621,7 +635,15 @@ fn container(release: &str, snapshot: &Snapshot, options: &Options) -> Result<Pr
             break;
         }
     }
-    cache::remove_tree(&work)?;
+    match &options.keep_work {
+        Some(keep) => {
+            if fs::rename(&work, keep).is_err() {
+                cache::copy_tree(&work, keep)?;
+                cache::remove_tree(&work)?;
+            }
+        }
+        None => cache::remove_tree(&work)?,
+    }
     let mut members = vec![(
         "origin".into(),
         Value::Object(vec![

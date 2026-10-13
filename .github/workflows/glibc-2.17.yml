@@ -7,7 +7,7 @@ on:
       companion_ref:
         description: cargo-libc integration branch or tested commit
         required: false
-        default: b809806500415b2053e26b4dedc55847fe5fb054
+        default: 831cc296047d64637ea5043c07228b3af5750444
 permissions:
   contents: read
 jobs:
@@ -28,17 +28,23 @@ jobs:
         run: |
           cargo fetch --locked
           cargo run --locked --offline --bin libc-abi -- glibc export-data --output data/glibc
+          echo "ABI_PROVIDER_CACHE=$RUNNER_TEMP/providers" >> "$GITHUB_ENV"
       - name: Install preparation tools
         run: sudo apt-get update && sudo apt-get install -y podman make python3 gcc binutils
       - name: Check the recorded GCC 4.8.5 libgcc_s interface against CentOS 7's library
         if: matrix.glibc == '2.17'
         run: bash scripts/record-libgcc-s.sh --check
-      - name: Build pinned target inputs once per release
+      # Container mode runs the pinned build (the same script, image and archive as
+      # examples/glibc-*/run.sh) and keeps its work tree, which every later step
+      # audits: the qualified build is container mode's own.
+      - name: Build pinned target inputs once per release, in container mode
         run: |
+          work="$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+          cargo run --locked --offline --bin libc-abi -- provider prepare --glibc "$ABI_GLIBC_RELEASE" \
+            --mode container --cache "$ABI_PROVIDER_CACHE" --keep-work "$work"
           if [ "$ABI_GLIBC_RELEASE" = 2.17 ]; then
-            bash examples/glibc-two-paths/run.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
-          else
-            bash "examples/glibc-$ABI_GLIBC_RELEASE/run.sh" "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+            cp examples/glibc-two-paths/hello.c examples/glibc-two-paths/link-and-check.sh "$work/"
+            bash examples/glibc-two-paths/link-and-check.sh "$work"
           fi
       - name: Audit native metadata, generated exports, and every matrix interface
         run: |
@@ -46,6 +52,10 @@ jobs:
           bash examples/glibc-two-paths/prepare-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
       - name: Compare the source-mode provider with this container build
         run: bash examples/glibc-two-paths/source-mode-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+      - name: Compare the container-mode and source-mode providers, export container mode
+        run: |
+          bash examples/glibc-two-paths/modes-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE" \
+            "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE-container-provider.tar"
       - name: Package qualified CI inputs
         run: |
           python3 examples/glibc-two-paths/ci-bundle.py pack "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE" "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE.tar.gz"
@@ -58,6 +68,7 @@ jobs:
           path: |
             ${{ runner.temp }}/glibc-${{ matrix.glibc }}.tar.gz
             ${{ runner.temp }}/glibc-${{ matrix.glibc }}.tar.gz.sha256
+            ${{ runner.temp }}/glibc-${{ matrix.glibc }}-container-provider.tar
       - name: Retain preparation diagnostics even after failure
         if: always()
         uses: actions/upload-artifact@v7
@@ -88,7 +99,7 @@ jobs:
         with:
           repository: rustcommons/cargo-libc
           path: cargo-libc
-          ref: ${{ inputs.companion_ref || 'b809806500415b2053e26b4dedc55847fe5fb054' }}
+          ref: ${{ inputs.companion_ref || '831cc296047d64637ea5043c07228b3af5750444' }}
       - uses: dtolnay/rust-toolchain@1.99.0
       - name: Install application tools
         env:
@@ -109,8 +120,22 @@ jobs:
         working-directory: libc-abi-tools
         run: |
           python3 examples/glibc-two-paths/ci-bundle.py unpack "$RUNNER_TEMP/prepared-inputs/glibc-$ABI_GLIBC_RELEASE.tar.gz" "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
+      - name: Import the container-mode provider and prepare the source-mode one
+        working-directory: libc-abi-tools
+        run: |
+          echo "ABI_PROVIDER_CACHE=$RUNNER_TEMP/providers" >> "$GITHUB_ENV"
+          mkdir "$RUNNER_TEMP/container-provider"
+          tar -C "$RUNNER_TEMP/container-provider" -xf "$RUNNER_TEMP/prepared-inputs/glibc-$ABI_GLIBC_RELEASE-container-provider.tar"
+          cargo run --locked --offline --bin libc-abi -- provider import "$RUNNER_TEMP/container-provider" \
+            --cache "$RUNNER_TEMP/providers"
+          cargo run --locked --offline --bin libc-abi -- provider prepare --glibc "$ABI_GLIBC_RELEASE" \
+            --cache "$RUNNER_TEMP/providers"
+          cargo run --locked --offline --bin libc-abi -- provider list --cache "$RUNNER_TEMP/providers"
       - name: Build Rust and C applications, then run only real runtimes
         working-directory: libc-abi-tools
+        env:
+          # The Cargo suite also runs against the provider of each delivery mode.
+          ABI_PROVIDER_MODES: source container
         run: |
           bash examples/glibc-two-paths/application-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE"
           bash examples/glibc-two-paths/provider-and-check.sh "$RUNNER_TEMP/glibc-$ABI_GLIBC_RELEASE" "$GITHUB_WORKSPACE/cargo-libc" "$ABI_BEHAVIOR_CC"

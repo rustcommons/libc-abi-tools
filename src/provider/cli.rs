@@ -33,6 +33,8 @@ prepare reuses a cached provider with the same inputs unless --force. Options:
   --cc GCC          the GCC to compile with and take crtbegin.o/crtend.o from
   --engine PATH     container engine (default: podman, else docker)
   --archives DIR    previously fetched glibc-X.Y.tar.xz archives (container)
+  --keep-work DIR   keep the container build's work tree (sources, installed
+                    glibc, logs) in DIR, which must not exist (container)
   --data DIR        ABI lists to generate stubs from instead of the bundled ones
 list prints every cached provider. path prints the descriptor prepare would use
 (source, else container, without --mode). verify rechecks every file against the
@@ -68,6 +70,7 @@ pub fn run(args: &[OsString], program: &str) -> Result<(), String> {
                 "--cc",
                 "--engine",
                 "--archives",
+                "--keep-work",
                 "--data",
                 "--cache",
             ],
@@ -151,6 +154,10 @@ pub fn run(args: &[OsString], program: &str) -> Result<(), String> {
             prepare_options.force = set.contains("--force");
             prepare_options.engine = options.get("--engine").map(PathBuf::from);
             prepare_options.archives = options.get("--archives").map(PathBuf::from);
+            prepare_options.keep_work = options.get("--keep-work").map(PathBuf::from);
+            if prepare_options.keep_work.is_some() && (all || mode != Some(Mode::Container)) {
+                return Err("--keep-work needs --mode container and one --glibc release".into());
+            }
             for release in releases {
                 let prepared = prepare::prepare(
                     release,

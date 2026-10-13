@@ -20,11 +20,23 @@ grep -qF "#[link_name = \"$too_new\"]" "$work/too-new-crate/src/main.rs"
 gcc_startup=$(dirname "$(gcc -print-file-name=crtbegin.o)")
 cargo fetch --manifest-path "$companion/Cargo.toml" --locked
 cargo build --manifest-path "$companion/Cargo.toml" --bins --locked --offline
-for route in "${routes[@]}"; do
-    descriptor="$work/provider-$route-v1-$$.txt"
-    cargo run --manifest-path "$repo/Cargo.toml" --locked --offline --example provider_glibc -- \
-        "$repo/data/glibc" "$release" "$work/$route" "$work/full-libraries-$route" \
-        "$gcc_startup" "$work/compiler-runtime" "$descriptor"
+# Each route's provider assembled from this work tree, then the providers that
+# `libc-abi provider` prepared in each mode listed in ABI_PROVIDER_MODES (in
+# $ABI_PROVIDER_CACHE). Mode providers run on the work tree's GNU build.
+labels=("${routes[@]}")
+for mode in ${ABI_PROVIDER_MODES:-}; do labels+=("mode-$mode"); done
+for route in "${labels[@]}"; do
+    if [[ "$route" == mode-* ]]; then
+        runtime=source
+        descriptor=$(cargo run --manifest-path "$repo/Cargo.toml" --locked --offline --quiet --bin libc-abi -- \
+            provider path --glibc "$release" --mode "${route#mode-}" --cache "${ABI_PROVIDER_CACHE:?}")
+    else
+        runtime=$route
+        descriptor="$work/provider-$route-v1-$$.txt"
+        cargo run --manifest-path "$repo/Cargo.toml" --locked --offline --example provider_glibc -- \
+            "$repo/data/glibc" "$release" "$work/$route" "$work/full-libraries-$route" \
+            "$gcc_startup" "$work/compiler-runtime" "$descriptor"
+    fi
     artifact="$work/cargo-$route/x86_64-unknown-linux-gnu/debug/glibc-hello"
     export CARGO_LIBC_PROVIDER_LINK_MAP="$work/logs/provider-$route-link.map"
     # Qualify the suffix API; Cargo must still report the ordinary target path.
@@ -79,16 +91,16 @@ for route in "${routes[@]}"; do
         exit 1
     fi
     grep -F -- '--target version conflicts with --glibc' "$work/logs/provider-$route-check-conflict.txt"
-    "$work/$route/lib64/ld-linux-x86-64.so.2" \
-        --library-path "$work/run-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
+    "$work/$runtime/lib64/ld-linux-x86-64.so.2" \
+        --library-path "$work/run-runtime:$work/$runtime/lib64:$work/$runtime/usr/lib64" \
         "$artifact" | tee "$work/logs/provider-$route-runtime.txt"
     grep -F 'host build script ran' "$work/logs/provider-$route-runtime.txt"
     grep -F 'host procedural macro ran' "$work/logs/provider-$route-runtime.txt"
     grep -F 'target executable ran; thread result = 42' "$work/logs/provider-$route-runtime.txt"
-    "$work/$route/lib64/ld-linux-x86-64.so.2" \
-        --library-path "$work/run-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
+    "$work/$runtime/lib64/ld-linux-x86-64.so.2" \
+        --library-path "$work/run-runtime:$work/$runtime/lib64:$work/$runtime/usr/lib64" \
         --list "$artifact" > "$work/logs/provider-$route-runtime-libraries.txt"
-    python3 "$example_dir/check-provider.py" "$work" "$route"
+    python3 "$example_dir/check-provider.py" "$work" "$route" "$runtime" "$descriptor"
     readelf --wide --dyn-syms --version-info "$artifact" > "$work/logs/provider-$route-executable.txt"
     python3 "$example_dir/check-libgcc.py" imports "$repo" "$work/logs/provider-$route-executable.txt"
     # Normal Cargo selections must survive the coordinator unchanged.
@@ -105,8 +117,8 @@ for route in "${routes[@]}"; do
             > "$work/logs/provider-$route-workflow-$pass.txt" 2>&1
     done
     for executable in glibc-hello qualification-member examples/qualification; do
-        "$work/$route/lib64/ld-linux-x86-64.so.2" \
-            --library-path "$work/run-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
+        "$work/$runtime/lib64/ld-linux-x86-64.so.2" \
+            --library-path "$work/run-runtime:$work/$runtime/lib64:$work/$runtime/usr/lib64" \
             "$workflow_dir/x86_64-unknown-linux-gnu/qualification/$executable" \
             > "$work/logs/provider-$route-workflow-$(basename "$executable")-runtime.txt"
     done
@@ -119,8 +131,8 @@ for route in "${routes[@]}"; do
         --manifest-path "$manifest" --target-dir "$workflow_dir" \
         -p glibc-hello --example qualification --features qualification --release --locked --offline \
         > "$work/logs/provider-$route-workflow-example.txt" 2>&1
-    "$work/$route/lib64/ld-linux-x86-64.so.2" \
-        --library-path "$work/run-runtime:$work/$route/lib64:$work/$route/usr/lib64" \
+    "$work/$runtime/lib64/ld-linux-x86-64.so.2" \
+        --library-path "$work/run-runtime:$work/$runtime/lib64:$work/$runtime/usr/lib64" \
         "$workflow_dir/x86_64-unknown-linux-gnu/release/examples/qualification" \
         > "$work/logs/provider-$route-workflow-release-runtime.txt"
     grep -F 'qualification example ran' "$work/logs/provider-$route-workflow-release-runtime.txt"

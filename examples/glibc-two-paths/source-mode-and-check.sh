@@ -10,7 +10,8 @@ source "$example_dir/experiment.sh"
 repo=$(cd "$example_dir/../.." && pwd)
 work=$(realpath "${1:?Usage: source-mode-and-check.sh WORK}")
 export CARGO_TARGET_DIR="$work/rust-target"
-cache="$work/provider-cache"
+# The provider cache; modes-and-check.sh reads the same one.
+cache=${ABI_PROVIDER_CACHE:-$work/provider-cache}
 libc_abi() {
     cargo run --manifest-path "$repo/Cargo.toml" --locked --offline --quiet --bin libc-abi -- "$@"
 }
