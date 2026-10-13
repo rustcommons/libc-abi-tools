@@ -39,6 +39,13 @@ impl Engine {
 /// runs from the image. A host program is mounted as a single file, never its
 /// directory, which could hide the image's own `/bin` or `/usr/bin`.
 /// `CARGO*`/`RUST*` variables are forwarded. Suitable for a Cargo runner.
+///
+/// # Errors
+///
+/// Returns a message when `image` is empty, the current directory cannot be
+/// read, a host `program` is not a file, the profile cannot be written to the
+/// temporary directory, or the engine cannot be started. The program's own
+/// failure is its exit status, not an error.
 pub fn run(
     engine: &Engine,
     target: &Target,

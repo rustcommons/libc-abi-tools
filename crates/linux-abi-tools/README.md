@@ -1,5 +1,7 @@
 # linux-abi-tools
 
+[![docs.rs](https://img.shields.io/docsrs/linux-abi-tools)](https://docs.rs/linux-abi-tools)
+
 One dependency for building and testing Rust programs for older Linux
 systems. It re-exports four crates from the
 [linux-abi-tools](https://github.com/rustcommons/linux-abi-tools) workspace:

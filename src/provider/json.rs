@@ -2,18 +2,26 @@
 //! non-negative integers, booleans and null. Std-only, bounded.
 use std::fmt::Write as _;
 
+/// A JSON value of the supported subset.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Value {
+    /// `null`.
     Null,
+    /// `true` or `false`.
     Bool(bool),
+    /// A non-negative integer that fits in `u64`.
     Integer(u64),
+    /// A string, unescaped.
     String(String),
+    /// An array.
     Array(Vec<Value>),
     /// Members in order; keys are unique.
     Object(Vec<(String, Value)>),
 }
 
 impl Value {
+    /// The member KEY of an object; `None` if this is not an object or has no
+    /// such member.
     pub fn get(&self, key: &str) -> Option<&Value> {
         match self {
             Value::Object(members) => members.iter().find(|(k, _)| k == key).map(|(_, v)| v),
@@ -21,6 +29,11 @@ impl Value {
         }
     }
 
+    /// The string member KEY of an object.
+    ///
+    /// # Errors
+    ///
+    /// When there is no such member or it is not a string.
     pub fn str(&self, key: &str) -> Result<&str, String> {
         match self.get(key) {
             Some(Value::String(s)) => Ok(s),

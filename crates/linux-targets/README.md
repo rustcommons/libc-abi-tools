@@ -1,5 +1,7 @@
 # linux-targets
 
+[![docs.rs](https://img.shields.io/docsrs/linux-targets)](https://docs.rs/linux-targets)
+
 Target selection shared by the rustcommons Linux toolchain. Std-only, no
 dependencies.
 

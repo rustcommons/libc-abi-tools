@@ -1,3 +1,5 @@
+//! The `libc-abi` command: glibc ABI metadata, link-only stubs and providers from
+//! the [`libc_abi_tools`] library. Run `libc-abi --help` for its commands.
 use libc_abi_tools::{elf, glibc, libgcc, matrix::Matrix, stub, version::Version};
 use std::{
     ffi::OsString,

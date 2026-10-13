@@ -9,6 +9,21 @@
 //!
 //! Each crate can also be used on its own; this crate only re-exports them
 //! so that their versions move together.
+//!
+//! ```
+//! use linux_abi_tools::{kernel, targets};
+//!
+//! // Resolve `--distro sles-12-sp5`, then list what its kernel lacks.
+//! let request = targets::Request { distro: Some("sles-12-sp5"), ..Default::default() };
+//! let selection = targets::Selection::resolve(&request)?;
+//! let sles = selection.distro.clone().expect("a preset was chosen");
+//! let missing = kernel::missing_syscalls(sles.kernel, &sles.kernel_backports);
+//! assert!(missing.iter().any(|s| s.name == "io_pgetevents")); // Linux 4.18
+//! assert_eq!(selection.describe(), format!("glibc 2.22, kernel 4.12 ({})", sles.name));
+//! # Ok::<(), String>(())
+//! ```
+
+#![warn(missing_docs)]
 
 pub use kernel_abi_tools as kernel;
 pub use libc_abi_tools as libc;

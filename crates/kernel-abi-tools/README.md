@@ -8,6 +8,7 @@
 ![Rust 1.90+](https://img.shields.io/badge/Rust-1.90%2B-orange)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![Status: prototype](https://img.shields.io/badge/status-prototype-yellow)
+[![docs.rs](https://img.shields.io/docsrs/kernel-abi-tools)](https://docs.rs/kernel-abi-tools)
 
 Linux kernel ABI data and seccomp filters that make a modern host kernel
 answer like an older one. Run a Rust binary on the host under a local filter

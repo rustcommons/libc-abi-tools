@@ -48,9 +48,13 @@ pub const MAX_INSNS: usize = 4096;
 #[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Insn {
+    /// The opcode (`BPF_LD | BPF_W | BPF_ABS` and so on).
     pub code: u16,
+    /// Instructions to skip when a conditional jump is taken.
     pub jt: u8,
+    /// Instructions to skip when a conditional jump is not taken.
     pub jf: u8,
+    /// The constant operand: an offset, a value to compare, or a return value.
     pub k: u32,
 }
 
@@ -133,6 +137,14 @@ fn ranges(sorted: &[u32]) -> Vec<(u32, u32)> {
 
 /// Runs `prog` on one syscall the way the kernel does and returns the
 /// `SECCOMP_RET_*` value. Supports only the opcodes [`program`] emits.
+///
+/// `arch` is the `AUDIT_ARCH_*` value, `nr` the syscall number, and `args` its
+/// six arguments.
+///
+/// # Errors
+///
+/// Returns a message for an opcode or load offset [`program`] never emits, and
+/// when the program ends without returning.
 pub fn evaluate(prog: &[Insn], arch: u32, nr: u32, args: [u64; 6]) -> Result<u32, String> {
     let word = |off: u32| -> Result<u32, String> {
         match off {
@@ -188,6 +200,11 @@ pub mod install {
     }
 
     impl<'a> Prog<'a> {
+        /// Wraps `insns` for [`apply`].
+        ///
+        /// # Panics
+        ///
+        /// Panics if `insns` has more than 65535 instructions.
         pub fn new(insns: &'a [Insn]) -> Self {
             Prog {
                 len: u16::try_from(insns.len()).expect("filter fits sock_fprog"),
@@ -206,6 +223,11 @@ pub mod install {
     ///
     /// Only calls `prctl`, so it is async-signal-safe and may run between
     /// `fork` and `exec` (for example from `CommandExt::pre_exec`).
+    ///
+    /// # Errors
+    ///
+    /// Returns the OS error when either `prctl` call fails, for example when the
+    /// kernel lacks seccomp filters or the program is too long.
     pub fn apply(prog: &Prog<'_>) -> io::Result<()> {
         // SAFETY: plain prctl calls; `prog` outlives them and points at
         // `len` valid instructions.

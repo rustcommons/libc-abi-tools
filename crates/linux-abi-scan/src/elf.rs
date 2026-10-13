@@ -24,6 +24,7 @@ const R_X86_64_JUMP_SLOT: u32 = 7;
 /// An undefined (imported) dynamic symbol.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Import {
+    /// The symbol name, without its version.
     pub name: String,
     /// Symbol version, e.g. `GLIBC_2.28`, if versioned.
     pub version: Option<String>,
@@ -39,24 +40,33 @@ pub struct Import {
 /// One version requirement (`.gnu.version_r`).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct VersionNeed {
+    /// The library the version is required from, e.g. `libc.so.6`.
     pub file: String,
+    /// The version, e.g. `GLIBC_2.17`.
     pub version: String,
+    /// A weak requirement (`VER_FLG_WEAK`): the loader does not fail without it.
     pub weak: bool,
 }
 
 /// An executable section: its virtual address and bytes.
 #[derive(Clone, Debug)]
 pub struct Code<'a> {
+    /// The section name, e.g. `.text`.
     pub name: String,
+    /// The virtual address of the first byte.
     pub addr: u64,
+    /// The section's contents.
     pub bytes: &'a [u8],
 }
 
 /// What the scan reads from one ELF file.
 #[derive(Debug)]
 pub struct Elf<'a> {
+    /// Undefined dynamic symbols.
     pub imports: Vec<Import>,
+    /// Version requirements, in file order.
     pub needs: Vec<VersionNeed>,
+    /// Executable sections.
     pub code: Vec<Code<'a>>,
     /// Minimum kernel from `NT_GNU_ABI_TAG` (Linux only), as `[major, minor, patch]`.
     pub abi_tag: Option<[u32; 3]>,
@@ -113,6 +123,14 @@ struct Section {
 }
 
 impl<'a> Elf<'a> {
+    /// Reads what the scan needs from an ELF file's bytes, which may be
+    /// untrusted: every offset is bounds-checked.
+    ///
+    /// # Errors
+    ///
+    /// The input is larger than [`MAX_BYTES`], is not an ELF64 little-endian
+    /// x86_64 file, has no section headers, or has a malformed or out-of-range
+    /// structure.
     pub fn parse(bytes: &'a [u8]) -> Result<Self, String> {
         if bytes.len() > MAX_BYTES {
             return Err("file exceeds the 512 MiB scan limit".into());

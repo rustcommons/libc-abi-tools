@@ -18,6 +18,8 @@ use std::{
 pub struct Options {
     /// The cache root ([`cache::default_root`]).
     pub root: PathBuf,
+    /// The host tools: GCC (whose `crtbegin.o`/`crtend.o` the provider uses), and
+    /// in `source` mode the binutils that build and verify the objects.
     pub tools: Tools,
     /// Prepare again even if the cache has this provider.
     pub force: bool,
@@ -32,6 +34,9 @@ pub struct Options {
 }
 
 impl Options {
+    /// Options for the cache at ROOT with the default tools found on PATH (`gcc`,
+    /// `ar`, `readelf`, `as`, `ld`), no forced preparation, and the default
+    /// container settings.
     pub fn new(root: PathBuf) -> Self {
         Self {
             root,
@@ -47,6 +52,7 @@ impl Options {
 /// A prepared provider.
 #[derive(Clone, Debug)]
 pub struct Prepared {
+    /// Where the provider is in the cache.
     pub entry: Entry,
     /// Whether the cache already had it.
     pub reused: bool,

@@ -9,6 +9,29 @@
 //! The profiles are a testing aid, not a security boundary: everything the
 //! simulated kernel has is allowed. Other newer flags on old syscalls and
 //! behavior changes are not modelled yet; see the roadmap.
+//!
+//! The simulation is tier 2 of the testing tiers: it catches what a test
+//! executes, but it is not qualification on a real target.
+//!
+//! ```
+//! use kernel_abi_tools::{distro, filter, missing_syscalls, Target, ENOSYS};
+//!
+//! // What CentOS 7's kernel (Linux 3.10) lacks compared with the newest data.
+//! let centos = distro("centos-7").expect("preset");
+//! let missing = missing_syscalls(centos.kernel, &centos.kernel_backports);
+//! let statx = missing.iter().find(|s| s.name == "statx").expect("statx is newer");
+//! assert_eq!(statx.first.to_string(), "4.11");
+//!
+//! // The local runner's filter answers ENOSYS for it, and allows `read`.
+//! let target = Target::distro(&centos);
+//! let program = filter::program(&target);
+//! let ret = |nr| filter::evaluate(&program, filter::AUDIT_ARCH_X86_64, nr, [0; 6]);
+//! assert_eq!(ret(statx.nr)?, filter::RET_ERRNO | ENOSYS as u32);
+//! assert_eq!(ret(0)?, filter::RET_ALLOW);
+//! # Ok::<(), String>(())
+//! ```
+
+#![warn(missing_docs)]
 
 pub mod container;
 pub mod filter;
@@ -46,6 +69,10 @@ pub enum Runner {
 
 impl Runner {
     /// Parses `local` or `container`.
+    ///
+    /// # Errors
+    ///
+    /// Returns a message for any other name.
     pub fn parse(s: &str) -> Result<Self, String> {
         match s {
             "local" => Ok(Runner::Local),
@@ -60,6 +87,11 @@ impl Runner {
     /// image (from `--image` or a distribution preset) means the container,
     /// and no image means the local filter. The container needs an image, and
     /// the local runner cannot use one.
+    ///
+    /// # Errors
+    ///
+    /// Returns a message when the container runner is requested without an
+    /// image, or the local runner with one.
     pub fn choose(requested: Option<Runner>, image: Option<&str>) -> Result<Self, String> {
         let image = image.filter(|i| !i.is_empty());
         match (requested, image) {
@@ -79,8 +111,12 @@ impl Runner {
 /// One x86_64 syscall and the first mainline release whose table lists it.
 #[derive(Clone, Debug)]
 pub struct Syscall {
+    /// The x86_64 (64-bit ABI) syscall number.
     pub nr: u32,
+    /// The syscall's name in the kernel's table, such as `statx`.
     pub name: &'static str,
+    /// The first mainline release that has it, or the data's oldest release
+    /// ([`table_floor`]) for syscalls at least that old.
     pub first: KernelVersion,
 }
 
@@ -131,12 +167,16 @@ pub fn missing_syscalls(kernel: KernelVersion, allow: &[&str]) -> Vec<Syscall> {
 
 /// What a profile simulates.
 pub struct Target {
+    /// A name for messages and the profile, such as `Linux 4.12`.
     pub label: String,
+    /// The mainline kernel release whose syscalls are present.
     pub kernel: KernelVersion,
+    /// Syscalls present although newer than `kernel` (vendor backports).
     pub allow: Vec<&'static str>,
 }
 
 impl Target {
+    /// A generic mainline kernel, with no backports.
     pub fn kernel(kernel: KernelVersion) -> Self {
         Target {
             label: format!("Linux {kernel}"),
@@ -145,6 +185,7 @@ impl Target {
         }
     }
 
+    /// A distribution preset's kernel: its mainline base plus its backports.
     pub fn distro(d: &Distro) -> Self {
         Target {
             label: format!("{} (Linux {})", d.name, d.kernel),
@@ -165,8 +206,12 @@ pub fn present_syscalls(target: &Target) -> Vec<Syscall> {
 /// One `madvise` advice value and the first mainline release defining it.
 #[derive(Clone, Debug)]
 pub struct MadviseAdvice {
+    /// The advice value passed as `madvise`'s third argument.
     pub value: u32,
+    /// The constant's name, such as `MADV_FREE`.
     pub name: &'static str,
+    /// The first mainline release that accepts it, or the data's oldest
+    /// release for values at least that old.
     pub first: KernelVersion,
 }
 

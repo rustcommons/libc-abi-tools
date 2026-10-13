@@ -1,5 +1,7 @@
 # linux-abi-scan
 
+[![docs.rs](https://img.shields.io/docsrs/linux-abi-scan)](https://docs.rs/linux-abi-scan)
+
 Static inspection of built x86_64 Linux executables and shared objects
 against a target's glibc and kernel floors. Part of the
 [linux-abi-tools](https://github.com/rustcommons/linux-abi-tools) workspace and

@@ -17,7 +17,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
+/// The target triple every provider is for.
 pub const TARGET: &str = "x86_64-unknown-linux-gnu";
+/// The `format` value of a version-1 `manifest.json`.
 pub const MANIFEST_FORMAT: &str = "libc-abi-provider-manifest-1";
 
 /// How a provider's glibc objects are obtained.
@@ -32,8 +34,11 @@ pub enum Mode {
 }
 
 impl Mode {
+    /// Every mode.
     pub const ALL: [Mode; 3] = [Mode::Source, Mode::Prebuilt, Mode::Container];
 
+    /// The mode's name as used on command lines and in directory names:
+    /// `source`, `prebuilt` or `container`.
     pub fn name(self) -> &'static str {
         match self {
             Mode::Source => "source",
@@ -100,17 +105,28 @@ pub fn release(name: &str) -> Result<&'static str, String> {
 /// One prepared provider.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Entry {
+    /// The glibc release, such as `2.28`.
     pub release: String,
+    /// How its glibc objects were obtained.
     pub mode: Mode,
+    /// The content hash of its preparation inputs, in hexadecimal.
     pub hash: String,
+    /// Its directory: `ROOT/x86_64-unknown-linux-gnu/glibc-RELEASE/MODE-HASH`.
     pub dir: PathBuf,
 }
 
 impl Entry {
+    /// The path of its descriptor, `provider.txt` (see [`super::Provider`]). The
+    /// file need not exist.
     pub fn descriptor(&self) -> PathBuf {
         self.dir.join("provider.txt")
     }
 
+    /// Reads and parses its `manifest.json`.
+    ///
+    /// # Errors
+    ///
+    /// When the file cannot be read or is not JSON this module's parser accepts.
     pub fn manifest(&self) -> Result<Value, String> {
         let path = self.dir.join("manifest.json");
         let text = fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?;

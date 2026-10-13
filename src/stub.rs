@@ -10,10 +10,14 @@ use std::{
     fmt::Write as _,
 };
 
+/// The inputs for assembling and linking one link-only stub library.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Sources {
+    /// GNU assembler source defining every selected symbol; function bodies trap.
     pub assembly: String,
+    /// The linker version script giving each symbol its version node.
     pub versions: String,
+    /// The definitions the stub reproduces, sorted.
     pub selected: elf::Metadata,
 }
 

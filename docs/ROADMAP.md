@@ -361,22 +361,34 @@ with `-W missing_docs` on 2026-10-11):
 | `linux-targets` | 5 |
 | `linux-abi-tools` | 0 |
 
-- [ ] Document every public item: what it does, its inputs, its errors, and for data
+- [x] Document every public item: what it does, its inputs, its errors, and for data
   types the meaning of each field. Then add `#![warn(missing_docs)]` to each crate
-  (CI denies warnings).
-- [ ] Give each crate an overview with a runnable example of its main use, kept as a
-  doc test (`cargo test --doc`).
-- [ ] Add `cargo doc --workspace --no-deps` with `RUSTDOCFLAGS="-D warnings"` to CI, so
-  broken intra-doc links and malformed docs fail the build.
-- [ ] Add `documentation` (the docs.rs URL) and `[package.metadata.docs.rs]` (target
+  (CI denies warnings). Done 2026-10-13: 159 items (libc-abi-tools 106, of which 53 in
+  the `provider` module; linux-abi-scan 26; kernel-abi-tools 17; linux-targets 5;
+  linux-abi-tools 0), with `# Errors` sections on every public fallible function.
+  The lint is on in all five library crates.
+- [x] Give each crate an overview with a runnable example of its main use, kept as a
+  doc test (`cargo test --doc`) (2026-10-13). The examples need no network, compiler,
+  root or container, so they pass on Linux and Windows:
+  - `libc-abi-tools`: an accept/reject matrix from the bundled ABI lists, plus parsing
+    a provider descriptor;
+  - `linux-abi-scan`: scanning an in-memory ELF file against the CentOS 7 preset;
+  - `kernel-abi-tools`: the syscalls CentOS 7 lacks, and the filter's answers;
+  - `linux-targets`: presets and versioned targets;
+  - `linux-abi-tools`: the same through the re-exports.
+- [x] Add `cargo doc --workspace --no-deps` with `RUSTDOCFLAGS="-D warnings"` to CI, so
+  broken intra-doc links and malformed docs fail the build (2026-10-13: the `docs`
+  job, all features; doc tests run in the `rust` job on Linux and Windows).
+- [x] Add `documentation` (the docs.rs URL) and `[package.metadata.docs.rs]` (target
   `x86_64-unknown-linux-gnu`, all features documented) to each published Cargo.toml,
-  and a docs.rs badge to each README.
+  and a docs.rs badge to each README (2026-10-13).
 - [ ] After each release, confirm the docs.rs build succeeded and the pages read
   correctly. 0.3.0 (and glibc-provider-sources 0.1.0, cargo-libc 0.1.0): every build
   succeeded on docs.rs (2026-10-13); reading the pages is part of the documentation
   work above.
-- [ ] Document the `provider` module and its features as part of the provider delivery
-  work below, before it is published.
+- [x] Document the `provider` module and its features (2026-10-13): a module overview of
+  the modes, cache and descriptor, linking the delivery design and user guide. It was
+  published in 0.3.0 before this; 0.3.1 carries the documentation.
 
 ## Provider delivery
 

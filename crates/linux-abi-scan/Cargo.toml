@@ -7,6 +7,7 @@ description = "Static inspection of built Linux executables against a target's g
 repository = "https://github.com/rustcommons/linux-abi-tools"
 license = "MIT"
 readme = "README.md"
+documentation = "https://docs.rs/linux-abi-scan"
 keywords = ["elf", "glibc", "syscall", "linux", "compatibility"]
 categories = ["development-tools::build-utils", "os::linux-apis"]
 include = ["src/**", "Cargo.toml", "README.md", "LICENSE"]
@@ -22,3 +23,7 @@ path = "src/bin/linux-abi-scan.rs"
 [dependencies]
 kernel-abi-tools = { path = "../kernel-abi-tools", version = "0.3.0" }
 linux-targets = { path = "../linux-targets", version = "0.3.0" }
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+all-features = true

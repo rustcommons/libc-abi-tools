@@ -1,6 +1,63 @@
-//! Providers: the versioned local descriptor (a trusted build configuration,
-//! not a signed or redistributable SDK), and their preparation and cache in the
-//! delivery modes of docs/PROVIDER-DELIVERY.md.
+//! glibc link providers: everything needed to link x86_64 Linux programs for one
+//! glibc release, prepared on the build machine.
+//!
+//! A provider holds:
+//! - the release's headers;
+//! - its startup objects (`crt1.o`, `crti.o`, `crtn.o`) and nonshared archives;
+//! - link-only stubs of its shared libraries, with exactly that release's symbols
+//!   and versions, generated from the ABI lists;
+//! - a `libgcc_s` stub with GCC 4.8.5's interface.
+//!
+//! It supplies no glibc runtime: programs run against the target system's glibc.
+//!
+//! # Delivery modes
+//!
+//! [`cache::Mode`] selects how the glibc objects are obtained. Every mode produces
+//! the same layout and the same stubs:
+//!
+//! - **`source`** (default): compiles the recorded sources of the
+//!   `glibc-provider-sources` crate with the host's GCC, offline, and verifies every
+//!   object against the interface recorded from the qualified container build
+//!   ([`build`]). A difference that was not reviewed refuses the provider. It needs
+//!   the `provider-sources` feature (on by default). Without the feature, source
+//!   mode returns an error that names `container`.
+//! - **`container`**: runs the pinned container build that CI runs ([`pins`]),
+//!   with podman or docker and network access.
+//! - **`prebuilt`**: CI-built objects. Planned, after a legal review. Selecting it
+//!   returns an error today.
+//!
+//! # Cache and descriptor
+//!
+//! [`prepare::prepare`] builds a provider into the cache ([`cache`]), or reuses one
+//! whose inputs hash the same. Each provider has a descriptor, `provider.txt`: a
+//! small text file in the `libc-abi-provider-v1` format that names its directories.
+//! [`Provider`] parses and checks it. The descriptor is a trusted local build
+//! configuration, not a signed or redistributable SDK. [`cli`] implements the
+//! `provider` commands shared by `libc-abi` and `cargo libc`.
+//!
+//! The design is in
+//! [PROVIDER-DELIVERY.md](https://github.com/rustcommons/linux-abi-tools/blob/main/docs/PROVIDER-DELIVERY.md),
+//! and the user guide is
+//! [USING-PROVIDERS.md](https://github.com/rustcommons/linux-abi-tools/blob/main/docs/USING-PROVIDERS.md).
+//!
+//! # Example
+//!
+//! ```
+//! use libc_abi_tools::provider::Provider;
+//!
+//! let root = if cfg!(windows) { "C:/p" } else { "/p" };
+//! let text = format!(
+//!     "libc-abi-provider-v1\ntarget\tx86_64-unknown-linux-gnu\nglibc\t2.17\n\
+//!      sysroot\t{root}/sysroot\nstubs\t{root}/stubs\ngcc-startup\t{root}/gcc\n\
+//!      compiler-runtime\t{root}/compiler-runtime\n"
+//! );
+//! let provider = Provider::parse(&text).unwrap();
+//! assert_eq!(provider.release.to_string(), "2.17");
+//! // glibc 2.17 still has a separate libpthread_nonshared.a.
+//! assert_eq!(provider.nonshared_archives().len(), 2);
+//! // Selection is exact: a 2.17 provider never serves 2.22.
+//! assert!(provider.validate_selection("2.22".parse().unwrap()).is_err());
+//! ```
 pub mod build;
 pub mod cache;
 pub mod cli;
@@ -16,6 +73,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+/// The first line of a version-1 provider descriptor.
 pub const FORMAT: &str = "libc-abi-provider-v1";
 /// glibc releases with a qualified provider; selection is exact, without fallback.
 pub const RELEASES: &[&str] = &[
@@ -23,6 +81,9 @@ pub const RELEASES: &[&str] = &[
     "2.29", "2.30", "2.31", "2.32", "2.33", "2.34", "2.35", "2.36", "2.37", "2.38", "2.39", "2.40",
     "2.41", "2.42", "2.43", "2.44",
 ];
+/// The shared libraries a provider has link stubs for, by soname. The stubs
+/// directory also has each one's linker name (`libc.so`, ..., `libld.so` for the
+/// loader) resolving to the same file.
 pub const SONAMES: [&str; 8] = [
     "libc.so.6",
     "libm.so.6",
@@ -34,17 +95,32 @@ pub const SONAMES: [&str; 8] = [
     "libutil.so.1",
 ];
 
+/// A parsed provider descriptor. Its paths are absolute and have no `..`
+/// components; [`Provider::validate_files`] checks what they contain.
 #[derive(Clone, Debug)]
 pub struct Provider {
+    /// The glibc release (`glibc` field), one of [`RELEASES`].
     pub release: Version,
+    /// The release's headers, startup objects, nonshared archives and loader
+    /// (`sysroot` field).
     pub sysroot: PathBuf,
+    /// The link stubs of [`SONAMES`] and their linker names (`stubs` field).
     pub stubs: PathBuf,
+    /// The GCC directory with `crtbegin.o` and `crtend.o` (`gcc-startup` field).
     pub gcc_startup: PathBuf,
+    /// The `libgcc_s` stub, `libgcc_s.so` and `libgcc_s.so.1`
+    /// (`compiler-runtime` field).
     pub compiler_runtime: PathBuf,
+    /// The descriptor text exactly as read.
     pub descriptor: String,
 }
 
 impl Provider {
+    /// Reads and parses the descriptor at PATH (see [`Provider::parse`]).
+    ///
+    /// # Errors
+    ///
+    /// When the file cannot be read, or [`Provider::parse`] rejects it.
     pub fn load(path: &Path) -> Result<Self, String> {
         let mut text = String::new();
         fs::File::open(path)
@@ -53,6 +129,18 @@ impl Provider {
         Self::parse(&text)
     }
 
+    /// Parses a version-1 descriptor: the [`FORMAT`] line, then exactly the six
+    /// tab-separated fields `target`, `glibc`, `sysroot`, `stubs`, `gcc-startup`
+    /// and `compiler-runtime`, in any order. It checks only the text; see
+    /// [`Provider::validate_files`] for the files.
+    ///
+    /// # Errors
+    ///
+    /// When the text is over 16 KiB, has CR characters or no final newline, has
+    /// another format line, has an unknown, duplicate, empty or control-character
+    /// field, lacks a field, names a target other than `x86_64-unknown-linux-gnu`
+    /// or a glibc outside [`RELEASES`], or has a path that is relative or contains
+    /// `..`.
     pub fn parse(text: &str) -> Result<Self, String> {
         if text.len() > 16384 || text.contains('\r') || !text.ends_with('\n') {
             return Err("provider must be LF-terminated UTF-8, at most 16 KiB".into());
@@ -130,6 +218,12 @@ impl Provider {
         }
     }
 
+    /// Checks that the provider is for exactly the REQUESTED glibc release.
+    ///
+    /// # Errors
+    ///
+    /// When REQUESTED differs from [`Provider::release`]; there is no fallback to
+    /// another release.
     pub fn validate_selection(&self, requested: Version) -> Result<(), String> {
         if requested != self.release {
             return Err(format!(
@@ -140,6 +234,19 @@ impl Provider {
         Ok(())
     }
 
+    /// Checks the provider's files: each directory exists; the headers
+    /// (`features.h`), startup objects, loader and [nonshared
+    /// archives](Provider::nonshared_archives) are in the sysroot; `crtbegin.o` and
+    /// `crtend.o` are in [`Provider::gcc_startup`]; the `libgcc_s` stub is in
+    /// [`Provider::compiler_runtime`]; and every stub and linker name is in
+    /// [`Provider::stubs`]. Each must resolve, after following symbolic links, to a
+    /// regular file inside its directory, and each linker name to the same file as
+    /// its soname. It does not check file contents.
+    ///
+    /// # Errors
+    ///
+    /// When a directory or file is missing, resolves outside its directory, or a
+    /// linker name resolves to another file than its soname.
     pub fn validate_files(&self) -> Result<(), String> {
         for root in [
             &self.sysroot,

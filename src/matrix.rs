@@ -16,13 +16,19 @@ const MAX_CELLS: usize = 2_000_000;
 const MAX_NAME_BYTES: usize = 16 * 1024 * 1024;
 type Key = (String, String, Version);
 
+/// Whether a link against one release should accept a versioned symbol
+/// ([`Matrix::expect`]).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Expectation {
+    /// The release's library exports the symbol at that version, with this kind.
     Accept(Kind),
+    /// The release is in the matrix and its library does not export it.
     Reject,
+    /// The release or library is not in the matrix, so nothing is known.
     Unknown,
 }
 impl Expectation {
+    /// `accept`, `reject` or `unknown`, as `libc-abi glibc expect` prints it.
     pub fn label(self) -> &'static str {
         match self {
             Self::Accept(_) => "accept",
@@ -32,6 +38,8 @@ impl Expectation {
     }
 }
 
+/// Every versioned symbol of several glibc releases' snapshots, with the kind
+/// each release defines it as. Built from complete [`Snapshot`]s only.
 #[derive(Debug, Default)]
 pub struct Matrix {
     releases: BTreeSet<Version>,
@@ -49,6 +57,14 @@ fn cell(value: Option<Kind>) -> String {
 }
 
 impl Matrix {
+    /// Loads every release directory under `root` (the data-directory layout of
+    /// [`Snapshot::load`]); entries not named like a release are skipped.
+    ///
+    /// # Errors
+    ///
+    /// Fails if `root` cannot be read, a release directory is not a canonical
+    /// release from 2.17, there are none or more than 64, a snapshot fails to load,
+    /// or the matrix exceeds its size limits.
     pub fn load(root: &Path) -> Result<Self, String> {
         let mut releases = BTreeSet::new();
         for entry in fs::read_dir(root).map_err(|e| e.to_string())? {
@@ -82,6 +98,10 @@ impl Matrix {
     }
 
     /// Every release in the bundled glibc-abilists data.
+    ///
+    /// # Errors
+    ///
+    /// Fails if the bundled data is malformed.
     #[cfg(feature = "bundled-glibc-data")]
     pub fn bundled() -> Result<Self, String> {
         let mut matrix = Self::default();
@@ -91,6 +111,13 @@ impl Matrix {
         Ok(matrix)
     }
 
+    /// Builds a matrix from snapshots already loaded.
+    ///
+    /// # Errors
+    ///
+    /// Fails if there are none, a release repeats, a snapshot lacks one of the
+    /// eight tracked libraries or has an invalid or future-versioned symbol, or the
+    /// matrix exceeds its size limits.
     pub fn from_snapshots(snapshots: impl IntoIterator<Item = Snapshot>) -> Result<Self, String> {
         let mut matrix = Self::default();
         for snapshot in snapshots {
@@ -165,6 +192,9 @@ impl Matrix {
             .map_or(Expectation::Reject, Expectation::Accept)
     }
 
+    /// Stable TSV with one row per library, symbol and version: the first
+    /// snapshot that has it, then one column per release (`F`, `D:size`,
+    /// `T:size` or `absent`). With `symbol`, only rows for that name.
     pub fn to_tsv(&self, symbol: Option<&str>) -> String {
         let mut text = String::from("target\tlibrary\tsymbol\tversion\tfirst_observed_snapshot");
         for release in &self.releases {
@@ -190,6 +220,12 @@ impl Matrix {
         text
     }
 
+    /// Stable TSV of the rows that are added, removed or changed between the
+    /// `from` and `to` releases. With `symbol`, only rows for that name.
+    ///
+    /// # Errors
+    ///
+    /// Fails if either release is not in the matrix.
     pub fn diff_tsv(
         &self,
         from: Version,
@@ -227,6 +263,8 @@ impl Matrix {
         Ok(text)
     }
 
+    /// [`Matrix::diff_tsv`] between each pair of consecutive releases, under one
+    /// header.
     pub fn changes_tsv(&self) -> String {
         let releases: Vec<_> = self.releases.iter().copied().collect();
         let mut text =

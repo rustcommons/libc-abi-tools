@@ -5,6 +5,7 @@
 
 /// One release's pinned container build.
 pub struct Pins {
+    /// The glibc release, such as `2.28`.
     pub release: &'static str,
     /// `INPUTS.toml`, with `source_sha256` and `builder_image`; empty for 2.17.
     inputs: &'static str,

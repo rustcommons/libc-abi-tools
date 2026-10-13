@@ -11,6 +11,37 @@
 //!
 //! A preset cannot be combined with explicit floors: "SLES 12 SP5 with glibc
 //! 2.28" is not a real system. [`Selection::resolve`] enforces these rules.
+//!
+//! ```
+//! use linux_targets::{Release, Request, Selection};
+//!
+//! // A preset sets both floors and a test image.
+//! let sles = Selection::resolve(&Request { distro: Some("sles-12-sp5"), ..Default::default() })?;
+//! assert_eq!(sles.glibc, Some(Release::parse("2.22")?));
+//! assert_eq!(sles.kernel, Some(Release::parse("4.12")?));
+//! assert!(sles.image().is_some());
+//!
+//! // A versioned target sets only the glibc floor; the kernel is not simulated.
+//! let target = Selection::resolve(&Request {
+//!     target: Some("x86_64-unknown-linux-gnu.2.17"),
+//!     ..Default::default()
+//! })?;
+//! assert_eq!(target.triple.as_deref(), Some("x86_64-unknown-linux-gnu"));
+//! assert_eq!(target.glibc, Some(Release::parse("2.17")?));
+//! assert_eq!(target.kernel, None);
+//! assert_eq!(target.describe(), "glibc 2.17, kernel not simulated (host)");
+//!
+//! // A preset cannot be combined with explicit floors.
+//! assert!(Selection::resolve(&Request {
+//!     distro: Some("centos-7"),
+//!     glibc: Some("2.28"),
+//!     ..Default::default()
+//! })
+//! .is_err());
+//! # Ok::<(), String>(())
+//! ```
+
+#![warn(missing_docs)]
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -21,7 +52,9 @@ const DISTRO_DATA: &str = include_str!("../data/distros.tsv");
 /// release. Comparison uses only these two components.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Release {
+    /// The major number: 4 in kernel 4.12, 2 in glibc 2.22.
     pub major: u32,
+    /// The minor number: 12 in kernel 4.12, 22 in glibc 2.22.
     pub minor: u32,
 }
 
@@ -29,6 +62,11 @@ impl Release {
     /// Parses `4.12`, `4.12.14`, `v5.14`, or a distribution kernel release
     /// such as `4.12.14-122.37-default`. Only the leading `major.minor` is
     /// used.
+    ///
+    /// # Errors
+    ///
+    /// Returns a message when `s` does not start with two numbers separated by
+    /// a non-digit, such as `4` or `abc`.
     pub fn parse(s: &str) -> Result<Self, String> {
         let s = s.trim().trim_start_matches(['v', 'V']);
         let mut parts = s.split(|c: char| !c.is_ascii_digit());
@@ -67,10 +105,13 @@ pub type GlibcVersion = Release;
 /// A distribution preset: a kernel floor, a glibc floor, and a test image.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Distro {
+    /// The preset's id for `--distro`, such as `sles-12-sp5`.
     pub id: &'static str,
+    /// The release's full name, such as `SUSE Linux Enterprise Server 12 SP5`.
     pub name: &'static str,
     /// Mainline base of the release's GA kernel.
     pub kernel: KernelVersion,
+    /// The glibc release the distribution ships.
     pub glibc: GlibcVersion,
     /// Container image providing the release's userland.
     pub image: &'static str,
@@ -145,6 +186,12 @@ impl Selection {
     /// - A versioned `target` (`TRIPLE.X.Y`) sets the glibc floor; it must
     ///   agree with `glibc` if both are given. It never implies a kernel.
     /// - Anything not given stays `None`: host glibc, host kernel.
+    ///
+    /// # Errors
+    ///
+    /// Returns a message when a preset is combined with explicit floors, the
+    /// preset id is unknown, a release number does not parse, `glibc` disagrees
+    /// with the target's suffix, or a suffixed target is not a `-gnu` triple.
     pub fn resolve(req: &Request<'_>) -> Result<Self, String> {
         let (triple, suffix) = match req.target {
             Some(t) => {
@@ -204,6 +251,11 @@ impl Selection {
 
 /// Splits `x86_64-unknown-linux-gnu.2.17` into the Rust triple and the glibc
 /// floor. A triple without a numeric `.X.Y` suffix is returned unchanged.
+///
+/// # Errors
+///
+/// Returns a message when a numeric suffix follows a triple that does not end
+/// in `-gnu`, since only glibc targets take a glibc floor.
 pub fn split_versioned_target(target: &str) -> Result<(String, Option<GlibcVersion>), String> {
     let mut parts = target.rsplitn(3, '.');
     let (minor, major, triple) = (parts.next(), parts.next(), parts.next());

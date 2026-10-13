@@ -9,6 +9,7 @@ use std::{
     path::Path,
 };
 
+/// The largest ELF file [`Metadata::load`] and [`Metadata::parse`] accept (64 MiB).
 pub const MAX_FILE_BYTES: u64 = 64 * 1024 * 1024;
 const DYNSYM: u32 = 11;
 const STRTAB: u32 = 3;
@@ -17,27 +18,39 @@ const VERDEF: u32 = 0x6fff_fffd;
 const VERSYM: u32 = 0x6fff_ffff;
 const TSV_HEADER: &str = "soname\tsymbol\tversion\tdefault\ttype\tbinding\tvisibility\tsection\tsection_alignment\tvalue\tsize\tsame_range\n";
 
+/// One defined dynamic symbol of a shared object, with its GNU symbol version.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Symbol {
+    /// The symbol name, without a version suffix.
     pub name: String,
+    /// The version node's name, such as `GLIBC_2.17`; `None` when unversioned.
     pub version: Option<String>,
     /// None for unversioned symbols; false for GNU nondefault versions.
     pub default_version: Option<bool>,
+    /// The ELF symbol type (`STT_*`): 1 object, 2 function, 6 TLS, 10 IFUNC.
     pub symbol_type: u8,
+    /// The ELF binding (`STB_*`): 1 global, 2 weak.
     pub binding: u8,
+    /// The ELF visibility (`STV_*`): 0 default, 3 protected.
     pub visibility: u8,
+    /// The defining section's index (`st_shndx`).
     pub section: u16,
     /// Declared alignment of the defining section; zero for special indexes.
     pub section_alignment: u64,
+    /// The symbol's value (`st_value`): its address in the file's layout.
     pub value: u64,
+    /// The symbol's size in bytes (`st_size`).
     pub size: u64,
     /// Same section/value/type/size in this file, not a proven semantic alias.
     pub same_range: Option<usize>,
 }
 
+/// The defined, versioned dynamic symbols of one shared object.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Metadata {
+    /// The object's `DT_SONAME`, such as `libc.so.6`.
     pub soname: String,
+    /// Its defined dynamic symbols, one entry per name and version.
     pub symbols: Vec<Symbol>,
 }
 
@@ -184,6 +197,12 @@ fn versions(
 }
 
 impl Metadata {
+    /// Reads and parses the ELF shared object at `path`.
+    ///
+    /// # Errors
+    ///
+    /// Fails if the file cannot be read, is larger than [`MAX_FILE_BYTES`], or
+    /// [`Metadata::parse`] rejects it; the message names the path.
     pub fn load(path: &Path) -> Result<Self, String> {
         let file = File::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
         let mut bytes = Vec::new();
@@ -193,6 +212,14 @@ impl Metadata {
         Self::parse(&bytes).map_err(|e| format!("{}: {e}", path.display()))
     }
 
+    /// Parses an x86_64 ELF64 shared object held in memory. Every offset and size
+    /// is bounds-checked, so malformed input fails instead of panicking.
+    ///
+    /// # Errors
+    ///
+    /// Fails if the input is larger than [`MAX_FILE_BYTES`], is not a
+    /// little-endian x86_64 ELF64 shared object with a `DT_SONAME`, or has
+    /// malformed dynamic-symbol, string or version tables.
     pub fn parse(bytes: &[u8]) -> Result<Self, String> {
         if bytes.len() as u64 > MAX_FILE_BYTES {
             return Err("ELF exceeds 64 MiB input limit".into());
@@ -478,6 +505,8 @@ impl Metadata {
         Ok(libraries)
     }
 
+    /// Stable tab-separated table of the symbols, one row per symbol under a
+    /// header, which [`Metadata::from_tsv`] reads back.
     pub fn to_tsv(&self) -> String {
         let mut text = String::from(TSV_HEADER);
         for s in &self.symbols {

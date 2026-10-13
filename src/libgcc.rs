@@ -9,6 +9,7 @@
 use crate::{elf, stub, version::Version};
 use std::collections::BTreeSet;
 
+/// The compiler runtime's SONAME.
 pub const SONAME: &str = "libgcc_s.so.1";
 /// GCC release whose `libgcc_s.so.1` interface the stub reproduces.
 pub const GCC_RELEASE: &str = "4.8.5";
@@ -16,13 +17,18 @@ pub const GCC_RELEASE: &str = "4.8.5";
 pub const INTERFACE: &str = include_str!("libgcc_s-gcc-4.8.5.tsv");
 const HEADER: &str = "symbol\tversion\tdefault\ttype\tsize\talignment";
 
+/// One symbol definition of the recorded `libgcc_s.so.1` interface.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Definition {
+    /// The symbol name.
     pub name: String,
+    /// Its version node, such as `GCC_3.0`.
     pub version: String,
     /// False for a compatibility (non-default) version, which links can no longer select.
     pub default: bool,
+    /// True for a data object, false for a function.
     pub object: bool,
+    /// The object's size in bytes; zero for functions.
     pub size: u64,
     /// Alignment of an object's definition; one for functions.
     pub alignment: u64,

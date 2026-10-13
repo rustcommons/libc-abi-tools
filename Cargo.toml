@@ -7,6 +7,7 @@ description = "Rust tools for libc ABI metadata, starting with glibc"
 repository = "https://github.com/rustcommons/linux-abi-tools"
 license = "MIT"
 readme = "README.md"
+documentation = "https://docs.rs/libc-abi-tools"
 keywords = ["glibc", "abi", "linker", "symbols", "compatibility"]
 categories = ["development-tools::build-utils"]
 # glibc's ABI lists come from the glibc-abilists crate (see [features]).
@@ -54,3 +55,7 @@ members = [
     "crates/linux-targets",
 ]
 resolver = "2"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+all-features = true

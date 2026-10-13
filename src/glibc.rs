@@ -12,28 +12,43 @@ use std::{
     process::Command,
 };
 
+/// The only target triple this module's ABI lists describe.
 pub const TARGET: &str = "x86_64-unknown-linux-gnu";
 /// Same library selection as the pinned upstream glibc consolidator.
 pub const LIBRARIES: [&str; 8] = ["m", "c", "ld", "resolv", "pthread", "dl", "rt", "util"];
 const ABI_PATH: &str = "sysdeps/unix/sysv/linux/x86_64/64";
 const MAX_FILE_BYTES: u64 = 10 * 1024 * 1024;
 
+/// What an ABI list entry defines.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum Kind {
+    /// A function (`F` in an ABI list).
     Function,
+    /// A data object (`D`) of the given size in bytes.
     Object(u16),
+    /// A thread-local variable (`T`) of the given size in bytes.
     Tls(u16),
 }
 
+/// One versioned definition from a glibc ABI list.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Symbol {
+    /// The symbol name.
     pub name: String,
+    /// The numeric part of its `GLIBC_*` version node, such as 2.2.5.
     pub version: Version,
+    /// Whether it is a function, object or TLS variable, with the size of data.
     pub kind: Kind,
 }
 
 /// Read both pre-2.23 grouped lists and modern per-line versioned lists.
 /// Absolute version-node markers (`A`) and GCC_* entries are not glibc symbols.
+/// The result is sorted by name and version.
+///
+/// # Errors
+///
+/// Fails, naming the line, on an unknown version namespace or symbol kind, a
+/// malformed name or size, or the same name and version listed with two kinds.
 pub fn parse_abilist(text: &str) -> Result<Vec<Symbol>, String> {
     let mut group: Option<&str> = None;
     let mut records = BTreeMap::new();
@@ -124,9 +139,13 @@ fn validate_namespace(text: &str) -> Result<(), String> {
     numeric.parse::<Version>().map(|_| ())
 }
 
+/// The public ABI of one exact glibc release: every tracked library's list.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Snapshot {
+    /// The glibc release, such as 2.17.
     pub release: Version,
+    /// Each library in [`LIBRARIES`] by short name (`c`, `m`, ...), with its
+    /// definitions sorted by name and version.
     pub libraries: BTreeMap<String, Vec<Symbol>>,
 }
 
@@ -134,6 +153,11 @@ impl Snapshot {
     /// Load one exact release from a data directory laid out like
     /// glibc-abilists' `data/`: `<root>/<release>/<path in glibc's tree>`.
     /// Missing libraries fail instead of silently producing an incomplete ABI.
+    ///
+    /// # Errors
+    ///
+    /// Fails if `release` is not a glibc release from 2.17, or a library's list
+    /// is missing, too large or malformed.
     pub fn load(root: &Path, release: Version) -> Result<Self, String> {
         release.validate_release()?;
         let release_dir = root.join(release.to_string());
@@ -143,6 +167,11 @@ impl Snapshot {
 
     /// Load one exact release from the glibc ABI lists compiled into the
     /// `glibc-abilists` crate (the default `bundled-glibc-data` feature).
+    ///
+    /// # Errors
+    ///
+    /// Fails if `release` is not one of [`bundled_releases`] or its data is
+    /// malformed.
     #[cfg(feature = "bundled-glibc-data")]
     pub fn bundled(release: Version) -> Result<Self, String> {
         release.validate_release()?;

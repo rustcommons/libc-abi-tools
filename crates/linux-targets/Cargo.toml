@@ -7,8 +7,13 @@ description = "Linux target selection: distribution presets with glibc and kerne
 repository = "https://github.com/rustcommons/linux-abi-tools"
 license = "MIT"
 readme = "README.md"
+documentation = "https://docs.rs/linux-targets"
 keywords = ["linux", "glibc", "kernel", "distribution", "target"]
 categories = ["development-tools::build-utils", "os::linux-apis"]
 include = ["src/**", "data/**", "Cargo.toml", "README.md", "LICENSE"]
 
 [dependencies]
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+all-features = true

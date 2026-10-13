@@ -11,6 +11,11 @@ use crate::Target;
 /// Runs `program` with `args` under the filter for `target` and returns its
 /// exit status (128 if it was killed by a signal). The current directory and
 /// environment are inherited. Suitable for a Cargo runner.
+///
+/// # Errors
+///
+/// Returns a message when the host is not x86_64 or `program` cannot be
+/// started, including when the filter cannot be installed.
 #[cfg(target_os = "linux")]
 pub fn run(target: &Target, program: &str, args: &[String]) -> Result<i32, String> {
     use crate::filter::{install, program as filter_program};
@@ -35,6 +40,10 @@ pub fn run(target: &Target, program: &str, args: &[String]) -> Result<i32, Strin
 }
 
 /// The local runner needs Linux; elsewhere it reports why it cannot run.
+///
+/// # Errors
+///
+/// Always returns a message saying a Linux host is needed.
 #[cfg(not(target_os = "linux"))]
 pub fn run(_target: &Target, _program: &str, _args: &[String]) -> Result<i32, String> {
     Err("the local runner needs a Linux host; use the container runner".to_string())

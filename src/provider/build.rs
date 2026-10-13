@@ -19,11 +19,20 @@ pub const QUALIFIED_GCC: std::ops::RangeInclusive<u32> = 11..=16;
 /// One object behind a target, as recorded in `objects.tsv`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Object {
+    /// The installed file the object goes into: a startup object such as
+    /// `crt1.o`, or an archive such as `libc_nonshared.a`.
     pub target: String,
+    /// The object's position in the archive, for archive targets.
     pub member: u32,
+    /// The object's path in the build tree.
     pub object: String,
+    /// How glibc's build made it: `compile` (from a source file) or `relocatable`
+    /// (a relocatable link of other objects).
     pub kind: String,
+    /// The directory, relative to the source tree, the command ran in (`.` for
+    /// the top).
     pub directory: String,
+    /// The recorded GCC command line.
     pub command: String,
 }
 
@@ -61,10 +70,15 @@ pub(crate) fn run(program: &Path, args: &[String], dir: &Path) -> Result<String,
 /// The host tools a local build uses.
 #[derive(Clone, Debug)]
 pub struct Tools {
+    /// GCC, which compiles the objects and supplies `crtbegin.o`/`crtend.o`.
     pub gcc: PathBuf,
+    /// GNU `ar`, which builds the nonshared archives.
     pub ar: PathBuf,
+    /// GNU `readelf`, which reads the objects' interfaces for verification.
     pub readelf: PathBuf,
+    /// The assembler GCC uses (`as`); its version is part of the content hash.
     pub assembler: PathBuf,
+    /// The linker GCC uses (`ld`); its version is part of the content hash.
     pub linker: PathBuf,
 }
 
@@ -433,9 +447,11 @@ pub fn describe(recorded: &Interface, built: &Interface) -> String {
 
 /// What a release's recorded data supplies to a build.
 pub struct Recorded<'a> {
+    /// The glibc release, such as `2.28`.
     pub release: &'a str,
     /// `release.tsv` as key/value pairs.
     pub values: BTreeMap<String, String>,
+    /// `objects.tsv`: every object to build.
     pub objects: Vec<Object>,
     /// `interfaces.tsv`.
     pub interfaces: &'a str,
@@ -446,9 +462,12 @@ pub struct Recorded<'a> {
 /// The verification of one built object.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Verdict {
+    /// The object's path in the build tree.
     pub object: String,
     /// `identical-bytes`, `equivalent`, `accepted` or `differs`.
     pub status: &'static str,
+    /// The differences from the container build (defined and undefined symbols,
+    /// sections, relocations); empty when there are none.
     pub detail: String,
 }
 
@@ -456,6 +475,7 @@ pub struct Verdict {
 pub struct Built {
     /// Each target (`crt1.o`, `libc_nonshared.a`, ...) and its path in the build tree.
     pub targets: BTreeMap<String, PathBuf>,
+    /// One verdict per built object.
     pub verdicts: Vec<Verdict>,
 }
 

@@ -2,6 +2,8 @@
 
 # linux-abi-tools
 
+[![docs.rs](https://img.shields.io/docsrs/libc-abi-tools)](https://docs.rs/libc-abi-tools)
+
 ABI data and tools for targeting older Linux systems from Rust: which libc
 interfaces and which kernel syscalls a selected target provides. Formerly
 `libc-abi-tools`; renamed on 2026-10-10 when `kernel-abi-tools` joined it.

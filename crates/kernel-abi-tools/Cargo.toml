@@ -7,6 +7,7 @@ description = "Linux kernel ABI data and seccomp profiles that simulate older ke
 repository = "https://github.com/rustcommons/linux-abi-tools"
 license = "MIT"
 readme = "README.md"
+documentation = "https://docs.rs/kernel-abi-tools"
 keywords = ["seccomp", "linux", "kernel", "syscall", "compatibility"]
 categories = ["development-tools::testing", "os::linux-apis"]
 include = ["src/**", "data/**", "Cargo.toml", "README.md", "LICENSE", "NOTICE"]
@@ -25,3 +26,7 @@ path = "src/bin/syscall-probe.rs"
 
 [dependencies]
 linux-targets = { path = "../linux-targets", version = "0.3.0" }
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+all-features = true

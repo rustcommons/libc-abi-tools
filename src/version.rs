@@ -1,15 +1,27 @@
+//! Numeric versions, used for glibc releases (`2.17`) and symbol versions
+//! (`GLIBC_2.2.5` without its prefix).
 use std::{fmt, str::FromStr};
 
 /// Numeric ABI version. Historical symbol versions may precede our target floor.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+///
+/// Parsed from two or three dot-separated numbers (`2.17`, `2.2.5`); a missing
+/// third number is zero. It displays without a zero patch.
 pub struct Version {
+    /// The first number.
     pub major: u32,
+    /// The second number.
     pub minor: u32,
+    /// The third number; zero when absent.
     pub patch: u32,
 }
 
 impl Version {
     /// Validate a glibc release directory (as opposed to a symbol version).
+    ///
+    /// # Errors
+    ///
+    /// Fails unless the version is 2.x with x at least 17 and no patch number.
     pub fn validate_release(self) -> Result<Self, String> {
         if self.major != 2 || self.minor < 17 || self.patch != 0 {
             return Err(

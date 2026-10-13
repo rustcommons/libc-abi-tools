@@ -16,6 +16,46 @@
 //! The kernel data is the same that the seccomp profiles are built from
 //! (`kernel_abi_tools::syscalls`, `madvise_advice`, and a preset's
 //! backports), so tiers 1 and 2 cannot disagree about what a kernel has.
+//!
+//! # Example
+//!
+//! Scan a file against the CentOS 7 preset (glibc 2.17, Linux 3.10). The bytes
+//! here are a minimal x86_64 ELF file with no imports and no code; use
+//! [`scan_file`] for a file on disk.
+//!
+//! ```
+//! use linux_abi_scan::{scan, ScanTarget, Severity};
+//! use linux_targets::{Request, Selection};
+//!
+//! let selection = Selection::resolve(&Request {
+//!     distro: Some("centos-7"),
+//!     ..Request::default()
+//! })?;
+//! let target = ScanTarget::from_selection(&selection);
+//!
+//! // ELF header (64 bytes) and one empty section header (64 bytes).
+//! let mut elf = vec![0u8; 128];
+//! elf[..7].copy_from_slice(b"\x7fELF\x02\x01\x01"); // ELF64, little-endian
+//! elf[16] = 2; // executable
+//! elf[18] = 62; // x86_64
+//! elf[40] = 64; // section headers at offset 64
+//! elf[58] = 64; // section header size
+//! elf[60] = 1; // one section header
+//!
+//! let report = scan(&elf, &target)?;
+//! assert_eq!(report.count(Severity::Error), 0);
+//! assert_eq!(report.exit_code(false), 0);
+//! print!("{}", report.to_text(true));
+//!
+//! // Input that is not an x86_64 ELF file is an error, not a report.
+//! assert!(scan(b"#!/bin/sh\n", &target).is_err());
+//! # Ok::<(), String>(())
+//! ```
+//!
+//! A report without errors means only that the scan found nothing: it is not
+//! evidence that the file runs on the target. Confirm with tiers 2 and 3.
+
+#![warn(missing_docs)]
 
 pub mod elf;
 
@@ -30,8 +70,12 @@ use std::path::Path;
 /// What to check against. `None` skips that side's checks (host glibc or
 /// host kernel), and the report says so.
 pub struct ScanTarget {
+    /// The glibc floor: no `GLIBC_*` version newer than this may be required.
     pub glibc: Option<GlibcVersion>,
+    /// The kernel to check syscalls and `madvise` advice against, with a
+    /// preset's backports.
     pub kernel: Option<Target>,
+    /// How the target is named in the report, e.g. a preset's description.
     pub label: String,
 }
 
@@ -61,6 +105,7 @@ pub enum Confidence {
     Heuristic,
 }
 
+/// How serious a finding is, from most to least serious.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Severity {
     /// The target does not provide something the file requires.
@@ -71,26 +116,36 @@ pub enum Severity {
     Info,
 }
 
+/// One thing the scan established about the file.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Finding {
+    /// How serious it is.
     pub severity: Severity,
+    /// How it was established: from loader metadata or from machine code.
     pub confidence: Confidence,
     /// `glibc-version`, `glibc-wrapper`, `syscall-call`, `syscall-insn`,
     /// `madvise`, `abi-tag`, `relr`, or `scope`.
     pub check: &'static str,
+    /// What the finding is about: a symbol version, a function, a syscall, an
+    /// advice value, or a note.
     pub subject: String,
+    /// Explanation for people, including why it matters on the target.
     pub detail: String,
     /// Code address of the call site, for code findings.
     pub address: Option<u64>,
 }
 
+/// The result of scanning one file.
 #[derive(Debug)]
 pub struct Report {
+    /// The target's label (see [`ScanTarget::label`]).
     pub target: String,
+    /// Every finding, sorted by severity, confidence, check, address and subject.
     pub findings: Vec<Finding>,
 }
 
 impl Report {
+    /// The number of findings with this severity.
     pub fn count(&self, severity: Severity) -> usize {
         self.findings
             .iter()
@@ -164,6 +219,7 @@ impl Report {
 }
 
 impl Severity {
+    /// Lower-case name: `error`, `warning` or `info`, as in the TSV report.
     pub fn as_str(self) -> &'static str {
         match self {
             Severity::Error => "error",
@@ -174,6 +230,7 @@ impl Severity {
 }
 
 impl Confidence {
+    /// Lower-case name: `exact` or `heuristic`, as in the TSV report.
     pub fn as_str(self) -> &'static str {
         match self {
             Confidence::Exact => "exact",
@@ -215,13 +272,27 @@ const RUST_STD_FALLBACKS: &[&str] = &[
 /// How far back from a call site to look for the constant argument.
 const LOOKBACK: usize = 64;
 
-/// Scans the ELF file at `path`.
+/// Scans the ELF file at `path`; see [`scan`].
+///
+/// # Errors
+///
+/// The file cannot be read, or [`scan`] rejects its contents. The message
+/// starts with the path.
 pub fn scan_file(path: &Path, target: &ScanTarget) -> Result<Report, String> {
     let bytes = std::fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
     scan(&bytes, target).map_err(|e| format!("{}: {e}", path.display()))
 }
 
-/// Scans an x86_64 ELF64 executable or shared object.
+/// Scans an x86_64 ELF64 executable or shared object against `target`: its
+/// `GLIBC_*` requirements against the glibc floor, and its imported syscall
+/// wrappers, constant `syscall()` numbers, `syscall` instructions, `madvise`
+/// advice, ABI note and `DT_RELR` use against the kernel. A side whose floor is
+/// `None` is skipped, with a `scope` finding saying so.
+///
+/// # Errors
+///
+/// The bytes are not an x86_64 ELF64 little-endian file, have no section
+/// headers, or are malformed (see [`elf::Elf::parse`]).
 pub fn scan(bytes: &[u8], target: &ScanTarget) -> Result<Report, String> {
     let elf = elf::Elf::parse(bytes)?;
     let mut findings = Vec::new();
