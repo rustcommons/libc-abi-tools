@@ -1,6 +1,6 @@
 [package]
 name = "libc-abi-tools"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 rust-version = "1.90"
 description = "Rust tools for libc ABI metadata, starting with glibc"
