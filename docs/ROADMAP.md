@@ -363,7 +363,7 @@ with `-W missing_docs` on 2026-10-11):
 
 - [x] Document every public item: what it does, its inputs, its errors, and for data
   types the meaning of each field. Then add `#![warn(missing_docs)]` to each crate
-  (CI denies warnings). Done 2026-10-13: 159 items (libc-abi-tools 106, of which 53 in
+  (CI denies warnings). Done 2026-10-13: 154 items (libc-abi-tools 106, of which 53 in
   the `provider` module; linux-abi-scan 26; kernel-abi-tools 17; linux-targets 5;
   linux-abi-tools 0), with `# Errors` sections on every public fallible function.
   The lint is on in all five library crates.
