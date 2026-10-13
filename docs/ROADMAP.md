@@ -24,7 +24,9 @@ Decided the same day:
   `linux-abi-scan` (added the same day), `libc-abi-tools`, and the
   `linux-abi-tools` crate (`crates/linux-abi-tools`) that re-exports the
   others; all published as 0.1.0 on 2026-10-11, after `glibc-abilists` 0.1.0,
-  and as 0.2.0 (providers for every release 2.17 through 2.44) the same day.
+  and as 0.2.0 (providers for every release 2.17 through 2.44) the same day,
+  and as 0.3.0 (local `source` and `container` providers, after
+  `glibc-provider-sources` 0.1.0) on 2026-10-13.
   cargo-libc depends on the published crates,
   because crates.io does not accept git dependencies. The kernel standalone
   bundle and its tag release workflow were removed before anything was

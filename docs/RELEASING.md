@@ -34,12 +34,23 @@ then drop the `git`/`rev` keys and update `Cargo.lock`.
 | 0.1.0 | 2026-10-11 | `glibc-abilists` | `4ffb9f698264d7d8bd834f6f2b5e03926bdc02fb` (glibc-abilists `v0.1.0`) |
 | 0.1.0 | 2026-10-11 | `linux-targets`, `kernel-abi-tools`, `linux-abi-scan`, `libc-abi-tools`, `linux-abi-tools` | `f691c048fc2b55d6c7d891ac0a8a5e03db5ccb22` (`v0.1.0`) |
 | 0.2.0 | 2026-10-11 | `linux-targets`, `kernel-abi-tools`, `linux-abi-scan`, `libc-abi-tools`, `linux-abi-tools` | `921cf79cc2780a88e917aa9542955a746214f6a1` (`v0.2.0`) |
+| 0.1.0 | 2026-10-13 | `glibc-provider-sources` | `1ae578cf7123399b0c710f44defab93cc2021001` (glibc-provider `v0.1.0`) |
+| 0.3.0 | 2026-10-13 | `linux-targets`, `kernel-abi-tools`, `linux-abi-scan`, `libc-abi-tools`, `linux-abi-tools` | `6c3dd725e8b7ed9d8265dba360b7db021c3afc54` (`v0.3.0`) |
 
 **0.2.0:** `libc-abi-tools` accepts provider descriptors for every glibc release in the
 pinned ABI lists, 2.17 through 2.44 (0.1.0 accepted 2.17, 2.18 and 2.22), exposes them as
 `provider::RELEASES`, and requires `libpthread_nonshared.a` only before 2.28. The other
 crates are unchanged apart from the shared version. The [provider index](PROVIDERS.md)
 lists each release's qualification.
+
+**0.3.0:** `libc-abi-tools` prepares providers itself: the `provider` module and the
+`libc-abi provider` commands (`prepare`, `path`, `list`, `verify`, `export`, `import`, `remove`)
+build one in `source` mode, from `glibc-provider-sources` with the host's GCC, or in
+`container` mode, from glibc's release archive in a container, and cache it. Every
+provider links against a GCC 4.8.5 `libgcc_s` stub. The host glibc check picks only
+symbols newer than the host's glibc. Hosted CI qualifies both modes for every release
+2.17 through 2.44 ([PROVIDERS.md](PROVIDERS.md)); `prebuilt` mode is still planned.
+The other crates are unchanged apart from the shared version.
 
 crates.io limits how many new crate names one account can publish in a short
 period; a first release of several crates may need a pause (the sixth crate

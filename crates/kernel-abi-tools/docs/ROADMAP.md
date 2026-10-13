@@ -141,7 +141,7 @@ format keeps the `kernel-abi-provider-v1` name.
 - [x] `cargo package --workspace` verifies the four crates together.
 - [x] Disconnected-network procedure (`cargo vendor`, `podman save`/`load`,
   pinned static crun) in RELEASING.md.
-- [x] First crates.io publication: 0.1.0 and 0.2.0 on 2026-10-11 (release record in
+- [x] First crates.io publication: 0.1.0 and 0.2.0 on 2026-10-11, 0.3.0 on 2026-10-13 (release record in
   [RELEASING.md](../../../docs/RELEASING.md)).
 - [ ] Publisher authentication beyond crates.io checksums (for example an
   internal mirror trust chain).
