@@ -71,8 +71,9 @@ inspired by, and parts of its code adapted from,
 the **Zig contributors** for the idea and design. See [NOTICE.md](NOTICE.md) for
 complete attribution and the separate code and data licenses.
 
-The companion [cargo-libc](https://github.com/rustcommons/cargo-libc) coordinates
-Cargo builds with an existing sysroot or the experimental 2.17–2.44 providers.
+The companion [cargo-libc](https://github.com/rustcommons/cargo-libc) is the Cargo
+subcommand built on these crates: it prepares the 2.17–2.44 providers itself
+(see its [user guide](https://github.com/rustcommons/cargo-libc/blob/main/docs/USER-GUIDE.md)).
 
 ## What works today
 
@@ -139,8 +140,9 @@ nonshared archives, headers) for cargo-libc's `--provider` in a cache. The defau
 `source` mode compiles the recorded glibc sources of
 [glibc-provider-sources](https://github.com/rustcommons/glibc-provider) with the
 host's GCC, offline, and verifies every object against the qualified container
-build; `container` mode runs that build locally. See
-[PROVIDER-DELIVERY.md](docs/PROVIDER-DELIVERY.md#libc-abi-provider).
+build; `container` mode runs that build locally. **[Using glibc providers](docs/USING-PROVIDERS.md)**
+explains when to choose each mode, the cache, and offline and air-gapped use; the
+design is in [PROVIDER-DELIVERY.md](docs/PROVIDER-DELIVERY.md#libc-abi-provider).
 
 The installed executable carries the ABI lists; `--data` reads a directory with
 the same layout instead (required when built without `bundled-glibc-data`).

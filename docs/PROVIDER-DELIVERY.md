@@ -289,6 +289,9 @@ and content hash in `manifest.json` next to it. If tools need the mode, a v2
 descriptor adds an explicit `mode` field, documented before use, and v1 stays
 accepted.
 
+For users: [Using glibc providers](USING-PROVIDERS.md) covers choosing a mode, the
+cache, and offline and air-gapped use.
+
 ## Qualification of all three modes
 
 Hosted CI already qualifies the container builds for every release (84 jobs). For

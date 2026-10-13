@@ -457,8 +457,13 @@ All 28 releases deduplicate to about 2.6 MiB compressed, so two small data crate
   jobs run the full Cargo suite against both modes' providers. Passing modes per release
   are in [PROVIDERS.md](PROVIDERS.md#delivery-modes-per-release). Prebuilt follows its
   legal review.
-- [ ] Document the three modes for users, including offline and air-gapped use, and
-  when to choose each.
+- [x] Document the three modes for users, including offline and air-gapped use, and
+  when to choose each (2026-10-12, [USING-PROVIDERS.md](USING-PROVIDERS.md); cargo-libc's
+  [user guide](https://github.com/rustcommons/cargo-libc/blob/main/docs/USER-GUIDE.md)
+  links to it). An imported provider is found automatically only when the importing
+  machine's GCC and binutils match the exporting one's (the cache hash covers them);
+  otherwise it is named with `--provider`. Matching imports regardless of the host
+  toolchain is a possible later improvement.
 
 ## Long-term: source-built builder toolchains
 
