@@ -372,7 +372,9 @@ with `-W missing_docs` on 2026-10-11):
   `x86_64-unknown-linux-gnu`, all features documented) to each published Cargo.toml,
   and a docs.rs badge to each README.
 - [ ] After each release, confirm the docs.rs build succeeded and the pages read
-  correctly.
+  correctly. 0.3.0 (and glibc-provider-sources 0.1.0, cargo-libc 0.1.0): every build
+  succeeded on docs.rs (2026-10-13); reading the pages is part of the documentation
+  work above.
 - [ ] Document the `provider` module and its features as part of the provider delivery
   work below, before it is published.
 
@@ -432,8 +434,10 @@ All 28 releases deduplicate to about 2.6 MiB compressed, so two small data crate
   size, origin, license) as the `glibc-provider-sources` crate (2026-10-12): all 28
   releases in one 3.7 MB pack, which decompresses to 66 MiB and checks every file's
   SHA-256. The replay builds every release from it.
-- [ ] Publish `glibc-provider-sources` (user's go-ahead), and after the legal review
-  build and publish `glibc-provider-binaries` from a qualified commit.
+- [x] Publish `glibc-provider-sources` (user's go-ahead): 0.1.0 on 2026-10-13, before
+  this workspace's 0.3.0 ([RELEASING.md](RELEASING.md#release-record)).
+- [ ] After the legal review, build and publish `glibc-provider-binaries` from a
+  qualified commit.
 - [x] Add the `provider` module to `libc-abi-tools` (2026-10-12): feature
   `provider-sources` (default), the cache layout, `source` and `container` modes, and
   `libc-abi provider prepare|list|path|verify|export|import|remove`

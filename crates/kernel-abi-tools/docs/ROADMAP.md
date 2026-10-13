@@ -145,3 +145,9 @@ format keeps the `kernel-abi-provider-v1` name.
   [RELEASING.md](../../../docs/RELEASING.md)).
 - [ ] Publisher authentication beyond crates.io checksums (for example an
   internal mirror trust chain).
+
+## Known issues
+
+- [ ] `kernel-seccomp missing ... | head` panics with "failed printing to stdout:
+  Broken pipe" when the reader closes early (seen 2026-10-13). Exit quietly on
+  `BrokenPipe` instead.
