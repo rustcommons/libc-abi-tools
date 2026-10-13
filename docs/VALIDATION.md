@@ -506,3 +506,15 @@ The [84-job provider run](https://github.com/rustcommons/linux-abi-tools/actions
 Local runs of every stage for 2.17, 2.28 and 2.44 gave the same results before the
 hosted run.
 
+
+## Every release in container and source mode (2026-10-12)
+
+Producer `188121f` changed the provider workflow so that each release's preparation
+builds through container mode (`libc-abi provider prepare --mode container
+--keep-work`), and [run 38338235109](https://github.com/rustcommons/linux-abi-tools/actions/runs/38338235109) passed all 84 jobs. For every release
+2.17–2.44: container mode's objects, headers and runtime libraries equal the audited
+build; the source-mode provider (runner GCC 13) has byte-identical stubs, `libgcc_s`
+stub, library table and headers, and every object verified against the container
+build (counts in [PROVIDERS.md](PROVIDERS.md#delivery-modes-per-release)); and both
+modes' providers passed the full cargo-libc suite with cargo-libc `831cc29` and
+Clang 21 and 24. Prebuilt mode, distribution and kernel qualification remain separate.

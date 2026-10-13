@@ -8,9 +8,9 @@ not a distribution-qualified sysroot; old-distribution and kernel qualification 
 separate. Select one with the v1 descriptor ([PROVIDER-CONTRACT.md](PROVIDER-CONTRACT.md)).
 Generic GNU builds can differ from a distribution's glibc; the measured differences, their
 consequences, and licensing considerations are in [DISTRIBUTION-DIFFERENCES.md](DISTRIBUTION-DIFFERENCES.md).
-Today a provider is prepared with the repository's scripts; the planned ways to obtain one
-(compile from shipped source by default, CI-built binaries, or a local container build) are
-designed in [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md).
+`libc-abi provider prepare` (and cargo-libc, automatically) prepares one in `source` or
+`container` mode; [PROVIDER-DELIVERY.md](PROVIDER-DELIVERY.md) describes the modes, and
+[the table below](#delivery-modes-per-release) records which passed for each release.
 
 The counts are the exhaustive isolated-library link checks from the hosted run:
 versioned interfaces that must link, interfaces from other releases that must not,
@@ -51,6 +51,61 @@ tests (2.43 and 2.44 have no later release, so they use a name absent from every
 | 2.43 | Debian 12, GCC 12.2 | 4313 | 358 | 3545 | 416 | `glibc_abi_tools_absent_probe` | [GLIBC-2.43.md](GLIBC-2.43.md) |
 | 2.44 | Debian 12, GCC 12.2 | 4315 | 356 | 3545 | 416 | `glibc_abi_tools_absent_probe` | [GLIBC-2.44.md](GLIBC-2.44.md) |
 | **Total** | | **103282** | **32177** | **90514** | **8373** | | |
+
+## Delivery modes per release
+
+Qualified in the provider workflow at `188121f`, [run 38338235109](https://github.com/rustcommons/linux-abi-tools/actions/runs/38338235109) (84 jobs,
+2026-10-12). For every release:
+
+- **container:** the preparation job builds the release through container mode itself
+  (`libc-abi provider prepare --mode container --keep-work`), so every audit above runs
+  on container mode's build; its objects, headers and runtime libraries equal that
+  build's.
+- **source:** prepared with the runner's GCC 13 from glibc-provider-sources. Its stubs,
+  `libgcc_s` stub, library table and headers are byte-identical to container mode's.
+  Every compiled object was verified against the recorded container build: the same
+  interface (symbols, versions, sections, relocations), and for `identical-bytes` the
+  same section contents too; `accepted` is a reviewed difference
+  (glibc-provider's `qualification/accepted-differences.tsv`). As files the objects
+  differ, because another compiler and assembler add sections.
+- Both modes' providers then passed the full cargo-libc suite (cargo-libc `831cc29`,
+  Rust 1.99, Clang 21 and 24): build with the tier 1 scan, tier 2 run, `check`,
+  real-loader runs including host build script and procedural macro, workspace
+  selections, the mismatched-release, stale-artifact and too-new-symbol refusals, and
+  for releases newer than the CI host's glibc 2.39 the host-glibc refusal. The C and exhaustive link suites run on the work tree, which is
+  container mode's build.
+- **prebuilt** waits on the legal review and is not offered.
+
+| Release | container | source | identical-bytes | equivalent | accepted | prebuilt |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| 2.17 | pass | pass | 14 | 8 | 0 | not offered |
+| 2.18 | pass | pass | 14 | 8 | 0 | not offered |
+| 2.19 | pass | pass | 14 | 8 | 0 | not offered |
+| 2.20 | pass | pass | 14 | 8 | 0 | not offered |
+| 2.21 | pass | pass | 14 | 7 | 1 | not offered |
+| 2.22 | pass | pass | 14 | 7 | 1 | not offered |
+| 2.23 | pass | pass | 14 | 7 | 1 | not offered |
+| 2.24 | pass | pass | 14 | 7 | 1 | not offered |
+| 2.25 | pass | pass | 14 | 7 | 1 | not offered |
+| 2.26 | pass | pass | 14 | 8 | 0 | not offered |
+| 2.27 | pass | pass | 18 | 5 | 0 | not offered |
+| 2.28 | pass | pass | 18 | 5 | 0 | not offered |
+| 2.29 | pass | pass | 18 | 5 | 0 | not offered |
+| 2.30 | pass | pass | 18 | 5 | 0 | not offered |
+| 2.31 | pass | pass | 18 | 5 | 0 | not offered |
+| 2.32 | pass | pass | 18 | 5 | 0 | not offered |
+| 2.33 | pass | pass | 10 | 2 | 0 | not offered |
+| 2.34 | pass | pass | 10 | 1 | 0 | not offered |
+| 2.35 | pass | pass | 9 | 2 | 0 | not offered |
+| 2.36 | pass | pass | 9 | 2 | 0 | not offered |
+| 2.37 | pass | pass | 11 | 0 | 0 | not offered |
+| 2.38 | pass | pass | 11 | 0 | 0 | not offered |
+| 2.39 | pass | pass | 11 | 0 | 0 | not offered |
+| 2.40 | pass | pass | 11 | 0 | 0 | not offered |
+| 2.41 | pass | pass | 11 | 0 | 0 | not offered |
+| 2.42 | pass | pass | 11 | 0 | 0 | not offered |
+| 2.43 | pass | pass | 11 | 0 | 0 | not offered |
+| 2.44 | pass | pass | 11 | 0 | 0 | not offered |
 
 ## What changes for users
 

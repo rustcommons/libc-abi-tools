@@ -37,17 +37,12 @@ done
 cmp "$container/libraries.tsv" "$source_mode/libraries.tsv"
 cmp "$container/compiler-runtime/libgcc_s.so.1" "$source_mode/compiler-runtime/libgcc_s.so.1"
 diff -r "$container/sysroot/usr/include" "$source_mode/sysroot/usr/include"
-# Source-mode objects: verified against the recorded interfaces when prepared;
-# here also compared with this build's objects byte for byte where they agree.
-identical=0
-equivalent=0
-for object in "${objects[@]}"; do
-    if cmp -s "$source_mode/sysroot/usr/lib64/$object" "$built/usr/lib64/$object"; then
-        identical=$((identical + 1))
-    else
-        equivalent=$((equivalent + 1))
-    fi
-done
+# Source-mode objects were verified when prepared: every object's interface
+# (symbols, versions, sections, relocations) against the recorded container
+# build, and its section contents (identical-bytes) where they agree. As files
+# they differ from this build's: another compiler and assembler add sections.
+verdicts=$(tail -n +2 "$source_mode/verification.tsv" | cut -f2 | sort | uniq -c |
+    awk '{printf "%s%s: %s", sep, $2, $1; sep=", "}')
 if grep -q $'\tdiffers' "$source_mode/verification.tsv"; then
     echo 'source mode recorded a differing object' >&2; exit 1
 fi
@@ -59,5 +54,5 @@ rm -rf "$export_dir"
 mkdir "$export_dir"
 libc_abi provider export --glibc "$release" --mode container --cache "$cache" --to "$export_dir"
 tar -C "$export_dir" -cf "$out" .
-summary="glibc $release: container mode is this build; source mode has identical stubs, libgcc_s stub, library table and headers, and $identical of ${#objects[@]} startup files byte-identical ($equivalent verified equivalent)."
+summary="glibc $release: container mode is this build; source mode has identical stubs, libgcc_s stub, library table and headers, and its objects verified against this build ($verdicts)."
 echo "$summary" | tee "$work/logs/modes-summary.txt"

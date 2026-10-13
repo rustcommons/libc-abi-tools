@@ -308,6 +308,14 @@ delivery it additionally:
 A mode that fails for a release is reported for that release and not offered there,
 rather than silently falling back to another mode.
 
+Status (2026-10-12, [run 38338235109](https://github.com/rustcommons/linux-abi-tools/actions/runs/38338235109)): container and source mode pass
+for every release 2.17–2.44, with the comparisons in step 2 (source objects through their
+recorded-interface verification, since a different compiler makes the files differ) and
+the Cargo, scan, runner and rejection suites of step 3 against each mode's provider; the
+C and exhaustive link suites run on container mode's build. Results per release are in
+[PROVIDERS.md](PROVIDERS.md#delivery-modes-per-release). Prebuilt mode waits on the legal
+review; data crates are published at the release.
+
 ## Decisions (2026-10-11)
 
 1. **Data crates:**

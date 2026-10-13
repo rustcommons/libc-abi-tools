@@ -380,9 +380,15 @@ by step:
 ### 9.5 Hosted qualification
 
 `.github/workflows/glibc-2.17.yml`, on every push:
-- one **preparation** job per release runs steps 2–7;
+- one **preparation** job per release runs steps 2–7, building through container mode
+  (`libc-abi provider prepare --mode container --keep-work WORK`), then compares the
+  source-mode provider with that build (`source-mode-and-check.sh`) and with the
+  container-mode provider (`modes-and-check.sh`), and exports the container-mode
+  provider;
 - two **application** jobs per release, one per Clang (21 and 24), run steps 8–9 with
-  Rust 1.99 and the pinned cargo-libc commit;
+  Rust 1.99 and the pinned cargo-libc commit; they import the container-mode provider,
+  prepare the source-mode one, and run the Cargo suite against both too
+  (`ABI_PROVIDER_MODES`);
 - diagnostics are kept as artifacts.
 
 Main CI covers formatting, tests, clippy (Windows and Linux), the minimum Rust

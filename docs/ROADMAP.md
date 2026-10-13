@@ -449,8 +449,14 @@ All 28 releases deduplicate to about 2.6 MiB compressed, so two small data crate
   FILE` and `--sysroot` working (2026-10-12, cargo-libc `866aee7`, through
   `provider::cli` here). Its CI builds, runs and verifies with the automatic provider
   for every release, and with a container-mode provider for 2.28.
-- [ ] Qualify every release in every mode in hosted CI (byte comparisons, object
-  equivalence, full suites); list passing modes per release in PROVIDERS.md.
+- [x] Qualify every release in every available mode in hosted CI (2026-10-12,
+  [run 38338235109](https://github.com/rustcommons/linux-abi-tools/actions/runs/38338235109)): each release's preparation builds through container
+  mode (`--keep-work`) and every audit runs on that build; `modes-and-check.sh` compares
+  container and source mode (stubs, `libgcc_s` stub, library table and headers
+  byte-identical; source objects verified against the container build); the application
+  jobs run the full Cargo suite against both modes' providers. Passing modes per release
+  are in [PROVIDERS.md](PROVIDERS.md#delivery-modes-per-release). Prebuilt follows its
+  legal review.
 - [ ] Document the three modes for users, including offline and air-gapped use, and
   when to choose each.
 
