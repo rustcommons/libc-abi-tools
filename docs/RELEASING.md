@@ -21,11 +21,11 @@ build of it includes glibc-abilists' LGPL-2.1-or-later data; build with
 `default-features = false` to leave that out.
 
 `glibc-abilists` and `glibc-provider-sources` must be on crates.io in the
-required versions before `libc-abi-tools` is published. Until its first release,
-`glibc-provider-sources` is a git dependency with a `version` too; publishing uses
-the version, so `cargo package` cannot verify `libc-abi-tools` until that version
-is on crates.io. Publish it first, then drop the `git`/`rev` keys and update
-`Cargo.lock`.
+required versions before `libc-abi-tools` is published; both release from their own
+repositories. A dependency that is still a git revision (with a `version` too, as
+`glibc-provider-sources` was before 0.3.0) packages as its version, so `cargo package`
+cannot verify `libc-abi-tools` until that version is on crates.io. Publish it first,
+then drop the `git`/`rev` keys and update `Cargo.lock`.
 
 ## Release record
 

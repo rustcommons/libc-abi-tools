@@ -1,6 +1,6 @@
 [package]
 name = "libc-abi-tools"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 rust-version = "1.90"
 description = "Rust tools for libc ABI metadata, starting with glibc"
@@ -42,9 +42,7 @@ provider-sources = ["dep:glibc-provider-sources"]
 
 [dependencies]
 glibc-abilists = { version = "0.1.0", optional = true }
-# Until glibc-provider-sources is published (with this release), the git
-# revision is used; publishing uses the version.
-glibc-provider-sources = { version = "0.1.0", optional = true, git = "https://github.com/rustcommons/glibc-provider", rev = "1ae578cf7123399b0c710f44defab93cc2021001" }
+glibc-provider-sources = { version = "0.1.0", optional = true }
 
 # The root package stays libc-abi-tools; `cargo` commands run in the root act
 # on it alone unless given `--workspace` or `-p`.
