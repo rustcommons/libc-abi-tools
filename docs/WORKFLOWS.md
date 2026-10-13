@@ -29,7 +29,7 @@ described in the linked section; **planned** and **long-term** rows are designs.
 | Build, audit, and qualify a glibc provider for one release | Maintainers and CI | Implemented, 2.17–2.44 | [9.3](#93-provider-pipeline) |
 | Record measured evidence and regenerate the reference | Maintainers | Implemented | [9.4](#94-evidence-and-reference) |
 | Hosted qualification of every provider | CI | Implemented (84 jobs) | [9.5](#95-hosted-qualification) |
-| Release the crates | Maintainers | Implemented (0.1.0, 0.2.0, 0.3.0) | [9.6](#96-release) |
+| Release the crates | Maintainers | Implemented (0.1.0, 0.2.0, 0.3.0, 0.3.1) | [9.6](#96-release) |
 | Choose a target (glibc and kernel floors) | Users | Implemented | [1](#1-choose-a-target) |
 | Build against an older glibc with a provider | Users | Implemented (provider supplied by the user) | [2](#2-build-against-an-older-glibc) |
 | Type-check without linking (`cargo libc check`) | Users | Implemented | [6](#6-how-this-translates-into-cargo-libc) |

@@ -36,6 +36,7 @@ then drop the `git`/`rev` keys and update `Cargo.lock`.
 | 0.2.0 | 2026-10-11 | `linux-targets`, `kernel-abi-tools`, `linux-abi-scan`, `libc-abi-tools`, `linux-abi-tools` | `921cf79cc2780a88e917aa9542955a746214f6a1` (`v0.2.0`) |
 | 0.1.0 | 2026-10-13 | `glibc-provider-sources` | `1ae578cf7123399b0c710f44defab93cc2021001` (glibc-provider `v0.1.0`) |
 | 0.3.0 | 2026-10-13 | `linux-targets`, `kernel-abi-tools`, `linux-abi-scan`, `libc-abi-tools`, `linux-abi-tools` | `6c3dd725e8b7ed9d8265dba360b7db021c3afc54` (`v0.3.0`) |
+| 0.3.1 | 2026-10-13 | `linux-targets`, `kernel-abi-tools`, `linux-abi-scan`, `libc-abi-tools`, `linux-abi-tools` | `3cd97929a99280fca2f616dae63bd610a038e131` (`v0.3.1`) |
 
 **0.2.0:** `libc-abi-tools` accepts provider descriptors for every glibc release in the
 pinned ABI lists, 2.17 through 2.44 (0.1.0 accepted 2.17, 2.18 and 2.22), exposes them as
@@ -51,6 +52,11 @@ provider links against a GCC 4.8.5 `libgcc_s` stub. The host glibc check picks o
 symbols newer than the host's glibc. Hosted CI qualifies both modes for every release
 2.17 through 2.44 ([PROVIDERS.md](PROVIDERS.md)); `prebuilt` mode is still planned.
 The other crates are unchanged apart from the shared version.
+
+**0.3.1:** documentation only. Every public item of the five crates is documented
+(`missing_docs` is warned and CI denies warnings), each crate overview has a runnable
+example kept as a doc test, and the manifests carry docs.rs metadata. No API or
+behaviour changes.
 
 crates.io limits how many new crate names one account can publish in a short
 period; a first release of several crates may need a pause (the sixth crate

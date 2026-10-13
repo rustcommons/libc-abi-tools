@@ -384,8 +384,9 @@ with `-W missing_docs` on 2026-10-11):
   and a docs.rs badge to each README (2026-10-13).
 - [ ] After each release, confirm the docs.rs build succeeded and the pages read
   correctly. 0.3.0 (and glibc-provider-sources 0.1.0, cargo-libc 0.1.0): every build
-  succeeded on docs.rs (2026-10-13); reading the pages is part of the documentation
-  work above.
+  succeeded on docs.rs (2026-10-13). 0.3.1 (2026-10-13, the documented release): all
+  five built, and each crate page and the `provider` module page show the new overview
+  with its example.
 - [x] Document the `provider` module and its features (2026-10-13): a module overview of
   the modes, cache and descriptor, linking the delivery design and user guide. It was
   published in 0.3.0 before this; 0.3.1 carries the documentation.
