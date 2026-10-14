@@ -22,9 +22,6 @@ the data floor is 3.3). The presets are in
 
 ## Integration with cargo-libc
 
-- [ ] Run an application built with cargo-libc in SLES 12 SP5 userland with the
-  container runner (`cargo libc test --distro sles-12-sp5 --runner container`); CI
-  uses only the local runner today.
 - [ ] **Source scan:** `MAP_*` and other flag constants, which the binary scan
   does not cover.
 - [ ] **Runtime trace:** optional `strace -f -Z` capture to list every failing
