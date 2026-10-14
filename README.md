@@ -39,8 +39,8 @@ new defaults from retained compatibility interfaces and link to input provenance
 
 The experimental glibc 2.17–2.44 [provider contract](docs/PROVIDER-CONTRACT.md) connects
 all eight generated stub libraries to the companion `cargo-libc` coordinator.
-CI targets Rust 1.99.0 and Clang 21/24; the roadmap tracks each vendored version's
-remaining real input and runtime setup.
+CI targets Rust 1.99.0 and Clang 21/24; [PROVIDERS.md](docs/PROVIDERS.md) lists each
+release's provider and how it was tested.
 The [2.22 experiment](docs/GLIBC-2.22.md) includes a source-built GNU runtime and
 an explicit 2.22 symbol test; SLES qualification remains separate.
 The [2.18 provider](docs/GLIBC-2.18.md) fills the first gap with pinned source

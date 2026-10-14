@@ -66,8 +66,7 @@ here waited a few minutes).
 
 1. Set the same `version` in the five manifests and in the internal
    dependency requirements (`version = "X.Y.Z"` next to each `path`). Run
-   `cargo check --workspace` to update `Cargo.lock`, and record the release in
-   the roadmaps.
+   `cargo check --workspace` to update `Cargo.lock`.
 2. Run the full validation from [CLAUDE.md](../CLAUDE.md). Kernel changes also
    require `crates/kernel-abi-tools/scripts/self-test.sh` with both `local` and
    a container image.
@@ -88,6 +87,9 @@ here waited a few minutes).
 
    (`cargo publish --workspace` does the same in one command on Cargo 1.90+.)
 5. Tag the commit `vX.Y.Z` and push the tag.
+6. Confirm that docs.rs built every crate
+   (`https://docs.rs/crate/<name>/<version>/status.json` reports `doc_status: true`)
+   and that the crate pages read correctly. Add the release to the record above.
 
 A published version cannot be replaced. `cargo yank` only stops new lockfiles
 from selecting it.

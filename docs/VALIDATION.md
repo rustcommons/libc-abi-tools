@@ -38,7 +38,7 @@ The highest directly required GLIBC symbol version in these Cargo examples is
 `GLIBC_2.16`. This is a property of their imported interfaces, not qualification
 for glibc 2.16: the supported/tested target remains 2.17. Hosted execution used a
 modern Linux kernel; actual old distro/kernel and SLES qualification remain open.
-See [the trusted local contract](PROVIDER-CONTRACT.md) and [per-version roadmap](ROADMAP.md).
+See [the trusted local contract](PROVIDER-CONTRACT.md) and [per-release provider index](PROVIDERS.md).
 
 Validated 2026-10-09 with Rust 1.99.0 on Windows and Rust 1.98.1 in Ubuntu WSL.
 

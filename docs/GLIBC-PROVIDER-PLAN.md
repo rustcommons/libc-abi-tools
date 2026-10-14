@@ -4,7 +4,7 @@ This is an implementation order, not a list of newly supported runtimes.
 Every release from 2.17 through 2.22 has locally and hosted-qualified provider
 integration, and so does every later release through 2.44: all seven stages are complete. All 28
 vendored labels have snapshot tests; that does not establish real providers.
-The complete per-label status remains in [ROADMAP.md](ROADMAP.md).
+Each release's provider and its evidence are in [PROVIDERS.md](PROVIDERS.md).
 
 ## Delivery order
 
@@ -62,7 +62,7 @@ jobs to fail. Source-building and distribution qualification are separate routes
 8. **Add permanent hosted gates.** Add that version to GitHub Actions under both
    Clang jobs, with immutable source inputs and the tested consumer revision.
    Retain matrix results, tool revisions, input/artifact hashes, diagnostics,
-   descriptors, and runtime evidence. Mark the roadmap complete only after the
+   descriptors, and runtime evidence. List the release in PROVIDERS.md only after the
    hosted jobs pass. Authenticated relocatable SDK publication is a later gate.
 
 ## Historical research runs alongside provider expansion
