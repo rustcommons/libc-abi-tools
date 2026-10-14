@@ -19,6 +19,13 @@ The kernel crate has its own [roadmap](../crates/kernel-abi-tools/docs/ROADMAP.m
   - redistribution requirements for generated stubs and their inputs.
 - [ ] **Decide** whether the libc side should consume `linux-targets` presets, for
   example to map a distribution to its provider.
+- [ ] **Broken pipe in `libc-abi` and `linux-abi-scan`.** Piped into a reader that
+  exits early (`| head`), both panic with "failed printing to stdout: Broken pipe"
+  and exit with status 101: Rust ignores SIGPIPE, so the write fails, and `print!`
+  panics on a failed write. Fix them as `kernel-seccomp` was (2026-10-14): write
+  stdout through a helper that stops quietly on `BrokenPipe`, with a test against a
+  pipe whose read end is closed (`crates/kernel-abi-tools/tests/broken_pipe.rs`).
+  Then release all three fixes as 0.3.2 (needs the maintainer's go-ahead).
 
 ## Provider delivery
 

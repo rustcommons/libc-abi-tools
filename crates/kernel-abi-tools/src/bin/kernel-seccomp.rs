@@ -15,6 +15,8 @@ use kernel_abi_tools::{
     distro, distros, local, madvise_advice, missing_syscalls, seccomp_profile, syscalls,
     table_ceiling, table_floor, KernelVersion, Runner, Target, GENERIC_KERNELS, PROVIDER_FORMAT,
 };
+use std::fmt::Write as _;
+use std::io::{self, Write as _};
 use std::path::Path;
 use std::process::ExitCode;
 use std::{env, fs};
@@ -57,26 +59,29 @@ fn dispatch(args: &[String]) -> Result<ExitCode, String> {
             let json = seccomp_profile(&target);
             match flag(rest, "--output") {
                 Some(path) => write(Path::new(&path), &json)?,
-                None => print!("{json}"),
+                None => emit(&json)?,
             }
         }
         "missing" => {
             let target = select_target(rest)?;
             let missing = missing_syscalls(target.kernel, &target.allow);
-            println!("# {}: {} syscalls missing", target.label, missing.len());
+            let mut out = format!("# {}: {} syscalls missing\n", target.label, missing.len());
             for s in missing {
-                println!("{}\t{}\t{}", s.nr, s.name, s.first);
+                let _ = writeln!(out, "{}\t{}\t{}", s.nr, s.name, s.first);
             }
+            emit(&out)?;
         }
         "run" => return run(rest),
         "distros" => {
-            println!("id\tkernel\tglibc\tstatus\timage");
+            let mut out = String::from("id\tkernel\tglibc\tstatus\timage\n");
             for d in distros() {
-                println!(
+                let _ = writeln!(
+                    out,
                     "{}\t{}\t{}\t{}\t{}",
                     d.id, d.kernel, d.glibc, d.status, d.image
                 );
             }
+            emit(&out)?;
         }
         "generate" => {
             let dir = Path::new(rest.first().ok_or(USAGE)?);
@@ -97,19 +102,18 @@ fn dispatch(args: &[String]) -> Result<ExitCode, String> {
             );
         }
         "version" | "--version" | "-V" => {
-            println!("kernel-seccomp {}", env!("CARGO_PKG_VERSION"));
-            println!("format\t{PROVIDER_FORMAT}");
-            println!("arch\tx86_64");
-            println!(
-                "syscalls\t{} ({}..{})",
+            emit(&format!(
+                "kernel-seccomp {}\nformat\t{PROVIDER_FORMAT}\narch\tx86_64\n\
+                 syscalls\t{} ({}..{})\nmadvise-values\t{}\ndistros\t{}\n",
+                env!("CARGO_PKG_VERSION"),
                 syscalls().len(),
                 table_floor(),
-                table_ceiling()
-            );
-            println!("madvise-values\t{}", madvise_advice().len());
-            println!("distros\t{}", distros().len());
+                table_ceiling(),
+                madvise_advice().len(),
+                distros().len()
+            ))?;
         }
-        "-h" | "--help" | "help" => println!("{USAGE}"),
+        "-h" | "--help" | "help" => emit(&format!("{USAGE}\n"))?,
         other => return Err(format!("unknown command {other:?}\n{USAGE}")),
     }
     Ok(ExitCode::SUCCESS)
@@ -187,6 +191,20 @@ fn flag(args: &[String], name: &str) -> Option<String> {
         .position(|a| a == name)
         .and_then(|i| args.get(i + 1))
         .cloned()
+}
+
+/// Writes a command's output to stdout. `print!` would panic when the reader
+/// has gone (`kernel-seccomp missing ... | head`): Rust ignores SIGPIPE, so the
+/// write fails with a broken pipe instead of ending the process. Nobody is
+/// reading any more, so that is not an error: stop quietly.
+fn emit(text: &str) -> Result<(), String> {
+    let mut out = io::stdout().lock();
+    match out.write_all(text.as_bytes()).and_then(|()| out.flush()) {
+        Err(e) if e.kind() != io::ErrorKind::BrokenPipe => {
+            Err(format!("cannot write to stdout: {e}"))
+        }
+        _ => Ok(()),
+    }
 }
 
 fn write(path: &Path, contents: &str) -> Result<(), String> {
